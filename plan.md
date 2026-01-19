@@ -94,10 +94,84 @@ All tables: id, userId, syncedAt, updatedAt, isDeleted
 - Reports (daily/weekly/monthly)
 - Profit calc
 
+## Implementation Status
+
+### ✅ Completed (Phase 1: Database Layer)
+
+**Dependencies Installed:**
+- @supabase/supabase-js, @supabase/ssr
+- dexie, dexie-react-hooks
+- zustand, nanoid, date-fns
+
+**Database Schema (Dexie + Supabase):**
+- ✅ All 6 tables created with TypeScript interfaces (`lib/db/schema.ts`)
+- ✅ Dexie local database configured (`lib/db/index.ts`)
+- ✅ Supabase tables with RLS policies enabled
+- ✅ Bidirectional sync logic (`lib/db/sync.ts`)
+- ✅ Foreign key constraints configured
+- ✅ Auto-updating timestamps via triggers
+- ✅ Optimized RLS policies (no performance warnings)
+
+**Tables:**
+1. categories - Product categorization
+2. customers - Customer management with credit tracking
+3. products - Product catalog with inventory
+4. sales - POS transactions with JSONB items
+5. utang_transactions - Credit/payment ledger
+6. inventory_movements - Inventory audit trail
+
+**Infrastructure:**
+- ✅ Supabase client (`lib/supabase/client.ts`)
+- ✅ Migration files (`supabase/migrations/`)
+- ✅ .env.example with required variables
+- ✅ .mcp.json.example for Claude Code integration
+- ✅ Updated .gitignore for sensitive files
+
+### 🔄 In Progress
+
+None
+
+### 📋 Todo (Phase 2: Authentication & UI)
+
+**Auth:**
+- [ ] Supabase server client (`lib/supabase/server.ts`)
+- [ ] Auth proxy/middleware (`proxy.ts`)
+- [ ] Login/signup pages
+- [ ] Session persistence
+
+**State Management:**
+- [ ] Zustand stores (cart, sync, auth)
+- [ ] Sync orchestration (5min periodic + manual)
+
+**PWA:**
+- [ ] Service worker (`app/sw.ts`)
+- [ ] Manifest (`app/manifest.ts`)
+- [ ] Install dependencies: @serwist/next, serwist
+
+**UI Components & Pages:**
+- [ ] Shared UI components
+- [ ] Dashboard layout
+- [ ] POS page
+- [ ] Products page
+- [ ] Inventory page
+- [ ] Utang page
+- [ ] Reports page
+
+**Phase 3:**
+- [ ] CSV import (papaparse)
+- [ ] Barcode scanner (html5-qrcode)
+- [ ] Advanced reports
+
 ## Dependencies
 
+**Installed:**
 ```bash
-pnpm add @supabase/supabase-js @supabase/ssr dexie dexie-react-hooks zustand nanoid date-fns @serwist/next serwist papaparse html5-qrcode
+pnpm add @supabase/supabase-js @supabase/ssr dexie dexie-react-hooks zustand nanoid date-fns
+```
+
+**Todo:**
+```bash
+pnpm add @serwist/next serwist papaparse html5-qrcode
 pnpm add -D @types/papaparse
 ```
 
