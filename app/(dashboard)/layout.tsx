@@ -10,7 +10,7 @@ export default async function DashboardLayout({
   await verifySession()
 
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div className="min-h-screen bg-background">
       <DashboardHeader />
       <main className="container mx-auto p-4">
         {children}
