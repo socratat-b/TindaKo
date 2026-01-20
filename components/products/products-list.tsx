@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -96,18 +97,19 @@ export function ProductsList({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-1 gap-2">
+    <div className="space-y-3 lg:space-y-4">
+      {/* Search and Filter Controls */}
+      <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
+        <div className="flex flex-col gap-2 lg:flex-1 lg:flex-row">
           <Input
             placeholder="Search by name or barcode..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="max-w-sm"
+            className="h-9 text-xs lg:h-10 lg:max-w-sm lg:text-sm"
           />
 
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="h-9 w-full text-xs lg:h-10 lg:w-[180px] lg:text-sm">
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
@@ -126,12 +128,109 @@ export function ProductsList({
             setEditingProduct(null)
             setIsFormOpen(true)
           }}
+          className="h-9 w-full text-xs lg:h-10 lg:w-auto lg:text-sm"
         >
           Add Product
         </Button>
       </div>
 
-      <div className="rounded-md border">
+      {/* Empty State */}
+      {filteredProducts.length === 0 && (
+        <Card className="p-6 lg:p-12">
+          <div className="flex flex-col items-center gap-2 text-center">
+            {products.length === 0 ? (
+              <>
+                <p className="text-sm font-medium lg:text-lg">Welcome to TindaKo!</p>
+                <p className="text-xs text-muted-foreground lg:text-sm">
+                  Start by adding your first product. Click &quot;Add Product&quot; to get started.
+                </p>
+                <p className="mt-2 text-[10px] text-muted-foreground lg:text-xs">
+                  Tip: Add common items like Coke 1L, Lucky Me Pancit Canton, or Del Monte Sardinas
+                </p>
+              </>
+            ) : (
+              <p className="text-xs text-muted-foreground lg:text-sm">No products found matching your search.</p>
+            )}
+          </div>
+        </Card>
+      )}
+
+      {/* Mobile Card View */}
+      <div className="space-y-2 lg:hidden">
+        {filteredProducts.map((product) => {
+          const stockStatus = getStockStatus(product)
+          return (
+            <Card key={product.id} className="p-3">
+              <div className="space-y-2">
+                {/* Product Name and Stock Status */}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-semibold truncate">{product.name}</h3>
+                    {product.barcode && (
+                      <p className="text-[10px] font-mono text-muted-foreground">{product.barcode}</p>
+                    )}
+                  </div>
+                  <Badge variant={stockStatus.variant} className="text-[9px] shrink-0">
+                    {stockStatus.label}
+                  </Badge>
+                </div>
+
+                {/* Category Badge */}
+                <Badge
+                  variant="outline"
+                  className="text-[10px]"
+                  style={{
+                    backgroundColor: getCategoryColor(product.categoryId) + '20',
+                    borderColor: getCategoryColor(product.categoryId),
+                    color: getCategoryColor(product.categoryId),
+                  }}
+                >
+                  {getCategoryName(product.categoryId)}
+                </Badge>
+
+                {/* Pricing and Stock Info */}
+                <div className="grid grid-cols-3 gap-2 pt-1">
+                  <div>
+                    <p className="text-[9px] text-muted-foreground">Cost</p>
+                    <p className="text-xs font-medium">₱{product.costPrice.toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] text-muted-foreground">Price</p>
+                    <p className="text-xs font-semibold">₱{product.sellingPrice.toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] text-muted-foreground">Stock</p>
+                    <p className="text-xs font-medium">{product.stockQty}</p>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-2 pt-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEdit(product)}
+                    className="flex-1 h-8 text-xs"
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDelete(product)}
+                    className="flex-1 h-8 text-xs"
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          )
+        })}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden rounded-md border lg:block">
         <Table>
           <TableHeader>
             <TableRow>

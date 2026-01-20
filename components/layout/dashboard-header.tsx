@@ -25,7 +25,9 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <h1 className="text-xl font-bold text-primary">TindaKo POS</h1>
+          <h1 className="text-base font-bold text-primary sm:text-lg">
+            TindaKo
+          </h1>
         </div>
 
         <div className="flex items-center gap-4">

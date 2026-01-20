@@ -66,20 +66,20 @@ export default function ProductsInterface({ userId }: ProductsInterfaceProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 p-3 lg:space-y-6 lg:p-0">
       <div>
-        <h1 className="text-3xl font-bold">Products & Categories</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-xl font-bold lg:text-3xl">Products & Categories</h1>
+        <p className="text-xs text-muted-foreground lg:text-sm">
           Manage your inventory and product categories
         </p>
       </div>
 
-      <Tabs defaultValue="products" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="products">
+      <Tabs defaultValue="products" className="space-y-3 lg:space-y-4">
+        <TabsList className="w-full grid grid-cols-2 h-9 lg:w-auto lg:inline-flex lg:h-10">
+          <TabsTrigger value="products" className="text-xs lg:text-sm">
             Products ({products.length})
           </TabsTrigger>
-          <TabsTrigger value="categories">
+          <TabsTrigger value="categories" className="text-xs lg:text-sm">
             Categories ({categories.length})
           </TabsTrigger>
         </TabsList>

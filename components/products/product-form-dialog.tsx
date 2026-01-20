@@ -129,57 +129,64 @@ export function ProductFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="w-[calc(100vw-2rem)] max-w-md sm:w-full">
         <DialogHeader>
-          <DialogTitle>{product ? 'Edit Product' : 'Add Product'}</DialogTitle>
+          <DialogTitle className="text-base lg:text-lg">
+            {product ? 'Edit Product' : 'Add Product'}
+          </DialogTitle>
         </DialogHeader>
 
         {categories.length === 0 ? (
           <div className="space-y-4 py-4">
-            <div className="rounded bg-yellow-500/10 p-4 text-sm">
-              <p className="font-medium text-yellow-700">No categories available</p>
-              <p className="mt-2 text-yellow-600">
+            <div className="rounded bg-yellow-500/10 p-3 lg:p-4">
+              <p className="text-xs font-medium text-yellow-700 lg:text-sm">No categories available</p>
+              <p className="mt-2 text-xs text-yellow-600 lg:text-sm">
                 Please create at least one category first. Go to the Categories tab to
                 add categories like Inumin, Meryenda, or Canned Goods.
               </p>
             </div>
-            <Button onClick={() => onOpenChange(false)} className="w-full">
+            <Button
+              onClick={() => onOpenChange(false)}
+              className="h-9 w-full text-xs lg:h-10 lg:text-sm"
+            >
               Got it
             </Button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3 lg:space-y-4">
             {error && (
-              <div className="rounded bg-red-500/10 p-3 text-sm text-red-500">{error}</div>
+              <div className="rounded bg-red-500/10 p-3 text-xs text-red-500 lg:text-sm">{error}</div>
             )}
 
           <div>
-            <Label htmlFor="name">Product Name *</Label>
+            <Label htmlFor="name" className="text-xs lg:text-sm">Product Name *</Label>
             <Input
               id="name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               required
+              className="h-9 text-xs lg:h-10 lg:text-sm"
             />
           </div>
 
           <div>
-            <Label htmlFor="barcode">Barcode</Label>
+            <Label htmlFor="barcode" className="text-xs lg:text-sm">Barcode</Label>
             <Input
               id="barcode"
               value={formData.barcode}
               onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
               placeholder="Optional"
+              className="h-9 text-xs lg:h-10 lg:text-sm"
             />
           </div>
 
           <div>
-            <Label htmlFor="category">Category *</Label>
+            <Label htmlFor="category" className="text-xs lg:text-sm">Category *</Label>
             <Select
               value={formData.categoryId}
               onValueChange={(value) => setFormData({ ...formData, categoryId: value })}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-9 text-xs lg:h-10 lg:text-sm">
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
@@ -192,9 +199,9 @@ export function ProductFormDialog({
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-2 lg:gap-4">
             <div>
-              <Label htmlFor="costPrice">Cost Price *</Label>
+              <Label htmlFor="costPrice" className="text-xs lg:text-sm">Cost Price *</Label>
               <Input
                 id="costPrice"
                 type="number"
@@ -203,11 +210,12 @@ export function ProductFormDialog({
                 value={formData.costPrice}
                 onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
                 required
+                className="h-9 text-xs lg:h-10 lg:text-sm"
               />
             </div>
 
             <div>
-              <Label htmlFor="sellingPrice">Selling Price *</Label>
+              <Label htmlFor="sellingPrice" className="text-xs lg:text-sm">Selling Price *</Label>
               <Input
                 id="sellingPrice"
                 type="number"
@@ -218,13 +226,14 @@ export function ProductFormDialog({
                   setFormData({ ...formData, sellingPrice: e.target.value })
                 }
                 required
+                className="h-9 text-xs lg:h-10 lg:text-sm"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-2 lg:gap-4">
             <div>
-              <Label htmlFor="stockQty">Stock Quantity *</Label>
+              <Label htmlFor="stockQty" className="text-xs lg:text-sm">Stock Quantity *</Label>
               <Input
                 id="stockQty"
                 type="number"
@@ -232,11 +241,12 @@ export function ProductFormDialog({
                 value={formData.stockQty}
                 onChange={(e) => setFormData({ ...formData, stockQty: e.target.value })}
                 required
+                className="h-9 text-xs lg:h-10 lg:text-sm"
               />
             </div>
 
             <div>
-              <Label htmlFor="lowStockThreshold">Low Stock Alert *</Label>
+              <Label htmlFor="lowStockThreshold" className="text-xs lg:text-sm">Low Stock Alert *</Label>
               <Input
                 id="lowStockThreshold"
                 type="number"
@@ -246,20 +256,26 @@ export function ProductFormDialog({
                   setFormData({ ...formData, lowStockThreshold: e.target.value })
                 }
                 required
+                className="h-9 text-xs lg:h-10 lg:text-sm"
               />
             </div>
           </div>
 
-          <div className="flex justify-end gap-2">
+          <div className="flex gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
+              className="h-9 flex-1 text-xs lg:h-10 lg:flex-none lg:text-sm"
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="h-9 flex-1 text-xs lg:h-10 lg:flex-none lg:text-sm"
+            >
               {isLoading ? 'Saving...' : product ? 'Update' : 'Create'}
             </Button>
           </div>

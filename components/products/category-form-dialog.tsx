@@ -26,6 +26,10 @@ const PRESET_COLORS = [
   { name: 'Purple', value: '#a855f7' },
   { name: 'Pink', value: '#ec4899' },
   { name: 'Gray', value: '#6b7280' },
+  { name: 'Teal', value: '#14b8a6' },
+  { name: 'Indigo', value: '#6366f1' },
+  { name: 'Lime', value: '#84cc16' },
+  { name: 'Cyan', value: '#06b6d4' },
 ]
 
 export function CategoryFormDialog({
@@ -95,35 +99,40 @@ export function CategoryFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="w-[calc(100vw-2rem)] max-w-md sm:w-full">
         <DialogHeader>
-          <DialogTitle>{category ? 'Edit Category' : 'Add Category'}</DialogTitle>
+          <DialogTitle className="text-base lg:text-lg">
+            {category ? 'Edit Category' : 'Add Category'}
+          </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="rounded bg-red-500/10 p-3 text-sm text-red-500">{error}</div>
+            <div className="rounded bg-red-500/10 p-3 text-xs text-red-500 lg:text-sm">{error}</div>
           )}
 
           <div>
-            <Label htmlFor="name">Category Name *</Label>
+            <Label htmlFor="name" className="text-xs lg:text-sm">Category Name *</Label>
             <Input
               id="name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               required
+              className="h-9 text-xs lg:h-10 lg:text-sm"
             />
           </div>
 
           <div>
-            <Label>Color *</Label>
+            <Label className="text-xs lg:text-sm">Color *</Label>
+
+            {/* Color Presets */}
             <div className="mt-2 grid grid-cols-4 gap-2">
               {PRESET_COLORS.map((preset) => (
                 <button
                   key={preset.value}
                   type="button"
                   onClick={() => setFormData({ ...formData, color: preset.value })}
-                  className="flex h-12 items-center justify-center rounded border-2 transition-all hover:scale-105"
+                  className="flex h-10 items-center justify-center rounded border-2 transition-all hover:scale-105 active:scale-95"
                   style={{
                     backgroundColor: preset.value,
                     borderColor:
@@ -132,39 +141,52 @@ export function CategoryFormDialog({
                   title={preset.name}
                 >
                   {formData.color === preset.value && (
-                    <span className="text-xl text-white drop-shadow-lg">✓</span>
+                    <span className="text-lg text-white drop-shadow-lg">✓</span>
                   )}
                 </button>
               ))}
             </div>
+
+            {/* Custom Color Picker */}
+            <div className="mt-3 flex items-center gap-2">
+              <Label htmlFor="colorPicker" className="text-xs lg:text-sm">
+                Custom:
+              </Label>
+              <div className="flex flex-1 items-center gap-2">
+                <input
+                  id="colorPicker"
+                  type="color"
+                  value={formData.color}
+                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                  className="h-10 w-16 cursor-pointer rounded border border-border bg-transparent"
+                />
+                <Input
+                  type="text"
+                  value={formData.color}
+                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                  placeholder="#000000"
+                  className="h-9 flex-1 font-mono text-xs uppercase lg:h-10 lg:text-sm"
+                  maxLength={7}
+                />
+              </div>
+            </div>
           </div>
 
-          <div>
-            <Label htmlFor="sortOrder">Sort Order</Label>
-            <Input
-              id="sortOrder"
-              type="number"
-              min="0"
-              value={formData.sortOrder}
-              onChange={(e) =>
-                setFormData({ ...formData, sortOrder: parseInt(e.target.value, 10) })
-              }
-            />
-            <p className="mt-1 text-xs text-muted-foreground">
-              Lower numbers appear first
-            </p>
-          </div>
-
-          <div className="flex justify-end gap-2">
+          <div className="flex gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
+              className="h-9 flex-1 text-xs lg:h-10 lg:flex-none lg:text-sm"
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="h-9 flex-1 text-xs lg:h-10 lg:flex-none lg:text-sm"
+            >
               {isLoading ? 'Saving...' : category ? 'Update' : 'Create'}
             </Button>
           </div>

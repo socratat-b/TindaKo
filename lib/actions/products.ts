@@ -257,3 +257,27 @@ export async function deleteCategory(id: string): Promise<void> {
     throw error
   }
 }
+
+/**
+ * Update sort order for multiple categories
+ */
+export async function updateCategoriesOrder(
+  updates: Array<{ id: string; sortOrder: number }>
+): Promise<void> {
+  const now = new Date().toISOString()
+
+  try {
+    await db.transaction('rw', db.categories, async () => {
+      for (const { id, sortOrder } of updates) {
+        await db.categories.update(id, {
+          sortOrder,
+          updatedAt: now,
+          syncedAt: null,
+        })
+      }
+    })
+  } catch (error) {
+    console.error('Failed to update categories order:', error)
+    throw error
+  }
+}

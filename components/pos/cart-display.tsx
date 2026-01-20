@@ -97,7 +97,7 @@ export function CartDisplay({ onCheckout }: CartDisplayProps) {
                             : 'text-muted-foreground'
                       }`}>
                         {remainingStock === 0
-                          ? 'No more stock'
+                          ? 'Out of stock'
                           : `${remainingStock} more available`}
                       </p>
                     </div>
