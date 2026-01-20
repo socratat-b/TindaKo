@@ -153,15 +153,36 @@ All tables: id, userId, syncedAt, updatedAt, isDeleted
 - ✅ All sync functions filter by userId
 - ✅ RLS policies enforce user-scoped data access
 
+#### Phase 3: State Management & Sync Orchestration
+
+**State Management:**
+- ✅ Cart store (`lib/stores/cart-store.ts`) with localStorage persistence
+- ✅ Sync store (`lib/stores/sync-store.ts`) with orchestration
+- ✅ Sync provider (`components/providers/sync-provider.tsx`)
+- ✅ Cart hook (`lib/hooks/use-cart.ts`) with auto pending change tracking
+- ✅ Sync hook (`lib/hooks/use-sync.ts`)
+
+**Sync Strategies:**
+- ✅ Periodic sync (5min intervals, configurable)
+- ✅ Manual sync trigger via `sync()` method
+- ✅ Auto-sync on window close/beforeunload (if pending changes)
+- ✅ Auto-sync on tab visibility change (when hidden)
+- ✅ Auto-sync on window focus (if >5min since last sync)
+
+**Cart Features:**
+- ✅ Add/remove items with stock validation
+- ✅ Update quantities with bounds checking
+- ✅ Customer selection
+- ✅ Discount management
+- ✅ Payment method selection (cash/gcash/card)
+- ✅ Automatic subtotal/total calculation
+- ✅ Integrates with sync store for pending change tracking
+
 ### 🔄 In Progress
 
 None
 
 ### 📋 Todo (Phase 3: UI & Features)
-
-**State Management:**
-- [ ] Zustand stores (cart, sync)
-- [ ] Sync orchestration (5min periodic + manual + on-close)
 
 **PWA:**
 - [ ] Service worker (`app/sw.ts`)
@@ -278,12 +299,14 @@ export default function manifest() {
 1. lib/supabase/client.ts, server.ts
 2. proxy.ts
 3. lib/db/schema.ts, index.ts, sync.ts
-4. lib/stores/cart-store.ts, sync-store.ts
-5. app/manifest.ts, sw.ts
-6. components/ui/\*
-7. app/(auth)/login, signup
-8. app/(dashboard)/layout.tsx
-9. app/(dashboard)/pos/page.tsx
+4. lib/stores/auth-store.ts, cart-store.ts, sync-store.ts
+5. lib/hooks/use-auth.ts, use-cart.ts, use-sync.ts
+6. components/providers/auth-provider.tsx, sync-provider.tsx
+7. app/manifest.ts, sw.ts
+8. components/ui/\*
+9. app/(auth)/login, signup
+10. app/(dashboard)/layout.tsx
+11. app/(dashboard)/pos/page.tsx
 
 ## Verification Checklist
 

@@ -92,7 +92,56 @@ proxy.ts                                  # Optimistic auth checks (Next.js 16)
 - User isolation in all sync operations
 - Session persistence in localStorage
 
-### 📋 Todo: Phase 3
+### ✅ Phase 3: State Management & Sync Orchestration (COMPLETED)
+
+**Implemented Files:**
+```
+lib/stores/
+  ├── cart-store.ts              # Shopping cart state with persistence
+  └── sync-store.ts              # Sync orchestration (periodic + manual + on-close)
+lib/hooks/
+  ├── use-cart.ts                # Cart management hook with auto pending tracking
+  └── use-sync.ts                # Sync state and manual trigger hook
+components/providers/
+  └── sync-provider.tsx          # Auto-initializes sync when authenticated
+app/layout.tsx                   # Updated with SyncProvider
+```
+
+**Cart Store Features:**
+- Add/remove items with stock validation
+- Update quantities with bounds checking
+- Customer selection
+- Discount management
+- Payment method selection (cash/gcash/card)
+- Automatic subtotal/total calculation
+- localStorage persistence
+
+**Sync Orchestration:**
+- **Periodic sync**: Every 5 minutes (configurable interval)
+- **Manual sync**: Via `sync()` method
+- **Auto-sync on**:
+  - Window close/beforeunload (if pending changes)
+  - Tab visibility change (when hidden)
+  - Window focus (if >5min since last sync)
+- Prevents concurrent syncs
+- Tracks sync status, errors, and pending changes
+
+**Usage Example:**
+```typescript
+import { useCart } from '@/lib/hooks/use-cart'
+import { useSync } from '@/lib/hooks/use-sync'
+
+function POSComponent() {
+  const { items, addItem, total } = useCart()
+  const { isSyncing, sync, hasPendingChanges } = useSync()
+
+  // Cart automatically marks pending changes
+  // Sync runs automatically in background
+  // Manual sync available via sync() method
+}
+```
+
+### 📋 Todo: Phase 3 (Remaining)
 
 **Folder Structure to Create:**
 ```
@@ -109,9 +158,6 @@ components/
   ├── pos/            # POS-specific components
   ├── products/       # Product components
   └── layout/         # Layout components (sidebar, navbar)
-lib/stores/
-  ├── cart-store.ts   # Shopping cart state
-  └── sync-store.ts   # Sync orchestration
 ```
 
 ## Key Patterns
@@ -154,7 +200,7 @@ lib/stores/
    - `lastSyncTime: number | null` - Last successful sync
    - Read-only access via `useAuth()` hook
 
-**Key Files:**
+**Key Auth Files:**
 - `lib/dal.ts` - PRIMARY security with offline fallback
 - `lib/auth/session-cache.ts` - Session caching + offline validation
 - `lib/hooks/use-online-status.ts` - Online/offline status tracking
@@ -165,6 +211,13 @@ lib/stores/
 - `lib/hooks/use-auth.ts` - Read-only auth state hook
 - `components/auth/submit-button.tsx` - Reusable form submit button
 - `components/providers/auth-provider.tsx` - Session caching + background refresh
+
+**Key State Management Files:**
+- `lib/stores/cart-store.ts` - Shopping cart with validation & persistence
+- `lib/stores/sync-store.ts` - Sync orchestration & status tracking
+- `lib/hooks/use-cart.ts` - Cart management with auto pending tracking
+- `lib/hooks/use-sync.ts` - Sync state & manual trigger
+- `components/providers/sync-provider.tsx` - Auto-initializes sync
 
 **Offline Capabilities:**
 - Login once → Works offline for 30 days
@@ -181,7 +234,7 @@ lib/stores/
 
 ## Project Status Summary
 
-### ✅ What Works Now (Phases 1-2 Complete)
+### ✅ What Works Now (Phases 1-3 State Management Complete)
 - Database schema with 6 tables (categories, customers, products, sales, utangTransactions, inventoryMovements)
 - Bidirectional sync between Dexie (local) and Supabase (cloud)
 - **Hybrid offline-first authentication:**
@@ -193,12 +246,15 @@ lib/stores/
 - Protected routes with Data Access Layer security
 - User-scoped data isolation (RLS + userId filtering)
 - Session persistence across page refreshes + offline access
+- **State management:**
+  - Shopping cart with stock validation and persistence
+  - Automatic sync orchestration (5min periodic + manual + on-close)
+  - Pending changes tracking
+  - Convenient hooks for cart and sync access
 
-### 🚧 What's Next (Phase 3)
+### 🚧 What's Next (Phase 3 Remaining)
 - PWA setup (manifest + service worker)
 - UI component library
-- Shopping cart state management
-- Sync orchestration (5min periodic + manual + on-close)
 - POS page implementation (product grid, cart, checkout)
 - Products & categories management pages
 - Inventory management with low stock alerts
