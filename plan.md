@@ -178,16 +178,50 @@ All tables: id, userId, syncedAt, updatedAt, isDeleted
 - ✅ Automatic subtotal/total calculation
 - ✅ Integrates with sync store for pending change tracking
 
+#### Phase 3: PWA Setup
+
+**Dependencies:**
+- ✅ @serwist/next 9.5.0
+- ✅ serwist 9.5.0
+
+**Configuration:**
+- ✅ next.config.ts with Serwist plugin (webpack mode)
+- ✅ package.json build script updated with --webpack flag
+- ✅ Service worker enabled only in production
+
+**Files Created:**
+- ✅ app/sw.ts - Service worker with precaching and runtime caching
+- ✅ app/manifest.ts - PWA manifest with app metadata
+- ✅ app/page.tsx - Landing page with install feature
+- ✅ components/pwa/install-button.tsx - Custom PWA install button
+- ✅ public/icon-192.svg - PWA icon (192x192)
+- ✅ public/icon-512.svg - PWA icon (512x512)
+- ✅ public/sw.js - Generated service worker (42.8 KB)
+- ✅ proxy.ts - Updated to allow public routes (/, /login, /signup)
+
+**Features:**
+- ✅ Service worker with precaching and runtime caching
+- ✅ Installable on mobile and desktop browsers
+- ✅ Custom install button with beforeinstallprompt API
+- ✅ iOS fallback instructions (Safari doesn't support custom install)
+- ✅ Landing page at / showcasing app features
+- ✅ Public routes (no auth required for landing page)
+- ✅ Offline-capable architecture
+- ✅ Manifest accessible at /manifest.webmanifest
+- ✅ Theme color: #10b981 (emerald-500)
+- ✅ Standalone display mode, start URL: /pos
+- ✅ Build verified successful
+
+**Known Limitations:**
+- Uses webpack instead of Turbopack (Serwist doesn't support Turbopack yet)
+- SVG icons (recommend PNG/WebP for production)
+- PWA features only work in production build
+
 ### 🔄 In Progress
 
 None
 
 ### 📋 Todo (Phase 3: UI & Features)
-
-**PWA:**
-- [ ] Service worker (`app/sw.ts`)
-- [ ] Manifest (`app/manifest.ts`)
-- [ ] Install dependencies: @serwist/next, serwist
 
 **UI Components:**
 - [ ] Shared UI components (button, input, card, etc.)
@@ -211,12 +245,12 @@ None
 
 **Installed:**
 ```bash
-pnpm add @supabase/supabase-js @supabase/ssr dexie dexie-react-hooks zustand nanoid date-fns
+pnpm add @supabase/supabase-js @supabase/ssr dexie dexie-react-hooks zustand nanoid date-fns @serwist/next serwist
 ```
 
 **Todo:**
 ```bash
-pnpm add @serwist/next serwist papaparse html5-qrcode
+pnpm add papaparse html5-qrcode
 pnpm add -D @types/papaparse
 ```
 
@@ -225,14 +259,33 @@ pnpm add -D @types/papaparse
 **next.config.ts**
 
 ```ts
+import type { NextConfig } from "next";
 import withSerwistInit from "@serwist/next";
+
 const withSerwist = withSerwistInit({
   swSrc: "app/sw.ts",
   swDest: "public/sw.js",
-  disable: process.env.NODE_ENV === "development",
+  disable: process.env.NODE_ENV !== "production",
 });
-export default withSerwist({ reactCompiler: true });
+
+const nextConfig: NextConfig = {
+  /* config options here */
+};
+
+export default withSerwist(nextConfig);
 ```
+
+**package.json** (build script)
+
+```json
+{
+  "scripts": {
+    "build": "next build --webpack"
+  }
+}
+```
+
+**Note:** Use `--webpack` flag because Serwist doesn't support Turbopack yet.
 
 **lib/supabase/client.ts**
 
@@ -317,9 +370,14 @@ export default function manifest() {
 - [x] Auth state syncs to localStorage
 - [x] DAL verifySession() works
 
+**PWA:**
+- [x] PWA installs (manifest + service worker)
+- [x] Build generates service worker
+- [x] Manifest accessible at /manifest.webmanifest
+- [x] Service worker enabled in production only
+
 **Todo:**
-- [ ] PWA installs (manifest + service worker)
-- [ ] Offline works (airplane mode)
+- [ ] Offline mode fully functional (airplane mode test with data)
 - [ ] Sync to Supabase (manual trigger)
 - [ ] Sale flow complete
 - [ ] Utang records and tracks balance

@@ -141,6 +141,64 @@ function POSComponent() {
 }
 ```
 
+### ✅ Phase 3: PWA Setup (COMPLETED & TESTED)
+
+**Implemented Files:**
+```
+app/
+  ├── page.tsx                 # Landing page with PWA install feature
+  ├── sw.ts                    # Service worker with Serwist
+  └── manifest.ts              # PWA manifest
+components/pwa/
+  └── install-button.tsx       # Custom PWA install button (uses beforeinstallprompt)
+proxy.ts                       # Updated to allow public routes (/, /login, /signup)
+next.config.ts                 # Configured with Serwist plugin (webpack mode)
+package.json                   # Build script updated with --webpack flag
+public/
+  ├── icon-192.svg             # PWA icon (192x192)
+  ├── icon-512.svg             # PWA icon (512x512)
+  └── sw.js                    # Generated service worker (42.8 KB)
+```
+
+**PWA Features:**
+- **Custom install button** with `beforeinstallprompt` API (Chrome, Edge, Android)
+- **iOS fallback instructions** (Safari doesn't support custom install prompts)
+- **Landing page** at `/` showcasing app features and install option
+- **Public routes** - Landing page accessible without authentication
+- Service worker with precaching and runtime caching
+- PWA manifest with app metadata and icons
+- Offline-capable (disabled in non-production environments)
+- Installable on mobile and desktop browsers
+- Theme color: #10b981 (emerald-500)
+- Standalone display mode
+- Start URL: /pos
+
+**Build Configuration:**
+- Uses webpack instead of Turbopack (Serwist requirement)
+- Build command: `pnpm build` (uses `--webpack` flag)
+- Service worker only enabled in production (`NODE_ENV === "production"`)
+- Generates service worker at `public/sw.js` during build
+
+**Installation UX:**
+- Landing page at `/` with prominent "Install App" button
+- Custom install prompt works on Chrome, Edge, Samsung Internet (Android/Desktop)
+- iOS users see instructions: "Tap Share → Add to Home Screen"
+- Auto-detects if already installed (button hides)
+- Auto-detects iOS devices and shows appropriate UI
+
+**Testing Notes:**
+- Build verified successful
+- Service worker generated correctly
+- Manifest accessible at `/manifest.webmanifest`
+- Icons use SVG format (replace with PNG/WebP for better browser support)
+- Landing page accessible and responsive
+
+**Known Limitations:**
+- Serwist doesn't support Next.js 16 Turbopack yet (webpack fallback configured)
+- PWA features only work in production build (`pnpm build && pnpm start`)
+- SVG icons may not work on all browsers (recommend PNG for production)
+- iOS Safari doesn't support `beforeinstallprompt` (fallback instructions provided)
+
 ### 📋 Todo: Phase 3 (Remaining)
 
 **Folder Structure to Create:**
@@ -151,8 +209,6 @@ app/(dashboard)/
   ├── utang/          # Customer credit tracking
   ├── reports/        # Sales reports
   └── settings/       # App settings
-app/manifest.ts       # PWA manifest
-app/sw.ts             # Service worker
 components/
   ├── ui/             # Shared UI components
   ├── pos/            # POS-specific components
@@ -173,7 +229,9 @@ components/
 ### Next.js 16 & React 19
 - **Use `proxy.ts` instead of `middleware.ts`**: Next.js 16 renamed middleware to proxy
 - Dexie components must use dynamic imports with `ssr: false`
-- Disable Serwist in development to avoid cache issues
+- **PWA/Serwist**: Use webpack for builds (`--webpack` flag) as Serwist doesn't support Turbopack yet
+- Disable Serwist in non-production environments (`NODE_ENV !== "production"`)
+- Service worker only generates on production builds (`pnpm build`)
 
 ### Authentication & Security
 
@@ -234,7 +292,7 @@ components/
 
 ## Project Status Summary
 
-### ✅ What Works Now (Phases 1-3 State Management Complete)
+### ✅ What Works Now (Phases 1-3 Foundation Complete)
 - Database schema with 6 tables (categories, customers, products, sales, utangTransactions, inventoryMovements)
 - Bidirectional sync between Dexie (local) and Supabase (cloud)
 - **Hybrid offline-first authentication:**
@@ -251,9 +309,14 @@ components/
   - Automatic sync orchestration (5min periodic + manual + on-close)
   - Pending changes tracking
   - Convenient hooks for cart and sync access
+- **PWA capabilities (tested & working):**
+  - Service worker with precaching and runtime caching
+  - Installable on mobile and desktop browsers
+  - Offline-ready architecture with IndexedDB
+  - App manifest configured (/manifest.webmanifest)
+  - Production build generates optimized service worker (42.8 KB)
 
 ### 🚧 What's Next (Phase 3 Remaining)
-- PWA setup (manifest + service worker)
 - UI component library
 - POS page implementation (product grid, cart, checkout)
 - Products & categories management pages
@@ -262,15 +325,35 @@ components/
 - Sales reports
 
 ### 🎯 Ready to Test
+
+**Development Mode:**
 ```bash
-# Start dev server
+# Start dev server (no PWA features)
 pnpm dev
 
 # Visit http://localhost:3000
-# - Creates/signs in with email/password
-# - Redirects to /pos after auth
+# - See landing page with app features
+# - Click "Log in" or sign up
+# - After auth, redirects to /pos
 # - Session persists on refresh
 # - Try logging out and back in
+```
+
+**Production Mode (with PWA):**
+```bash
+# Build and start production server
+pnpm build
+pnpm start
+
+# Visit http://localhost:3000
+# - Landing page shows "Install App" button
+# - Click "Install App" to trigger browser's install dialog
+# - On iOS: Shows instructions for manual "Add to Home Screen"
+# - After install, button hides (detects standalone mode)
+# - Test PWA installation and offline mode
+# - Check Chrome DevTools > Application > Manifest
+# - Test offline mode: DevTools > Network > Offline
+# - Verify service worker: DevTools > Application > Service Workers
 ```
 
 **Environment Setup Required:**
