@@ -221,11 +221,17 @@ All tables: id, userId, syncedAt, updatedAt, isDeleted
 
 None
 
+#### Phase 3: UI Components & Layout
+
+- ✅ shadcn/ui initialized (button, input, label, card, badge, separator)
+- ✅ Layout components (header, sidebar, sync indicator, dashboard layout)
+- ✅ Folders: components/ui/, components/layout/, components/pos/, components/products/
+
 ### 📋 Todo (Phase 3: UI & Features)
 
 **UI Components:**
-- [ ] Shared UI components (button, input, card, etc.)
-- [ ] Layout components (sidebar, navbar, sync indicator)
+- [x] Shared UI components (button, input, card, etc.)
+- [x] Layout components (sidebar, navbar, sync indicator)
 
 **Pages:**
 - [ ] POS page (product grid, cart, checkout)
