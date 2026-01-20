@@ -134,10 +134,24 @@ export function ProductFormDialog({
           <DialogTitle>{product ? 'Edit Product' : 'Add Product'}</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="rounded bg-red-500/10 p-3 text-sm text-red-500">{error}</div>
-          )}
+        {categories.length === 0 ? (
+          <div className="space-y-4 py-4">
+            <div className="rounded bg-yellow-500/10 p-4 text-sm">
+              <p className="font-medium text-yellow-700">No categories available</p>
+              <p className="mt-2 text-yellow-600">
+                Please create at least one category first. Go to the Categories tab to
+                add categories like Inumin, Meryenda, or Canned Goods.
+              </p>
+            </div>
+            <Button onClick={() => onOpenChange(false)} className="w-full">
+              Got it
+            </Button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="rounded bg-red-500/10 p-3 text-sm text-red-500">{error}</div>
+            )}
 
           <div>
             <Label htmlFor="name">Product Name *</Label>
@@ -250,6 +264,7 @@ export function ProductFormDialog({
             </Button>
           </div>
         </form>
+        )}
       </DialogContent>
     </Dialog>
   )

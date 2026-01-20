@@ -100,8 +100,13 @@ export function CategoriesList({
           <TableBody>
             {sortedCategories.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
-                  No categories found. Create one to get started.
+                <TableCell colSpan={5} className="py-12 text-center">
+                  <div className="flex flex-col items-center gap-2">
+                    <p className="text-lg font-medium">Setting up categories...</p>
+                    <p className="text-sm text-muted-foreground">
+                      We&apos;re adding default categories for your sari-sari store
+                    </p>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (

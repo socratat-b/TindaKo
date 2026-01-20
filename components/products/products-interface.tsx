@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/lib/db'
+import { seedDefaultCategories } from '@/lib/db/seeders'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ProductsList } from './products-list'
 import { CategoriesList } from './categories-list'
@@ -13,6 +14,7 @@ interface ProductsInterfaceProps {
 
 export default function ProductsInterface({ userId }: ProductsInterfaceProps) {
   const [refreshKey, setRefreshKey] = useState(0)
+  const [isSeeding, setIsSeeding] = useState(false)
 
   const products = useLiveQuery(
     () => db.products.filter((p) => !p.isDeleted).toArray(),
@@ -33,6 +35,23 @@ export default function ProductsInterface({ userId }: ProductsInterfaceProps) {
     })
     return counts
   }, [products, categories])
+
+  // Auto-seed default categories for new users
+  useEffect(() => {
+    if (categories && categories.length === 0 && !isSeeding) {
+      setIsSeeding(true)
+      seedDefaultCategories(userId)
+        .then(() => {
+          handleRefresh()
+        })
+        .catch((err) => {
+          console.error('Failed to seed categories:', err)
+        })
+        .finally(() => {
+          setIsSeeding(false)
+        })
+    }
+  }, [categories, userId, isSeeding])
 
   const handleRefresh = () => {
     setRefreshKey((prev) => prev + 1)

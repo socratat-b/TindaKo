@@ -148,8 +148,22 @@ export function ProductsList({
           <TableBody>
             {filteredProducts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="h-24 text-center">
-                  No products found.
+                <TableCell colSpan={8} className="py-12 text-center">
+                  <div className="flex flex-col items-center gap-2">
+                    {products.length === 0 ? (
+                      <>
+                        <p className="text-lg font-medium">Welcome to TindaKo!</p>
+                        <p className="text-sm text-muted-foreground">
+                          Start by adding your first product. Click &quot;Add Product&quot; to get started.
+                        </p>
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          Tip: Add common items like Coke 1L, Lucky Me Pancit Canton, or Del Monte Sardinas
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-muted-foreground">No products found matching your search.</p>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (
