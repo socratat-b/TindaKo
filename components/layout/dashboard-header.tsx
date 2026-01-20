@@ -1,9 +1,10 @@
 'use client'
 
 import { useAuth } from '@/lib/hooks/use-auth'
+import { logoutAction } from '@/lib/actions/auth'
 
 export function DashboardHeader() {
-  const { user, signOut, isLoading } = useAuth()
+  const { user } = useAuth()
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-card">
@@ -16,13 +17,14 @@ export function DashboardHeader() {
           <div className="text-sm text-muted-foreground">
             {user?.email}
           </div>
-          <button
-            onClick={() => signOut()}
-            disabled={isLoading}
-            className="rounded-lg bg-muted px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? 'Logging out...' : 'Logout'}
-          </button>
+          <form action={logoutAction}>
+            <button
+              type="submit"
+              className="rounded-lg bg-muted px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted/80 transition-colors"
+            >
+              Logout
+            </button>
+          </form>
         </div>
       </div>
     </header>

@@ -139,12 +139,13 @@ All tables: id, userId, syncedAt, updatedAt, isDeleted
 
 **Client State:**
 - ✅ Zustand auth store (`lib/stores/auth-store.ts`) with localStorage persistence
-- ✅ Auth hook (`lib/hooks/use-auth.ts`)
+- ✅ Auth hook (`lib/hooks/use-auth.ts`) - read-only state access
 - ✅ Auth provider (`components/providers/auth-provider.tsx`)
 
-**Pages:**
-- ✅ Login page (`app/(auth)/login/page.tsx`)
-- ✅ Signup page with validation (`app/(auth)/signup/page.tsx`)
+**Pages & Components:**
+- ✅ Login page with `useActionState` (`app/(auth)/login/page.tsx`)
+- ✅ Signup page with `useActionState` + validation (`app/(auth)/signup/page.tsx`)
+- ✅ Submit button component (`components/auth/submit-button.tsx`)
 - ✅ Protected dashboard layout (`app/(dashboard)/layout.tsx`)
 - ✅ POS page placeholder (`app/(dashboard)/pos/page.tsx`)
 

@@ -67,15 +67,16 @@ All tables include: id, userId, createdAt, updatedAt, syncedAt, isDeleted
 lib/
   ├── dal.ts                              # Data Access Layer (PRIMARY SECURITY)
   ├── supabase/server.ts                  # Server-side Supabase client
-  ├── actions/auth.ts                     # Server Actions (signup/login/logout)
+  ├── actions/auth.ts                     # Server Actions (useActionState pattern)
   ├── stores/auth-store.ts                # Zustand auth state
-  └── hooks/use-auth.ts                   # Client auth hook
-components/providers/
-  └── auth-provider.tsx                   # Auth state synchronization
+  └── hooks/use-auth.ts                   # Client auth hook (read-only state)
+components/
+  ├── auth/submit-button.tsx              # Reusable submit button with pending state
+  └── providers/auth-provider.tsx         # Auth state synchronization
 app/
   ├── (auth)/
-  │   ├── login/page.tsx                  # Login form
-  │   └── signup/page.tsx                 # Signup form
+  │   ├── login/page.tsx                  # Login form (useActionState)
+  │   └── signup/page.tsx                 # Signup form (useActionState)
   ├── (dashboard)/
   │   ├── layout.tsx                      # Protected layout with DAL
   │   └── pos/page.tsx                    # POS placeholder
@@ -85,7 +86,8 @@ proxy.ts                                  # Optimistic auth checks (Next.js 16)
 
 **Security Features:**
 - Primary security via Data Access Layer (not proxy)
-- Server Actions for secure auth operations
+- Server Actions with useActionState (React 19 pattern)
+- Progressive enhancement (forms work without JS)
 - Optimistic redirects in proxy.ts
 - User isolation in all sync operations
 - Session persistence in localStorage
@@ -143,21 +145,25 @@ lib/stores/
 3. **Optimistic Checks: proxy.ts** - Quick permission-based redirects for better UX
    - Gracefully handles network errors (allows through, DAL validates)
    - NOT the primary security layer (DAL is)
-4. **Auth Operations: Server Actions** - `lib/actions/auth.ts` for signup/login/logout
-   - More secure than client-side auth (credentials never exposed to client)
+4. **Auth Operations: Server Actions** - `lib/actions/auth.ts` (signupAction, loginAction, logoutAction)
+   - Uses React 19 `useActionState` pattern for forms
+   - Server-side validation (password matching, length checks)
+   - Progressive enhancement (works without JavaScript)
 5. **Client State: Zustand** - `lib/stores/auth-store.ts` for UI state + offline tracking
    - `isOffline: boolean` - Network status
    - `lastSyncTime: number | null` - Last successful sync
+   - Read-only access via `useAuth()` hook
 
 **Key Files:**
 - `lib/dal.ts` - PRIMARY security with offline fallback
 - `lib/auth/session-cache.ts` - Session caching + offline validation
 - `lib/hooks/use-online-status.ts` - Online/offline status tracking
 - `lib/supabase/server.ts` - Server-side Supabase client
-- `lib/actions/auth.ts` - Server Actions for auth operations
+- `lib/actions/auth.ts` - Server Actions (useActionState pattern)
 - `proxy.ts` - Optimistic redirects with network error handling
 - `lib/stores/auth-store.ts` - Client auth state + offline tracking
-- `lib/hooks/use-auth.ts` - Client hook for auth operations
+- `lib/hooks/use-auth.ts` - Read-only auth state hook
+- `components/auth/submit-button.tsx` - Reusable form submit button
 - `components/providers/auth-provider.tsx` - Session caching + background refresh
 
 **Offline Capabilities:**

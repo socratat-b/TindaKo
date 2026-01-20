@@ -33,8 +33,10 @@ Successfully transformed the Supabase-dependent authentication into a hybrid sys
    - `syncAll()` - Checks online status before syncing
 
 5. **`lib/actions/auth.ts`** (MODIFIED)
+   - Updated to use React 19 `useActionState` pattern
+   - Actions: `signupAction()`, `loginAction()`, `logoutAction()`
+   - Server-side validation (password matching, length)
    - Session caching handled by AuthProvider (client-side)
-   - Removed direct cache manipulation from server actions
 
 6. **`lib/stores/auth-store.ts`** (MODIFIED)
    - Added `isOffline: boolean` state
@@ -53,11 +55,28 @@ Successfully transformed the Supabase-dependent authentication into a hybrid sys
    - Allow requests through on network errors
    - DAL handles offline validation
 
+9. **`lib/hooks/use-auth.ts`** (MODIFIED)
+   - Simplified to read-only state access
+   - No longer wraps Server Actions (use `useActionState` directly)
+   - Returns: `user`, `isLoading`, `isOffline`, `lastSyncTime`
+
+10. **`components/auth/submit-button.tsx`** (NEW)
+    - Reusable submit button with pending state
+    - Used in login/signup forms
+
+11. **`app/(auth)/login/page.tsx` & `app/(auth)/signup/page.tsx`** (MODIFIED)
+    - Refactored to use React 19 `useActionState`
+    - Progressive enhancement (forms work without JS)
+    - Automatic pending state management
+
+12. **`components/layout/dashboard-header.tsx`** (MODIFIED)
+    - Logout button now uses `logoutAction` directly via form
+
 ## Session Lifecycle
 
 ### Login Flow
 ```
-User → Server Action: login()
+User → Form with useActionState → loginAction()
   → Supabase.auth.signInWithPassword() [INTERNET REQUIRED]
   → AuthProvider detects SIGNED_IN event
   → cacheSession() to localStorage (encrypted, 30-day expiry)
@@ -85,7 +104,7 @@ AuthProvider (every 5 min when online)
 
 ### Logout
 ```
-User → Server Action: logout()
+User → Form action: logoutAction()
   → supabase.auth.signOut()
   → AuthProvider detects SIGNED_OUT event
   → clearSessionCache() (localStorage + encryption key)
