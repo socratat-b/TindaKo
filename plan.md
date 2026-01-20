@@ -234,7 +234,7 @@ None
 - [x] Layout components (sidebar, navbar, sync indicator)
 
 **Pages:**
-- [ ] POS page (product grid, cart, checkout)
+- [x] POS page (product grid, cart, checkout)
 - [ ] Products page (CRUD, categories)
 - [ ] Inventory page (adjustments, low stock alerts)
 - [ ] Utang page (customers, transactions, payments)
