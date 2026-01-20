@@ -4,18 +4,35 @@ import { createClient } from '@/lib/supabase/client'
 let lastSyncTime: Record<string, string> = {}
 
 /**
+ * Get current user ID from Supabase auth
+ * @throws Error if user is not authenticated
+ */
+async function getCurrentUserId(): Promise<string> {
+  const supabase = createClient()
+  const { data: { user }, error } = await supabase.auth.getUser()
+
+  if (!user || error) {
+    throw new Error('User must be authenticated to sync')
+  }
+
+  return user.id
+}
+
+/**
  * Sync all tables with Supabase
  * Syncs in dependency order: categories, customers, products, sales, utangTransactions, inventoryMovements
  */
 export async function syncAll() {
   try {
+    const userId = await getCurrentUserId()
+
     // Sync in dependency order
-    await syncCategories()
-    await syncCustomers()
-    await syncProducts()
-    await syncSales()
-    await syncUtangTransactions()
-    await syncInventoryMovements()
+    await syncCategories(userId)
+    await syncCustomers(userId)
+    await syncProducts(userId)
+    await syncSales(userId)
+    await syncUtangTransactions(userId)
+    await syncInventoryMovements(userId)
     console.log('Sync completed successfully')
   } catch (error) {
     console.error('Sync failed:', error)
@@ -44,14 +61,15 @@ export function toCamelCase(obj: Record<string, any>): Record<string, any> {
 }
 
 // Sync functions will be implemented by /add-table skill
-async function syncCategories() {
+async function syncCategories(userId: string) {
   const supabase = createClient()
   const lastSync = lastSyncTime['categories'] || new Date(0).toISOString()
 
-  // PUSH: Local unsynced changes to Supabase
+  // PUSH: Local unsynced changes to Supabase (filter by userId)
   const unsynced = await db.categories
     .where('syncedAt')
     .equals(null as any)
+    .filter(item => item.userId === userId && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -68,7 +86,7 @@ async function syncCategories() {
     }
   }
 
-  // PULL: Remote changes to local
+  // PULL: Remote changes to local (RLS automatically filters by userId)
   const { data } = await supabase
     .from('categories')
     .select('*')
@@ -76,7 +94,7 @@ async function syncCategories() {
 
   if (data) {
     for (const item of data) {
-      const localData = toCamelCase(item)
+      const localData = toCamelCase(item) as any as any
       localData.syncedAt = new Date().toISOString()
       await db.categories.put(localData)
     }
@@ -85,14 +103,15 @@ async function syncCategories() {
   lastSyncTime['categories'] = new Date().toISOString()
 }
 
-async function syncCustomers() {
+async function syncCustomers(userId: string) {
   const supabase = createClient()
   const lastSync = lastSyncTime['customers'] || new Date(0).toISOString()
 
-  // PUSH: Local unsynced changes to Supabase
+  // PUSH: Local unsynced changes to Supabase (filter by userId)
   const unsynced = await db.customers
     .where('syncedAt')
     .equals(null as any)
+    .filter(item => item.userId === userId && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -109,7 +128,7 @@ async function syncCustomers() {
     }
   }
 
-  // PULL: Remote changes to local
+  // PULL: Remote changes to local (RLS automatically filters by userId)
   const { data } = await supabase
     .from('customers')
     .select('*')
@@ -117,7 +136,7 @@ async function syncCustomers() {
 
   if (data) {
     for (const item of data) {
-      const localData = toCamelCase(item)
+      const localData = toCamelCase(item) as any
       localData.syncedAt = new Date().toISOString()
       await db.customers.put(localData)
     }
@@ -126,14 +145,15 @@ async function syncCustomers() {
   lastSyncTime['customers'] = new Date().toISOString()
 }
 
-async function syncProducts() {
+async function syncProducts(userId: string) {
   const supabase = createClient()
   const lastSync = lastSyncTime['products'] || new Date(0).toISOString()
 
-  // PUSH: Local unsynced changes to Supabase
+  // PUSH: Local unsynced changes to Supabase (filter by userId)
   const unsynced = await db.products
     .where('syncedAt')
     .equals(null as any)
+    .filter(item => item.userId === userId && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -150,7 +170,7 @@ async function syncProducts() {
     }
   }
 
-  // PULL: Remote changes to local
+  // PULL: Remote changes to local (RLS automatically filters by userId)
   const { data } = await supabase
     .from('products')
     .select('*')
@@ -158,7 +178,7 @@ async function syncProducts() {
 
   if (data) {
     for (const item of data) {
-      const localData = toCamelCase(item)
+      const localData = toCamelCase(item) as any
       localData.syncedAt = new Date().toISOString()
       await db.products.put(localData)
     }
@@ -167,14 +187,15 @@ async function syncProducts() {
   lastSyncTime['products'] = new Date().toISOString()
 }
 
-async function syncSales() {
+async function syncSales(userId: string) {
   const supabase = createClient()
   const lastSync = lastSyncTime['sales'] || new Date(0).toISOString()
 
-  // PUSH: Local unsynced changes to Supabase
+  // PUSH: Local unsynced changes to Supabase (filter by userId)
   const unsynced = await db.sales
     .where('syncedAt')
     .equals(null as any)
+    .filter(item => item.userId === userId && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -192,7 +213,7 @@ async function syncSales() {
     }
   }
 
-  // PULL: Remote changes to local
+  // PULL: Remote changes to local (RLS automatically filters by userId)
   const { data } = await supabase
     .from('sales')
     .select('*')
@@ -200,7 +221,7 @@ async function syncSales() {
 
   if (data) {
     for (const item of data) {
-      const localData = toCamelCase(item)
+      const localData = toCamelCase(item) as any
       // Items array is already in the correct format (JSON)
       localData.syncedAt = new Date().toISOString()
       await db.sales.put(localData)
@@ -210,14 +231,15 @@ async function syncSales() {
   lastSyncTime['sales'] = new Date().toISOString()
 }
 
-async function syncUtangTransactions() {
+async function syncUtangTransactions(userId: string) {
   const supabase = createClient()
   const lastSync = lastSyncTime['utangTransactions'] || new Date(0).toISOString()
 
-  // PUSH: Local unsynced changes to Supabase
+  // PUSH: Local unsynced changes to Supabase (filter by userId)
   const unsynced = await db.utangTransactions
     .where('syncedAt')
     .equals(null as any)
+    .filter(item => item.userId === userId && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -234,7 +256,7 @@ async function syncUtangTransactions() {
     }
   }
 
-  // PULL: Remote changes to local
+  // PULL: Remote changes to local (RLS automatically filters by userId)
   const { data } = await supabase
     .from('utang_transactions')
     .select('*')
@@ -242,7 +264,7 @@ async function syncUtangTransactions() {
 
   if (data) {
     for (const item of data) {
-      const localData = toCamelCase(item)
+      const localData = toCamelCase(item) as any
       localData.syncedAt = new Date().toISOString()
       await db.utangTransactions.put(localData)
     }
@@ -251,14 +273,15 @@ async function syncUtangTransactions() {
   lastSyncTime['utangTransactions'] = new Date().toISOString()
 }
 
-async function syncInventoryMovements() {
+async function syncInventoryMovements(userId: string) {
   const supabase = createClient()
   const lastSync = lastSyncTime['inventoryMovements'] || new Date(0).toISOString()
 
-  // PUSH: Local unsynced changes to Supabase
+  // PUSH: Local unsynced changes to Supabase (filter by userId)
   const unsynced = await db.inventoryMovements
     .where('syncedAt')
     .equals(null as any)
+    .filter(item => item.userId === userId && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -275,7 +298,7 @@ async function syncInventoryMovements() {
     }
   }
 
-  // PULL: Remote changes to local
+  // PULL: Remote changes to local (RLS automatically filters by userId)
   const { data } = await supabase
     .from('inventory_movements')
     .select('*')
@@ -283,7 +306,7 @@ async function syncInventoryMovements() {
 
   if (data) {
     for (const item of data) {
-      const localData = toCamelCase(item)
+      const localData = toCamelCase(item) as any
       localData.syncedAt = new Date().toISOString()
       await db.inventoryMovements.put(localData)
     }

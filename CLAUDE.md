@@ -85,10 +85,35 @@ lib/hooks/           # Custom hooks
 - **camelCase ↔ snake_case**: Use `toSnakeCase()` and `toCamelCase()` helpers in sync.ts
 
 ### Next.js 16 & React 19
-- Use `proxy.ts` instead of `middleware.ts` for auth (Next.js 16 change)
+- **Use `proxy.ts` instead of `middleware.ts`**: Next.js 16 renamed middleware to proxy
 - Dexie components must use dynamic imports with `ssr: false`
 - Disable Serwist in development to avoid cache issues
 
-### Security
+### Authentication & Security
+
+**Security Architecture (Following Next.js Official Pattern):**
+1. **Primary Security: Data Access Layer (DAL)** - `lib/dal.ts` with `verifySession()` and `getUser()`
+   - Uses React `cache()` to avoid duplicate calls
+   - Call `verifySession()` in ALL protected Server Components, Server Actions, and Route Handlers
+   - Redirects to `/login` if not authenticated
+2. **Optimistic Checks: proxy.ts** - Quick permission-based redirects for better UX
+   - NOT the primary security layer (DAL is)
+   - Refreshes Supabase session on every request
+3. **Auth Operations: Server Actions** - `lib/actions/auth.ts` for signup/login/logout
+   - More secure than client-side auth (credentials never exposed to client)
+4. **Client State: Zustand** - `lib/stores/auth-store.ts` for UI state only
+   - NOT for security decisions
+
+**Key Files:**
+- `lib/dal.ts` - PRIMARY security with `verifySession()` (server-only)
+- `lib/supabase/server.ts` - Server-side Supabase client
+- `lib/actions/auth.ts` - Server Actions for auth operations
+- `proxy.ts` - Optimistic redirects (not primary security)
+- `lib/stores/auth-store.ts` - Client auth state (UI only)
+- `lib/hooks/use-auth.ts` - Client hook for auth operations
+- `components/providers/auth-provider.tsx` - Syncs Supabase auth to Zustand
+
+**Important:**
 - All Supabase tables have RLS enabled with user-scoped policies
 - Use `(select auth.uid()) = user_id` pattern for optimal RLS performance
+- Always use `verifySession()` at the start of protected Server Components/Actions
