@@ -27,16 +27,6 @@ export function useCart() {
     setHasPendingChanges(true)
   }
 
-  const setCustomer = (customerId: string | null) => {
-    cart.setCustomer(customerId)
-    setHasPendingChanges(true)
-  }
-
-  const setDiscount = (discount: number) => {
-    cart.setDiscount(discount)
-    setHasPendingChanges(true)
-  }
-
   const setPaymentMethod = (method: 'cash' | 'gcash' | 'card') => {
     cart.setPaymentMethod(method)
     setHasPendingChanges(true)
@@ -50,8 +40,6 @@ export function useCart() {
   return {
     // State
     items: cart.items,
-    customerId: cart.customerId,
-    discount: cart.discount,
     paymentMethod: cart.paymentMethod,
     subtotal: cart.subtotal,
     total: cart.total,
@@ -60,8 +48,6 @@ export function useCart() {
     addItem,
     removeItem,
     updateQuantity,
-    setCustomer,
-    setDiscount,
     setPaymentMethod,
     clearCart
   }

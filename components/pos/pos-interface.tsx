@@ -8,6 +8,9 @@ import { ProductGrid } from './product-grid'
 import { CartDisplay } from './cart-display'
 import { CheckoutDialog } from './checkout-dialog'
 import { BarcodeScanner } from './barcode-scanner'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ShoppingCart, Package } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 
 interface POSInterfaceProps {
   userId: string
@@ -15,6 +18,7 @@ interface POSInterfaceProps {
 
 export default function POSInterface({ userId }: POSInterfaceProps) {
   const [checkoutOpen, setCheckoutOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState('products')
   const cart = useCart()
   const { setHasPendingChanges } = useSyncStore()
 
@@ -23,11 +27,11 @@ export default function POSInterface({ userId }: POSInterfaceProps) {
       await processSale({
         items: cart.items,
         subtotal: cart.subtotal,
-        discount: cart.discount,
+        discount: 0,
         total: cart.total,
         amountPaid,
         paymentMethod: cart.paymentMethod,
-        customerId: cart.customerId,
+        customerId: null,
         userId,
       })
 
@@ -40,21 +44,63 @@ export default function POSInterface({ userId }: POSInterfaceProps) {
   }
 
   return (
-    <div className="h-[calc(100vh-8rem)] flex flex-col gap-4">
-      {/* Barcode Scanner */}
-      <BarcodeScanner />
+    <>
+      {/* Desktop Layout - Hidden on Mobile */}
+      <div className="hidden lg:flex h-[calc(100vh-10rem)] flex-col gap-4">
+        {/* Barcode Scanner */}
+        <BarcodeScanner />
 
-      {/* Main POS Layout */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-0">
-        {/* Product Grid - Takes 2 columns on large screens */}
-        <div className="lg:col-span-2 overflow-auto">
-          <ProductGrid />
+        {/* Main POS Layout */}
+        <div className="flex-1 grid grid-cols-3 gap-4 min-h-0">
+          {/* Product Grid - Takes 2 columns on large screens */}
+          <div className="col-span-2 overflow-hidden">
+            <ProductGrid />
+          </div>
+
+          {/* Cart - Takes 1 column on large screens */}
+          <div className="col-span-1 overflow-hidden">
+            <CartDisplay onCheckout={() => setCheckoutOpen(true)} />
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Layout - Tabs */}
+      <div className="lg:hidden flex flex-col h-[calc(100vh-7.5rem)] overflow-hidden">
+        {/* Barcode Scanner */}
+        <div className="flex-none mb-3">
+          <BarcodeScanner />
         </div>
 
-        {/* Cart - Takes 1 column on large screens */}
-        <div className="lg:col-span-1">
-          <CartDisplay onCheckout={() => setCheckoutOpen(true)} />
-        </div>
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+          <TabsList className="grid w-full grid-cols-2 flex-none mb-2.5">
+            <TabsTrigger value="products" className="text-sm">
+              <Package className="h-4 w-4 mr-1.5" />
+              Products
+            </TabsTrigger>
+            <TabsTrigger value="cart" className="text-sm">
+              <ShoppingCart className="h-4 w-4 mr-1.5" />
+              Cart
+              {cart.items.length > 0 && (
+                <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-xs">
+                  {cart.items.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="products" className="flex-1 overflow-hidden m-0">
+            <ProductGrid />
+          </TabsContent>
+
+          <TabsContent value="cart" className="flex-1 overflow-hidden m-0">
+            <CartDisplay
+              onCheckout={() => {
+                setCheckoutOpen(true)
+              }}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Checkout Dialog */}
@@ -63,6 +109,6 @@ export default function POSInterface({ userId }: POSInterfaceProps) {
         onOpenChange={setCheckoutOpen}
         onCheckout={handleCheckout}
       />
-    </div>
+    </>
   )
 }

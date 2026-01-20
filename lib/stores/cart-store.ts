@@ -9,8 +9,6 @@ interface CartItem extends SaleItem {
 
 interface CartState {
   items: CartItem[]
-  customerId: string | null
-  discount: number
   paymentMethod: 'cash' | 'gcash' | 'card'
 
   // Computed values
@@ -21,8 +19,6 @@ interface CartState {
   addItem: (product: Product, quantity?: number) => void
   removeItem: (productId: string) => void
   updateQuantity: (productId: string, quantity: number) => void
-  setCustomer: (customerId: string | null) => void
-  setDiscount: (discount: number) => void
   setPaymentMethod: (method: 'cash' | 'gcash' | 'card') => void
   clearCart: () => void
 }
@@ -31,8 +27,6 @@ export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
-      customerId: null,
-      discount: 0,
       paymentMethod: 'cash',
       subtotal: 0,
       total: 0,
@@ -84,7 +78,7 @@ export const useCartStore = create<CartState>()(
         }
 
         const subtotal = newItems.reduce((sum, item) => sum + item.total, 0)
-        const total = subtotal - get().discount
+        const total = subtotal
 
         set({ items: newItems, subtotal, total })
       },
@@ -92,7 +86,7 @@ export const useCartStore = create<CartState>()(
       removeItem: (productId) => {
         const newItems = get().items.filter(item => item.productId !== productId)
         const subtotal = newItems.reduce((sum, item) => sum + item.total, 0)
-        const total = subtotal - get().discount
+        const total = subtotal
 
         set({ items: newItems, subtotal, total })
       },
@@ -121,19 +115,9 @@ export const useCartStore = create<CartState>()(
         )
 
         const subtotal = newItems.reduce((sum, item) => sum + item.total, 0)
-        const total = subtotal - get().discount
+        const total = subtotal
 
         set({ items: newItems, subtotal, total })
-      },
-
-      setCustomer: (customerId) => {
-        set({ customerId })
-      },
-
-      setDiscount: (discount) => {
-        const { subtotal } = get()
-        const total = Math.max(0, subtotal - discount)
-        set({ discount, total })
       },
 
       setPaymentMethod: (paymentMethod) => {
@@ -143,8 +127,6 @@ export const useCartStore = create<CartState>()(
       clearCart: () => {
         set({
           items: [],
-          customerId: null,
-          discount: 0,
           paymentMethod: 'cash',
           subtotal: 0,
           total: 0
@@ -156,8 +138,6 @@ export const useCartStore = create<CartState>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         items: state.items,
-        customerId: state.customerId,
-        discount: state.discount,
         paymentMethod: state.paymentMethod
       })
     }

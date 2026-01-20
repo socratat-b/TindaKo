@@ -83,47 +83,45 @@ export function CheckoutDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md w-[calc(100%-2rem)] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Complete Sale</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-lg">Complete Sale</DialogTitle>
+          <DialogDescription className="text-sm">
             {isSuccess
               ? 'Sale completed successfully!'
-              : 'Review the sale details and complete the transaction'}
+              : 'Review and complete the transaction'}
           </DialogDescription>
         </DialogHeader>
 
         {isSuccess ? (
-          <div className="flex flex-col items-center justify-center py-8">
-            <CheckCircle2 className="h-16 w-16 text-emerald-600 mb-4" />
+          <div className="flex flex-col items-center justify-center py-6">
+            <CheckCircle2 className="h-14 w-14 text-emerald-600 mb-3" />
             <p className="text-lg font-semibold">Payment Successful!</p>
             <p className="text-sm text-muted-foreground">
-              Receipt has been generated
+              Receipt generated
             </p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3">
             {/* Sale Summary */}
-            <div className="space-y-2 p-4 rounded-lg bg-muted/50">
+            <div className="space-y-2 p-3 rounded-lg bg-muted/50">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Total Amount</span>
-                <span className="font-semibold">₱{total.toFixed(2)}</span>
+                <span className="font-semibold text-base">₱{total.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Payment Method</span>
-                <Badge variant="secondary" className="capitalize">
+                <Badge variant="secondary" className="capitalize text-xs h-5">
                   {paymentMethod}
                 </Badge>
               </div>
             </div>
 
-            <Separator />
-
             {/* Payment Input (Cash only) */}
             {paymentMethod === 'cash' && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="amountPaid">Amount Paid</Label>
+              <div className="space-y-2.5">
+                <div className="space-y-1.5">
+                  <Label htmlFor="amountPaid" className="text-sm">Amount Paid</Label>
                   <Input
                     id="amountPaid"
                     type="number"
@@ -134,6 +132,7 @@ export function CheckoutDialog({
                     placeholder={total.toFixed(2)}
                     required
                     autoFocus
+                    className="h-11 text-base"
                   />
                 </div>
 
@@ -174,7 +173,7 @@ export function CheckoutDialog({
                 variant="outline"
                 onClick={() => handleOpenChange(false)}
                 disabled={isProcessing}
-                className="flex-1"
+                className="flex-1 h-11 text-sm"
               >
                 Cancel
               </Button>
@@ -184,7 +183,7 @@ export function CheckoutDialog({
                   isProcessing ||
                   (paymentMethod === 'cash' && amountPaidNum < total)
                 }
-                className="flex-1"
+                className="flex-1 h-11 text-sm"
               >
                 {isProcessing ? (
                   <>

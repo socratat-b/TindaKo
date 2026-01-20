@@ -33,6 +33,58 @@ UI (React 19) → Zustand (state) → Dexie (IndexedDB) ↔ Sync → Supabase (c
 - Zustand v5 (state management)
 - Serwist (PWA/service worker)
 
+## Design System & Styling
+
+### Mobile-First Font Sizing
+
+The app uses **Tailwind v4's @theme directive** to customize font sizes for mobile screens:
+
+```css
+/* globals.css */
+@theme {
+  /* Mobile-optimized font scale */
+  --text-xs: 0.75rem;      /* 12px */
+  --text-sm: 0.875rem;     /* 14px */
+  --text-base: 0.875rem;   /* 14px (smaller for mobile) */
+  --text-lg: 1.125rem;     /* 18px */
+  --text-xl: 1.25rem;      /* 20px */
+  --text-2xl: 1.5rem;      /* 24px */
+}
+
+/* Desktop - Standard sizes */
+@media (min-width: 1024px) {
+  @theme {
+    --text-base: 1rem;     /* 16px */
+    --text-lg: 1.25rem;    /* 20px */
+    --text-xl: 1.5rem;     /* 24px */
+  }
+}
+```
+
+**Responsive Font Scale:**
+- `text-xs` = 12px (all screens)
+- `text-sm` = 14px (all screens)
+- `text-base` = 14px mobile / 16px desktop
+- `text-lg` = 18px mobile / 20px desktop
+- `text-xl` = 20px mobile / 24px desktop
+- `text-2xl` = 24px mobile / 30px desktop
+
+**Font Size Guidelines for POS Components:**
+- **Product names**: `text-xs` (compact, readable)
+- **Prices**: `text-sm` to `text-lg` (emphasis)
+- **Labels/Metadata**: `text-[10px]` or `text-[11px]` (secondary info)
+- **Stock info**: `text-[9px]` to `text-[10px]` (tertiary)
+- **Buttons**: `text-xs` to `text-sm`
+- **Totals**: `text-xl` to `text-2xl` (prominent)
+
+**Spacing Guidelines:**
+- Mobile padding: `p-2` to `p-3` (8px-12px)
+- Desktop padding: `p-4` to `p-6` (16px-24px)
+- Gap spacing: `gap-1.5` to `gap-2` on mobile (6px-8px)
+- Button heights: `h-9` to `h-10` on mobile (36px-40px)
+
+**IMPORTANT:** Always test on actual mobile devices (375px-428px width) to ensure readability and touch-friendliness.
+
 ## Current Implementation Status
 
 ### ✅ Phase 1: Database Layer (COMPLETED)

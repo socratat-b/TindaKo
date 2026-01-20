@@ -89,10 +89,10 @@ export function BarcodeScanner() {
   }
 
   return (
-    <Card className="p-4">
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 flex-1">
-          <Scan className="h-5 w-5 text-muted-foreground" />
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Scan className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <Input
             ref={inputRef}
             type="text"
@@ -100,25 +100,28 @@ export function BarcodeScanner() {
             onChange={(e) => setBarcode(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Scan or enter barcode..."
-            className="flex-1"
+            className="pl-9 h-10 text-sm"
           />
         </div>
-
-        {/* Scan Result Indicator */}
-        {scanResult && (
-          <Badge
-            variant={scanResult.type === 'success' ? 'default' : 'destructive'}
-            className="flex items-center gap-1.5 px-3 py-1.5"
-          >
-            {scanResult.type === 'success' ? (
-              <CheckCircle2 className="h-3.5 w-3.5" />
-            ) : (
-              <AlertCircle className="h-3.5 w-3.5" />
-            )}
-            <span className="text-sm">{scanResult.message}</span>
-          </Badge>
-        )}
       </div>
-    </Card>
+
+      {/* Scan Result Indicator */}
+      {scanResult && (
+        <div
+          className={`flex items-center gap-2 p-2 rounded-md ${
+            scanResult.type === 'success'
+              ? 'bg-emerald-50 text-emerald-900 border border-emerald-200'
+              : 'bg-red-50 text-red-900 border border-red-200'
+          }`}
+        >
+          {scanResult.type === 'success' ? (
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+          ) : (
+            <AlertCircle className="h-4 w-4 shrink-0" />
+          )}
+          <span className="text-xs font-medium">{scanResult.message}</span>
+        </div>
+      )}
+    </div>
   )
 }

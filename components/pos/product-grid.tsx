@@ -23,7 +23,7 @@ export function ProductGrid() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [isLoading, setIsLoading] = useState(true)
-  const { addItem } = useCart()
+  const { addItem, items: cartItems } = useCart()
 
   // Load products and categories from Dexie
   useEffect(() => {
@@ -77,28 +77,28 @@ export function ProductGrid() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">Loading products...</p>
+      <div className="flex items-center justify-center h-full">
+        <p className="text-base text-muted-foreground">Loading products...</p>
       </div>
     )
   }
 
   return (
-    <div className="space-y-4">
-      {/* Search and Filter */}
-      <div className="flex gap-3">
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Search and Filter - Fixed at top */}
+      <div className="flex-none flex flex-col lg:flex-row gap-2 mb-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
           <Input
-            placeholder="Search by name or barcode..."
+            placeholder="Search products..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
+            className="pl-8 h-9 text-sm"
           />
         </div>
         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="All Categories" />
+          <SelectTrigger className="w-full lg:w-[120px] h-9 text-sm">
+            <SelectValue placeholder="Category" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Categories</SelectItem>
@@ -111,42 +111,85 @@ export function ProductGrid() {
         </Select>
       </div>
 
-      {/* Product Grid */}
-      {filteredProducts.length === 0 ? (
-        <Card className="p-12 text-center">
-          <Package className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-          <p className="text-muted-foreground">
-            {searchQuery || selectedCategory !== 'all'
-              ? 'No products found matching your search'
-              : 'No products available. Add products to get started.'}
-          </p>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {filteredProducts.map((product) => {
-            const category = categories.find((c) => c.id === product.categoryId)
-            const isOutOfStock = product.stockQty <= 0
-            const isLowStock =
-              !isOutOfStock && product.stockQty <= product.lowStockThreshold
+      {/* Product List - Scrollable */}
+      <div className="flex-1 overflow-y-auto">
+        {filteredProducts.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-center py-8">
+            <Package className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
+            <p className="text-sm text-muted-foreground px-4">
+              {searchQuery || selectedCategory !== 'all'
+                ? 'No products found'
+                : 'No products available'}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2 pb-2">
+            {filteredProducts.map((product) => {
+              const category = categories.find((c) => c.id === product.categoryId)
 
-            return (
-              <Card
-                key={product.id}
-                className={`p-4 cursor-pointer transition-all hover:shadow-md ${
-                  isOutOfStock ? 'opacity-50' : ''
-                }`}
-                onClick={() => !isOutOfStock && handleAddToCart(product)}
-              >
-                <div className="space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-semibold text-sm leading-tight line-clamp-2">
-                      {product.name}
-                    </h3>
+              // Calculate remaining stock after cart items
+              const cartItem = cartItems.find(item => item.productId === product.id)
+              const cartQty = cartItem?.quantity || 0
+              const remainingStock = product.stockQty - cartQty
+
+              const isOutOfStock = remainingStock <= 0
+              const isLowStock =
+                !isOutOfStock && remainingStock <= product.lowStockThreshold
+
+              return (
+                <Card
+                  key={product.id}
+                  className={`p-2.5 cursor-pointer transition-all active:scale-[0.99] ${
+                    isOutOfStock ? 'opacity-50' : ''
+                  }`}
+                  onClick={() => !isOutOfStock && handleAddToCart(product)}
+                >
+                  <div className="flex items-start gap-2.5">
+                    {/* Product Info */}
+                    <div className="flex-1 min-w-0 space-y-0.5">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="font-semibold text-sm leading-tight line-clamp-1">
+                          {product.name}
+                        </h3>
+                        {category && (
+                          <Badge
+                            variant="secondary"
+                            className="text-xs h-5 px-1.5 shrink-0"
+                            style={{
+                              backgroundColor: `${category.color}20`,
+                              color: category.color,
+                            }}
+                          >
+                            {category.name}
+                          </Badge>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <p className="text-base font-bold text-emerald-600">
+                          ₱{product.sellingPrice.toFixed(2)}
+                        </p>
+                        <p
+                          className={`text-xs font-medium ${
+                            isOutOfStock
+                              ? 'text-destructive'
+                              : isLowStock
+                                ? 'text-amber-600'
+                                : 'text-muted-foreground'
+                          }`}
+                        >
+                          {isOutOfStock
+                            ? 'Out of stock'
+                            : `${remainingStock} left`}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Add Button */}
                     {!isOutOfStock && (
                       <Button
                         size="icon"
-                        variant="ghost"
-                        className="h-6 w-6 shrink-0"
+                        className="h-10 w-10 shrink-0 rounded-full"
                         onClick={(e) => {
                           e.stopPropagation()
                           handleAddToCart(product)
@@ -156,47 +199,12 @@ export function ProductGrid() {
                       </Button>
                     )}
                   </div>
-
-                  {category && (
-                    <Badge
-                      variant="secondary"
-                      className="text-xs"
-                      style={{
-                        backgroundColor: `${category.color}20`,
-                        color: category.color,
-                        borderColor: category.color,
-                      }}
-                    >
-                      {category.name}
-                    </Badge>
-                  )}
-
-                  <div className="space-y-1">
-                    <p className="text-lg font-bold text-emerald-600">
-                      ₱{product.sellingPrice.toFixed(2)}
-                    </p>
-                    <div className="flex items-center gap-1 text-xs">
-                      <span
-                        className={
-                          isOutOfStock
-                            ? 'text-destructive font-medium'
-                            : isLowStock
-                              ? 'text-amber-600 font-medium'
-                              : 'text-muted-foreground'
-                        }
-                      >
-                        {isOutOfStock
-                          ? 'Out of stock'
-                          : `Stock: ${product.stockQty}`}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            )
-          })}
-        </div>
-      )}
+                </Card>
+              )
+            })}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
