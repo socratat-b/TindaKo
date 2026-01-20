@@ -129,42 +129,64 @@ lib/stores/
 
 ### Authentication & Security
 
-**Security Architecture (Following Next.js Official Pattern):**
+**Security Architecture (Hybrid Offline-First):**
 1. **Primary Security: Data Access Layer (DAL)** - `lib/dal.ts` with `verifySession()` and `getUser()`
    - Uses React `cache()` to avoid duplicate calls
+   - Tries online first, falls back to cached session offline
+   - Returns `mode: 'online' | 'offline'` and `requiresRefresh` flags
    - Call `verifySession()` in ALL protected Server Components, Server Actions, and Route Handlers
-   - Redirects to `/login` if not authenticated
-2. **Optimistic Checks: proxy.ts** - Quick permission-based redirects for better UX
+2. **Session Caching** - `lib/auth/session-cache.ts`
+   - localStorage with Web Crypto API encryption (AES-GCM 256-bit)
+   - 30-day offline access after login
+   - Background token refresh (every 5 min when online)
+   - Auto-refresh on tab focus/visibility change
+3. **Optimistic Checks: proxy.ts** - Quick permission-based redirects for better UX
+   - Gracefully handles network errors (allows through, DAL validates)
    - NOT the primary security layer (DAL is)
-   - Refreshes Supabase session on every request
-3. **Auth Operations: Server Actions** - `lib/actions/auth.ts` for signup/login/logout
+4. **Auth Operations: Server Actions** - `lib/actions/auth.ts` for signup/login/logout
    - More secure than client-side auth (credentials never exposed to client)
-4. **Client State: Zustand** - `lib/stores/auth-store.ts` for UI state only
-   - NOT for security decisions
+5. **Client State: Zustand** - `lib/stores/auth-store.ts` for UI state + offline tracking
+   - `isOffline: boolean` - Network status
+   - `lastSyncTime: number | null` - Last successful sync
 
 **Key Files:**
-- `lib/dal.ts` - PRIMARY security with `verifySession()` (server-only)
+- `lib/dal.ts` - PRIMARY security with offline fallback
+- `lib/auth/session-cache.ts` - Session caching + offline validation
+- `lib/hooks/use-online-status.ts` - Online/offline status tracking
 - `lib/supabase/server.ts` - Server-side Supabase client
 - `lib/actions/auth.ts` - Server Actions for auth operations
-- `proxy.ts` - Optimistic redirects (not primary security)
-- `lib/stores/auth-store.ts` - Client auth state (UI only)
+- `proxy.ts` - Optimistic redirects with network error handling
+- `lib/stores/auth-store.ts` - Client auth state + offline tracking
 - `lib/hooks/use-auth.ts` - Client hook for auth operations
-- `components/providers/auth-provider.tsx` - Syncs Supabase auth to Zustand
+- `components/providers/auth-provider.tsx` - Session caching + background refresh
+
+**Offline Capabilities:**
+- Login once → Works offline for 30 days
+- All local operations (sales, products, inventory) work offline
+- Sync queued until online (background sync every 5 min)
+- Explicit logout clears cache (requires re-login with internet)
+- Token refresh prevents expiry when online
 
 **Important:**
 - All Supabase tables have RLS enabled with user-scoped policies
 - Use `(select auth.uid()) = user_id` pattern for optimal RLS performance
 - Always use `verifySession()` at the start of protected Server Components/Actions
+- Session cache encrypted with Web Crypto API (never store tokens in plain text)
 
 ## Project Status Summary
 
 ### ✅ What Works Now (Phases 1-2 Complete)
 - Database schema with 6 tables (categories, customers, products, sales, utangTransactions, inventoryMovements)
 - Bidirectional sync between Dexie (local) and Supabase (cloud)
-- User authentication (signup/login/logout) with Next.js official pattern
+- **Hybrid offline-first authentication:**
+  - Login once → Works offline for 30 days
+  - Encrypted session caching (Web Crypto API)
+  - Background token refresh (every 5 min)
+  - Graceful network error handling
+  - Automatic sync when online
 - Protected routes with Data Access Layer security
 - User-scoped data isolation (RLS + userId filtering)
-- Session persistence across page refreshes
+- Session persistence across page refreshes + offline access
 
 ### 🚧 What's Next (Phase 3)
 - PWA setup (manifest + service worker)

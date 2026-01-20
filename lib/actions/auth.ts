@@ -18,6 +18,7 @@ export async function signup(email: string, password: string) {
 
   // May require email confirmation depending on Supabase settings
   if (data.session) {
+    // Session will be cached by AuthProvider on client side
     revalidatePath('/', 'layout')
     redirect('/pos')
   }
@@ -37,12 +38,15 @@ export async function login(email: string, password: string) {
     return { error: error.message }
   }
 
+  // Session will be cached by AuthProvider on client side
   revalidatePath('/', 'layout')
   redirect('/pos')
 }
 
 export async function logout() {
   const supabase = await createClient()
+
+  // Session cache will be cleared by AuthProvider on client side
   await supabase.auth.signOut()
   revalidatePath('/', 'layout')
   redirect('/login')

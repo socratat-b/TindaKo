@@ -30,7 +30,22 @@ export async function proxy(request: NextRequest) {
   )
 
   // OPTIMISTIC CHECK ONLY - refresh session
-  const { data: { user } } = await supabase.auth.getUser()
+  // Gracefully handle network errors (allow through, DAL handles offline validation)
+  let user = null
+  let networkError = false
+
+  try {
+    const { data, error } = await supabase.auth.getUser()
+    user = data?.user ?? null
+
+    // Check for network errors vs auth errors
+    if (error && error.message?.includes('network')) {
+      networkError = true
+    }
+  } catch {
+    // Network error: allow through, DAL will validate with cached session
+    networkError = true
+  }
 
   const path = request.nextUrl.pathname
   const isAuthPage = path.startsWith('/login') || path.startsWith('/signup')
@@ -40,6 +55,11 @@ export async function proxy(request: NextRequest) {
                           path.startsWith('/utang') ||
                           path.startsWith('/reports') ||
                           path.startsWith('/settings')
+
+  // If network error, allow through (DAL handles offline validation)
+  if (networkError) {
+    return supabaseResponse
+  }
 
   // Redirect authenticated users away from auth pages
   if (user && isAuthPage) {

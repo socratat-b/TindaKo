@@ -1,29 +1,52 @@
 import { db } from './index'
 import { createClient } from '@/lib/supabase/client'
+import { isSessionValidOffline, isOnline } from '@/lib/auth/session-cache'
 
 let lastSyncTime: Record<string, string> = {}
 
 /**
  * Get current user ID from Supabase auth
+ * Tries online first, falls back to cached session for offline access
  * @throws Error if user is not authenticated
  */
 async function getCurrentUserId(): Promise<string> {
   const supabase = createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
 
-  if (!user || error) {
+  // Try online verification first
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser()
+
+    if (user && !error) {
+      return user.id
+    }
+  } catch {
+    // Network error: fall through to offline check
+  }
+
+  // Offline fallback: Check cached session
+  const validation = await isSessionValidOffline()
+
+  if (!validation.isValid || !validation.session) {
     throw new Error('User must be authenticated to sync')
   }
 
-  return user.id
+  return validation.session.userId
 }
 
 /**
  * Sync all tables with Supabase
  * Syncs in dependency order: categories, customers, products, sales, utangTransactions, inventoryMovements
+ * Skips sync if offline
  */
 export async function syncAll() {
   try {
+    // Check if online before attempting sync
+    const online = await isOnline()
+    if (!online) {
+      console.log('Offline - skipping sync')
+      return
+    }
+
     const userId = await getCurrentUserId()
 
     // Sync in dependency order
