@@ -49,6 +49,7 @@ export async function proxy(request: NextRequest) {
 
   const path = request.nextUrl.pathname
   const isAuthPage = path.startsWith('/login') || path.startsWith('/signup')
+  const isPublicPage = path === '/' || path.startsWith('/_next') || path.startsWith('/api')
   const isDashboardPage = path.startsWith('/pos') ||
                           path.startsWith('/products') ||
                           path.startsWith('/inventory') ||
@@ -58,6 +59,11 @@ export async function proxy(request: NextRequest) {
 
   // If network error, allow through (DAL handles offline validation)
   if (networkError) {
+    return supabaseResponse
+  }
+
+  // Allow public pages without redirect
+  if (isPublicPage) {
     return supabaseResponse
   }
 
@@ -73,13 +79,6 @@ export async function proxy(request: NextRequest) {
   if (!user && isDashboardPage) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
-    return NextResponse.redirect(url)
-  }
-
-  // Handle root path
-  if (path === '/') {
-    const url = request.nextUrl.clone()
-    url.pathname = user ? '/pos' : '/login'
     return NextResponse.redirect(url)
   }
 
