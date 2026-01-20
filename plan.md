@@ -96,7 +96,9 @@ All tables: id, userId, syncedAt, updatedAt, isDeleted
 
 ## Implementation Status
 
-### ✅ Completed (Phase 1: Database Layer)
+### ✅ Completed
+
+#### Phase 1: Database Layer
 
 **Dependencies Installed:**
 - @supabase/supabase-js, @supabase/ssr
@@ -127,40 +129,61 @@ All tables: id, userId, syncedAt, updatedAt, isDeleted
 - ✅ .mcp.json.example for Claude Code integration
 - ✅ Updated .gitignore for sensitive files
 
+#### Phase 2: Authentication (Next.js Official Pattern)
+
+**Security Architecture:**
+- ✅ Data Access Layer (`lib/dal.ts`) - PRIMARY security with `verifySession()` and `getUser()`
+- ✅ Supabase server client (`lib/supabase/server.ts`)
+- ✅ Server Actions for auth operations (`lib/actions/auth.ts`)
+- ✅ Proxy for optimistic checks (`proxy.ts` - Next.js 16 naming)
+
+**Client State:**
+- ✅ Zustand auth store (`lib/stores/auth-store.ts`) with localStorage persistence
+- ✅ Auth hook (`lib/hooks/use-auth.ts`)
+- ✅ Auth provider (`components/providers/auth-provider.tsx`)
+
+**Pages:**
+- ✅ Login page (`app/(auth)/login/page.tsx`)
+- ✅ Signup page with validation (`app/(auth)/signup/page.tsx`)
+- ✅ Protected dashboard layout (`app/(dashboard)/layout.tsx`)
+- ✅ POS page placeholder (`app/(dashboard)/pos/page.tsx`)
+
+**User Isolation:**
+- ✅ All sync functions filter by userId
+- ✅ RLS policies enforce user-scoped data access
+
 ### 🔄 In Progress
 
 None
 
-### 📋 Todo (Phase 2: Authentication & UI)
-
-**Auth:**
-- [ ] Supabase server client (`lib/supabase/server.ts`)
-- [ ] Auth proxy/middleware (`proxy.ts`)
-- [ ] Login/signup pages
-- [ ] Session persistence
+### 📋 Todo (Phase 3: UI & Features)
 
 **State Management:**
-- [ ] Zustand stores (cart, sync, auth)
-- [ ] Sync orchestration (5min periodic + manual)
+- [ ] Zustand stores (cart, sync)
+- [ ] Sync orchestration (5min periodic + manual + on-close)
 
 **PWA:**
 - [ ] Service worker (`app/sw.ts`)
 - [ ] Manifest (`app/manifest.ts`)
 - [ ] Install dependencies: @serwist/next, serwist
 
-**UI Components & Pages:**
-- [ ] Shared UI components
-- [ ] Dashboard layout
-- [ ] POS page
-- [ ] Products page
-- [ ] Inventory page
-- [ ] Utang page
-- [ ] Reports page
+**UI Components:**
+- [ ] Shared UI components (button, input, card, etc.)
+- [ ] Layout components (sidebar, navbar, sync indicator)
 
-**Phase 3:**
+**Pages:**
+- [ ] POS page (product grid, cart, checkout)
+- [ ] Products page (CRUD, categories)
+- [ ] Inventory page (adjustments, low stock alerts)
+- [ ] Utang page (customers, transactions, payments)
+- [ ] Reports page (daily/weekly/monthly sales)
+- [ ] Settings page
+
+**Phase 4 (Future Enhancements):**
 - [ ] CSV import (papaparse)
 - [ ] Barcode scanner (html5-qrcode)
-- [ ] Advanced reports
+- [ ] Advanced analytics
+- [ ] Multi-store support
 
 ## Dependencies
 
@@ -261,13 +284,20 @@ export default function manifest() {
 8. app/(dashboard)/layout.tsx
 9. app/(dashboard)/pos/page.tsx
 
-## Verify
+## Verification Checklist
 
-- [ ] Login/signup works
-- [ ] PWA installs
+**Authentication:**
+- [x] Login/signup works
+- [x] Session persists on refresh
+- [x] Protected routes redirect to login
+- [x] Auth state syncs to localStorage
+- [x] DAL verifySession() works
+
+**Todo:**
+- [ ] PWA installs (manifest + service worker)
 - [ ] Offline works (airplane mode)
-- [ ] Sync to Supabase
+- [ ] Sync to Supabase (manual trigger)
 - [ ] Sale flow complete
-- [ ] Utang records
-- [ ] Stock deducts
-- [ ] Multi-device sync
+- [ ] Utang records and tracks balance
+- [ ] Stock deducts automatically
+- [ ] Multi-device sync works

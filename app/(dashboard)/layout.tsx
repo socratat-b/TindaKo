@@ -1,4 +1,5 @@
 import { verifySession } from '@/lib/dal'
+import { DashboardHeader } from '@/components/layout/dashboard-header'
 
 export default async function DashboardLayout({
   children,
@@ -10,6 +11,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-zinc-50">
+      <DashboardHeader />
       <main className="container mx-auto p-4">
         {children}
       </main>

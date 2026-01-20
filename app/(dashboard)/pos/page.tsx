@@ -1,16 +1,10 @@
-import { getUser } from '@/lib/dal'
 import Link from 'next/link'
 
 export default async function POSPage() {
-  const user = await getUser()
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">POS</h1>
-        <div className="text-sm text-zinc-600">
-          Logged in as: {user?.email}
-        </div>
       </div>
 
       <div className="rounded-lg border border-zinc-200 bg-white p-6">

@@ -42,7 +42,7 @@ UI (React 19) → Zustand (state) → Dexie (IndexedDB) ↔ Sync → Supabase (c
 lib/db/
   ├── schema.ts        # TypeScript interfaces for all 6 tables
   ├── index.ts         # Dexie database with indexes
-  └── sync.ts          # Bidirectional sync logic
+  └── sync.ts          # Bidirectional sync logic (with userId filtering)
 lib/supabase/
   └── client.ts        # Browser Supabase client
 supabase/migrations/   # SQL migrations for all tables
@@ -60,18 +60,56 @@ supabase/migrations/   # SQL migrations for all tables
 
 All tables include: id, userId, createdAt, updatedAt, syncedAt, isDeleted
 
-### 📋 Todo: Phase 2
+### ✅ Phase 2: Authentication (COMPLETED)
+
+**Implemented Files:**
+```
+lib/
+  ├── dal.ts                              # Data Access Layer (PRIMARY SECURITY)
+  ├── supabase/server.ts                  # Server-side Supabase client
+  ├── actions/auth.ts                     # Server Actions (signup/login/logout)
+  ├── stores/auth-store.ts                # Zustand auth state
+  └── hooks/use-auth.ts                   # Client auth hook
+components/providers/
+  └── auth-provider.tsx                   # Auth state synchronization
+app/
+  ├── (auth)/
+  │   ├── login/page.tsx                  # Login form
+  │   └── signup/page.tsx                 # Signup form
+  ├── (dashboard)/
+  │   ├── layout.tsx                      # Protected layout with DAL
+  │   └── pos/page.tsx                    # POS placeholder
+  └── layout.tsx                          # Root layout with AuthProvider
+proxy.ts                                  # Optimistic auth checks (Next.js 16)
+```
+
+**Security Features:**
+- Primary security via Data Access Layer (not proxy)
+- Server Actions for secure auth operations
+- Optimistic redirects in proxy.ts
+- User isolation in all sync operations
+- Session persistence in localStorage
+
+### 📋 Todo: Phase 3
 
 **Folder Structure to Create:**
 ```
-app/(auth)/          # login, signup
-app/(dashboard)/     # pos, products, inventory, utang, reports, settings
-app/manifest.ts      # PWA manifest
-app/sw.ts            # Service worker
-components/ui/       # Shared UI components
-components/pos/      # POS-specific components
-lib/stores/          # Zustand stores
-lib/hooks/           # Custom hooks
+app/(dashboard)/
+  ├── products/        # Product & category management
+  ├── inventory/       # Stock adjustments & alerts
+  ├── utang/          # Customer credit tracking
+  ├── reports/        # Sales reports
+  └── settings/       # App settings
+app/manifest.ts       # PWA manifest
+app/sw.ts             # Service worker
+components/
+  ├── ui/             # Shared UI components
+  ├── pos/            # POS-specific components
+  ├── products/       # Product components
+  └── layout/         # Layout components (sidebar, navbar)
+lib/stores/
+  ├── cart-store.ts   # Shopping cart state
+  └── sync-store.ts   # Sync orchestration
 ```
 
 ## Key Patterns
@@ -117,3 +155,42 @@ lib/hooks/           # Custom hooks
 - All Supabase tables have RLS enabled with user-scoped policies
 - Use `(select auth.uid()) = user_id` pattern for optimal RLS performance
 - Always use `verifySession()` at the start of protected Server Components/Actions
+
+## Project Status Summary
+
+### ✅ What Works Now (Phases 1-2 Complete)
+- Database schema with 6 tables (categories, customers, products, sales, utangTransactions, inventoryMovements)
+- Bidirectional sync between Dexie (local) and Supabase (cloud)
+- User authentication (signup/login/logout) with Next.js official pattern
+- Protected routes with Data Access Layer security
+- User-scoped data isolation (RLS + userId filtering)
+- Session persistence across page refreshes
+
+### 🚧 What's Next (Phase 3)
+- PWA setup (manifest + service worker)
+- UI component library
+- Shopping cart state management
+- Sync orchestration (5min periodic + manual + on-close)
+- POS page implementation (product grid, cart, checkout)
+- Products & categories management pages
+- Inventory management with low stock alerts
+- Utang (credit) tracking pages
+- Sales reports
+
+### 🎯 Ready to Test
+```bash
+# Start dev server
+pnpm dev
+
+# Visit http://localhost:3000
+# - Creates/signs in with email/password
+# - Redirects to /pos after auth
+# - Session persists on refresh
+# - Try logging out and back in
+```
+
+**Environment Setup Required:**
+- Copy `.env.example` to `.env.local`
+- Add your Supabase URL and anon key
+- Run migrations via Supabase dashboard or CLI
+
