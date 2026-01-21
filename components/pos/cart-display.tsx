@@ -1,5 +1,6 @@
 'use client'
 
+import { motion } from 'framer-motion'
 import { useCart } from '@/lib/hooks/use-cart'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -75,12 +76,19 @@ export function CartDisplay({ onCheckout }: CartDisplayProps) {
           </div>
         ) : (
           <div className="space-y-2">
-            {items.map((item) => {
+            {items.map((item, index) => {
               const remainingStock = item.stockQty - item.quantity
               const isLowStock = remainingStock <= 5 && remainingStock > 0
 
               return (
-                <div key={item.productId} className="p-2.5 border rounded-lg bg-background">
+                <motion.div
+                  key={item.productId}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3, delay: index * 0.05, ease: 'easeOut' }}
+                  className="p-2.5 border rounded-lg bg-background"
+                >
                   <div className="flex items-start justify-between gap-2 mb-1.5">
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium text-sm leading-tight">
@@ -141,7 +149,7 @@ export function CartDisplay({ onCheckout }: CartDisplayProps) {
                     </div>
                     <p className="text-base font-bold">₱{item.total.toFixed(2)}</p>
                   </div>
-                </div>
+                </motion.div>
               )
             })}
           </div>

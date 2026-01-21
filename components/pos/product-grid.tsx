@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
+import { motion } from 'framer-motion'
 import { db } from '@/lib/db'
 import type { Product, Category } from '@/lib/db/schema'
 import { useCart } from '@/lib/hooks/use-cart'
@@ -86,7 +87,12 @@ export function ProductGrid() {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Search and Filter - Fixed at top */}
-      <div className="flex-none flex flex-col lg:flex-row gap-2 mb-2">
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+        className="flex-none flex flex-col lg:flex-row gap-2 mb-2"
+      >
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
           <Input
@@ -109,7 +115,7 @@ export function ProductGrid() {
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </motion.div>
 
       {/* Product List - Scrollable */}
       <div className="flex-1 overflow-y-auto">
@@ -124,7 +130,7 @@ export function ProductGrid() {
           </div>
         ) : (
           <div className="space-y-2 pb-2">
-            {filteredProducts.map((product) => {
+            {filteredProducts.map((product, index) => {
               const category = categories.find((c) => c.id === product.categoryId)
 
               // Calculate remaining stock after cart items
@@ -137,13 +143,18 @@ export function ProductGrid() {
                 !isOutOfStock && remainingStock <= product.lowStockThreshold
 
               return (
-                <Card
+                <motion.div
                   key={product.id}
-                  className={`p-2.5 cursor-pointer transition-all active:scale-[0.99] ${
-                    isOutOfStock ? 'opacity-50' : ''
-                  }`}
-                  onClick={() => !isOutOfStock && handleAddToCart(product)}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.03, ease: 'easeOut' }}
                 >
+                  <Card
+                    className={`p-2.5 cursor-pointer transition-all active:scale-[0.99] ${
+                      isOutOfStock ? 'opacity-50' : ''
+                    }`}
+                    onClick={() => !isOutOfStock && handleAddToCart(product)}
+                  >
                   <div className="flex items-start gap-2.5">
                     {/* Product Info */}
                     <div className="flex-1 min-w-0 space-y-0.5">
@@ -200,6 +211,7 @@ export function ProductGrid() {
                     )}
                   </div>
                 </Card>
+                </motion.div>
               )
             })}
           </div>

@@ -16,8 +16,9 @@ UI (React) → Zustand (state) → Dexie (local) ↔ Sync → Supabase (cloud)
 ```
 
 - Offline-first: all ops hit Dexie first
-- Sync: periodic 5min + manual + on-close
-- Conflict: last-write-wins via updatedAt
+- Sync: manual backup only (user-controlled) + auto-restore on first login
+- Conflict: last-write-wins via updatedAt timestamp comparison
+- Supabase acts as cloud backup, not real-time sync
 
 ## Folders
 
@@ -157,17 +158,19 @@ All tables: id, userId, syncedAt, updatedAt, isDeleted
 
 **State Management:**
 - ✅ Cart store (`lib/stores/cart-store.ts`) with localStorage persistence
-- ✅ Sync store (`lib/stores/sync-store.ts`) with orchestration
-- ✅ Sync provider (`components/providers/sync-provider.tsx`)
+- ✅ Sync store (`lib/stores/sync-store.ts`) with manual backup orchestration
+- ✅ Sync provider (`components/providers/sync-provider.tsx`) - handles initial login restore
 - ✅ Cart hook (`lib/hooks/use-cart.ts`) with auto pending change tracking
-- ✅ Sync hook (`lib/hooks/use-sync.ts`)
+- ✅ Sync hook (`lib/hooks/use-sync.ts`) with stats tracking
+- ✅ Sync indicator (`components/layout/sync-indicator.tsx`) - manual backup button
 
-**Sync Strategies:**
-- ✅ Periodic sync (5min intervals, configurable)
-- ✅ Manual sync trigger via `sync()` method
-- ✅ Auto-sync on window close/beforeunload (if pending changes)
-- ✅ Auto-sync on tab visibility change (when hidden)
-- ✅ Auto-sync on window focus (if >5min since last sync)
+**Sync Strategies (Manual Backup Only):**
+- ✅ Manual sync: User-controlled backup via "Backup to cloud" button
+- ✅ Initial login sync: Auto-restores backup from Supabase if local DB is empty
+- ✅ Conflict resolution: Last-write-wins via `updatedAt` timestamp comparison
+- ✅ Sync statistics: Tracks pushed/pulled/skipped counts (↑uploaded, ↓downloaded)
+- ✅ Prevents concurrent syncs
+- ✅ All operations work offline-first (Dexie), Supabase is optional backup
 
 **Cart Features:**
 - ✅ Add/remove items with stock validation

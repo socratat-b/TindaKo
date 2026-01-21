@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { db } from '@/lib/db'
 import { useCart } from '@/lib/hooks/use-cart'
 import { Card } from '@/components/ui/card'
@@ -89,7 +90,12 @@ export function BarcodeScanner() {
   }
 
   return (
-    <div className="space-y-1.5">
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+      className="space-y-1.5"
+    >
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <Scan className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
@@ -106,22 +112,28 @@ export function BarcodeScanner() {
       </div>
 
       {/* Scan Result Indicator */}
-      {scanResult && (
-        <div
-          className={`flex items-center gap-2 p-2 rounded-md ${
-            scanResult.type === 'success'
-              ? 'bg-emerald-50 text-emerald-900 border border-emerald-200'
-              : 'bg-red-50 text-red-900 border border-red-200'
-          }`}
-        >
-          {scanResult.type === 'success' ? (
-            <CheckCircle2 className="h-4 w-4 shrink-0" />
-          ) : (
-            <AlertCircle className="h-4 w-4 shrink-0" />
-          )}
-          <span className="text-xs font-medium">{scanResult.message}</span>
-        </div>
-      )}
-    </div>
+      <AnimatePresence>
+        {scanResult && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className={`flex items-center gap-2 p-2 rounded-md ${
+              scanResult.type === 'success'
+                ? 'bg-emerald-50 text-emerald-900 border border-emerald-200'
+                : 'bg-red-50 text-red-900 border border-red-200'
+            }`}
+          >
+            {scanResult.type === 'success' ? (
+              <CheckCircle2 className="h-4 w-4 shrink-0" />
+            ) : (
+              <AlertCircle className="h-4 w-4 shrink-0" />
+            )}
+            <span className="text-xs font-medium">{scanResult.message}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   )
 }

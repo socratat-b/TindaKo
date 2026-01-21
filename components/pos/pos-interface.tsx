@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import { useCart } from '@/lib/hooks/use-cart'
 import { useSyncStore } from '@/lib/stores/sync-store'
 import { processSale } from '@/lib/actions/pos'
@@ -53,14 +54,24 @@ export default function POSInterface({ userId }: POSInterfaceProps) {
         {/* Main POS Layout */}
         <div className="flex-1 grid grid-cols-3 gap-4 min-h-0">
           {/* Product Grid - Takes 2 columns on large screens */}
-          <div className="col-span-2 overflow-hidden">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4, delay: 0.1, ease: 'easeOut' }}
+            className="col-span-2 overflow-hidden"
+          >
             <ProductGrid />
-          </div>
+          </motion.div>
 
           {/* Cart - Takes 1 column on large screens */}
-          <div className="col-span-1 overflow-hidden">
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4, delay: 0.2, ease: 'easeOut' }}
+            className="col-span-1 overflow-hidden"
+          >
             <CartDisplay onCheckout={() => setCheckoutOpen(true)} />
-          </div>
+          </motion.div>
         </div>
       </div>
 
@@ -73,21 +84,27 @@ export default function POSInterface({ userId }: POSInterfaceProps) {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-          <TabsList className="grid w-full grid-cols-2 flex-none mb-2.5">
-            <TabsTrigger value="products" className="text-sm">
-              <Package className="h-4 w-4 mr-1.5" />
-              Products
-            </TabsTrigger>
-            <TabsTrigger value="cart" className="text-sm">
-              <ShoppingCart className="h-4 w-4 mr-1.5" />
-              Cart
-              {cart.items.length > 0 && (
-                <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-xs">
-                  {cart.items.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-          </TabsList>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1, ease: 'easeOut' }}
+          >
+            <TabsList className="grid w-full grid-cols-2 flex-none mb-2.5">
+              <TabsTrigger value="products" className="text-sm">
+                <Package className="h-4 w-4 mr-1.5" />
+                Products
+              </TabsTrigger>
+              <TabsTrigger value="cart" className="text-sm">
+                <ShoppingCart className="h-4 w-4 mr-1.5" />
+                Cart
+                {cart.items.length > 0 && (
+                  <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-xs">
+                    {cart.items.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            </TabsList>
+          </motion.div>
 
           <TabsContent value="products" className="flex-1 overflow-hidden m-0">
             <ProductGrid />

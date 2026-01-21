@@ -34,29 +34,66 @@ async function getCurrentUserId(): Promise<string> {
 }
 
 /**
+ * Sync statistics returned after sync
+ */
+export interface SyncStats {
+  pushedCount: number
+  pulledCount: number
+  skippedCount: number
+}
+
+/**
  * Sync all tables with Supabase
  * Syncs in dependency order: categories, customers, products, sales, utangTransactions, inventoryMovements
  * Skips sync if offline
+ * @param isInitialSync - If true, pulls all data regardless of lastSyncTime (for first login/restore)
  */
-export async function syncAll() {
+export async function syncAll(isInitialSync = false): Promise<SyncStats> {
   try {
     // Check if online before attempting sync
     const online = await isOnline()
     if (!online) {
       console.log('Offline - skipping sync')
-      return
+      return { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
     }
 
     const userId = await getCurrentUserId()
 
-    // Sync in dependency order
-    await syncCategories(userId)
-    await syncCustomers(userId)
-    await syncProducts(userId)
-    await syncSales(userId)
-    await syncUtangTransactions(userId)
-    await syncInventoryMovements(userId)
-    console.log('Sync completed successfully')
+    // Sync in dependency order and collect stats
+    const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
+
+    const categoriesStats = await syncCategories(userId, isInitialSync)
+    stats.pushedCount += categoriesStats.pushedCount
+    stats.pulledCount += categoriesStats.pulledCount
+    stats.skippedCount += categoriesStats.skippedCount
+
+    const customersStats = await syncCustomers(userId, isInitialSync)
+    stats.pushedCount += customersStats.pushedCount
+    stats.pulledCount += customersStats.pulledCount
+    stats.skippedCount += customersStats.skippedCount
+
+    const productsStats = await syncProducts(userId, isInitialSync)
+    stats.pushedCount += productsStats.pushedCount
+    stats.pulledCount += productsStats.pulledCount
+    stats.skippedCount += productsStats.skippedCount
+
+    const salesStats = await syncSales(userId, isInitialSync)
+    stats.pushedCount += salesStats.pushedCount
+    stats.pulledCount += salesStats.pulledCount
+    stats.skippedCount += salesStats.skippedCount
+
+    const utangStats = await syncUtangTransactions(userId, isInitialSync)
+    stats.pushedCount += utangStats.pushedCount
+    stats.pulledCount += utangStats.pulledCount
+    stats.skippedCount += utangStats.skippedCount
+
+    const inventoryStats = await syncInventoryMovements(userId, isInitialSync)
+    stats.pushedCount += inventoryStats.pushedCount
+    stats.pulledCount += inventoryStats.pulledCount
+    stats.skippedCount += inventoryStats.skippedCount
+
+    console.log('Sync completed successfully', stats)
+    return stats
   } catch (error) {
     console.error('Sync failed:', error)
     throw error
@@ -84,15 +121,14 @@ export function toCamelCase(obj: Record<string, any>): Record<string, any> {
 }
 
 // Sync functions will be implemented by /add-table skill
-async function syncCategories(userId: string) {
+async function syncCategories(userId: string, isInitialSync = false): Promise<SyncStats> {
   const supabase = createClient()
-  const lastSync = lastSyncTime['categories'] || new Date(0).toISOString()
+  const lastSync = isInitialSync ? new Date(0).toISOString() : (lastSyncTime['categories'] || new Date(0).toISOString())
+  const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   // PUSH: Local unsynced changes to Supabase (filter by userId)
   const unsynced = await db.categories
-    .where('syncedAt')
-    .equals(null as any)
-    .filter(item => item.userId === userId && !item.isDeleted)
+    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -102,10 +138,14 @@ async function syncCategories(userId: string) {
       .from('categories')
       .upsert(supabaseData)
 
-    if (!error) {
+    if (error) {
+      console.error('❌ Failed to sync category:', item.id, error)
+      console.error('Data being sent:', supabaseData)
+    } else {
       await db.categories.update(item.id, {
         syncedAt: new Date().toISOString()
       })
+      stats.pushedCount++
     }
   }
 
@@ -117,24 +157,34 @@ async function syncCategories(userId: string) {
 
   if (data) {
     for (const item of data) {
-      const localData = toCamelCase(item) as any as any
-      localData.syncedAt = new Date().toISOString()
-      await db.categories.put(localData)
+      const localData = toCamelCase(item) as any
+      const existing = await db.categories.get(localData.id)
+
+      // Only replace if remote is newer or doesn't exist locally
+      if (!existing || new Date(item.updated_at) > new Date(existing.updatedAt)) {
+        localData.syncedAt = new Date().toISOString()
+        await db.categories.put(localData)
+        stats.pulledCount++
+      } else {
+        // Local is newer - keep it
+        stats.skippedCount++
+        console.log(`Skipped category ${localData.id}: local is newer`)
+      }
     }
   }
 
   lastSyncTime['categories'] = new Date().toISOString()
+  return stats
 }
 
-async function syncCustomers(userId: string) {
+async function syncCustomers(userId: string, isInitialSync = false): Promise<SyncStats> {
   const supabase = createClient()
-  const lastSync = lastSyncTime['customers'] || new Date(0).toISOString()
+  const lastSync = isInitialSync ? new Date(0).toISOString() : (lastSyncTime['customers'] || new Date(0).toISOString())
+  const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   // PUSH: Local unsynced changes to Supabase (filter by userId)
   const unsynced = await db.customers
-    .where('syncedAt')
-    .equals(null as any)
-    .filter(item => item.userId === userId && !item.isDeleted)
+    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -148,6 +198,7 @@ async function syncCustomers(userId: string) {
       await db.customers.update(item.id, {
         syncedAt: new Date().toISOString()
       })
+      stats.pushedCount++
     }
   }
 
@@ -160,23 +211,33 @@ async function syncCustomers(userId: string) {
   if (data) {
     for (const item of data) {
       const localData = toCamelCase(item) as any
-      localData.syncedAt = new Date().toISOString()
-      await db.customers.put(localData)
+      const existing = await db.customers.get(localData.id)
+
+      // Only replace if remote is newer or doesn't exist locally
+      if (!existing || new Date(item.updated_at) > new Date(existing.updatedAt)) {
+        localData.syncedAt = new Date().toISOString()
+        await db.customers.put(localData)
+        stats.pulledCount++
+      } else {
+        // Local is newer - keep it
+        stats.skippedCount++
+        console.log(`Skipped customer ${localData.id}: local is newer`)
+      }
     }
   }
 
   lastSyncTime['customers'] = new Date().toISOString()
+  return stats
 }
 
-async function syncProducts(userId: string) {
+async function syncProducts(userId: string, isInitialSync = false): Promise<SyncStats> {
   const supabase = createClient()
-  const lastSync = lastSyncTime['products'] || new Date(0).toISOString()
+  const lastSync = isInitialSync ? new Date(0).toISOString() : (lastSyncTime['products'] || new Date(0).toISOString())
+  const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   // PUSH: Local unsynced changes to Supabase (filter by userId)
   const unsynced = await db.products
-    .where('syncedAt')
-    .equals(null as any)
-    .filter(item => item.userId === userId && !item.isDeleted)
+    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -190,6 +251,7 @@ async function syncProducts(userId: string) {
       await db.products.update(item.id, {
         syncedAt: new Date().toISOString()
       })
+      stats.pushedCount++
     }
   }
 
@@ -202,23 +264,33 @@ async function syncProducts(userId: string) {
   if (data) {
     for (const item of data) {
       const localData = toCamelCase(item) as any
-      localData.syncedAt = new Date().toISOString()
-      await db.products.put(localData)
+      const existing = await db.products.get(localData.id)
+
+      // Only replace if remote is newer or doesn't exist locally
+      if (!existing || new Date(item.updated_at) > new Date(existing.updatedAt)) {
+        localData.syncedAt = new Date().toISOString()
+        await db.products.put(localData)
+        stats.pulledCount++
+      } else {
+        // Local is newer - keep it
+        stats.skippedCount++
+        console.log(`Skipped product ${localData.id}: local is newer`)
+      }
     }
   }
 
   lastSyncTime['products'] = new Date().toISOString()
+  return stats
 }
 
-async function syncSales(userId: string) {
+async function syncSales(userId: string, isInitialSync = false): Promise<SyncStats> {
   const supabase = createClient()
-  const lastSync = lastSyncTime['sales'] || new Date(0).toISOString()
+  const lastSync = isInitialSync ? new Date(0).toISOString() : (lastSyncTime['sales'] || new Date(0).toISOString())
+  const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   // PUSH: Local unsynced changes to Supabase (filter by userId)
   const unsynced = await db.sales
-    .where('syncedAt')
-    .equals(null as any)
-    .filter(item => item.userId === userId && !item.isDeleted)
+    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -233,6 +305,7 @@ async function syncSales(userId: string) {
       await db.sales.update(item.id, {
         syncedAt: new Date().toISOString()
       })
+      stats.pushedCount++
     }
   }
 
@@ -245,24 +318,34 @@ async function syncSales(userId: string) {
   if (data) {
     for (const item of data) {
       const localData = toCamelCase(item) as any
-      // Items array is already in the correct format (JSON)
-      localData.syncedAt = new Date().toISOString()
-      await db.sales.put(localData)
+      const existing = await db.sales.get(localData.id)
+
+      // Only replace if remote is newer or doesn't exist locally
+      if (!existing || new Date(item.updated_at) > new Date(existing.updatedAt)) {
+        // Items array is already in the correct format (JSON)
+        localData.syncedAt = new Date().toISOString()
+        await db.sales.put(localData)
+        stats.pulledCount++
+      } else {
+        // Local is newer - keep it
+        stats.skippedCount++
+        console.log(`Skipped sale ${localData.id}: local is newer`)
+      }
     }
   }
 
   lastSyncTime['sales'] = new Date().toISOString()
+  return stats
 }
 
-async function syncUtangTransactions(userId: string) {
+async function syncUtangTransactions(userId: string, isInitialSync = false): Promise<SyncStats> {
   const supabase = createClient()
-  const lastSync = lastSyncTime['utangTransactions'] || new Date(0).toISOString()
+  const lastSync = isInitialSync ? new Date(0).toISOString() : (lastSyncTime['utangTransactions'] || new Date(0).toISOString())
+  const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   // PUSH: Local unsynced changes to Supabase (filter by userId)
   const unsynced = await db.utangTransactions
-    .where('syncedAt')
-    .equals(null as any)
-    .filter(item => item.userId === userId && !item.isDeleted)
+    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -276,6 +359,7 @@ async function syncUtangTransactions(userId: string) {
       await db.utangTransactions.update(item.id, {
         syncedAt: new Date().toISOString()
       })
+      stats.pushedCount++
     }
   }
 
@@ -288,23 +372,33 @@ async function syncUtangTransactions(userId: string) {
   if (data) {
     for (const item of data) {
       const localData = toCamelCase(item) as any
-      localData.syncedAt = new Date().toISOString()
-      await db.utangTransactions.put(localData)
+      const existing = await db.utangTransactions.get(localData.id)
+
+      // Only replace if remote is newer or doesn't exist locally
+      if (!existing || new Date(item.updated_at) > new Date(existing.updatedAt)) {
+        localData.syncedAt = new Date().toISOString()
+        await db.utangTransactions.put(localData)
+        stats.pulledCount++
+      } else {
+        // Local is newer - keep it
+        stats.skippedCount++
+        console.log(`Skipped utang transaction ${localData.id}: local is newer`)
+      }
     }
   }
 
   lastSyncTime['utangTransactions'] = new Date().toISOString()
+  return stats
 }
 
-async function syncInventoryMovements(userId: string) {
+async function syncInventoryMovements(userId: string, isInitialSync = false): Promise<SyncStats> {
   const supabase = createClient()
-  const lastSync = lastSyncTime['inventoryMovements'] || new Date(0).toISOString()
+  const lastSync = isInitialSync ? new Date(0).toISOString() : (lastSyncTime['inventoryMovements'] || new Date(0).toISOString())
+  const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   // PUSH: Local unsynced changes to Supabase (filter by userId)
   const unsynced = await db.inventoryMovements
-    .where('syncedAt')
-    .equals(null as any)
-    .filter(item => item.userId === userId && !item.isDeleted)
+    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -318,6 +412,7 @@ async function syncInventoryMovements(userId: string) {
       await db.inventoryMovements.update(item.id, {
         syncedAt: new Date().toISOString()
       })
+      stats.pushedCount++
     }
   }
 
@@ -330,10 +425,21 @@ async function syncInventoryMovements(userId: string) {
   if (data) {
     for (const item of data) {
       const localData = toCamelCase(item) as any
-      localData.syncedAt = new Date().toISOString()
-      await db.inventoryMovements.put(localData)
+      const existing = await db.inventoryMovements.get(localData.id)
+
+      // Only replace if remote is newer or doesn't exist locally
+      if (!existing || new Date(item.updated_at) > new Date(existing.updatedAt)) {
+        localData.syncedAt = new Date().toISOString()
+        await db.inventoryMovements.put(localData)
+        stats.pulledCount++
+      } else {
+        // Local is newer - keep it
+        stats.skippedCount++
+        console.log(`Skipped inventory movement ${localData.id}: local is newer`)
+      }
     }
   }
 
   lastSyncTime['inventoryMovements'] = new Date().toISOString()
+  return stats
 }

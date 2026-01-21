@@ -159,12 +159,15 @@ export function ProductFormDialog({
             )}
 
           <div>
-            <Label htmlFor="name" className="text-xs lg:text-sm">Product Name *</Label>
+            <Label htmlFor="name" className="text-xs lg:text-sm">
+              Product Name *
+            </Label>
             <Input
               id="name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               required
+              disabled={isLoading}
               className="h-9 text-xs lg:h-10 lg:text-sm"
             />
           </div>

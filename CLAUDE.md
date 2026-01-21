@@ -22,8 +22,9 @@ UI (React 19) → Zustand (state) → Dexie (IndexedDB) ↔ Sync → Supabase (c
 ```
 
 - **Offline-first**: All operations hit local Dexie/IndexedDB first
-- **Sync strategy**: Periodic (5min) + manual + on-close
-- **Conflict resolution**: Last-write-wins via `updatedAt` timestamps
+- **Sync strategy**: Manual backup only (user-controlled) + automatic restore on first login
+- **Conflict resolution**: Last-write-wins via `updatedAt` timestamp comparison
+- **Backup/Restore**: Supabase acts as cloud backup, all operations work locally first
 
 ## Tech Stack
 
@@ -150,12 +151,14 @@ proxy.ts                                  # Optimistic auth checks (Next.js 16)
 ```
 lib/stores/
   ├── cart-store.ts              # Shopping cart state with persistence
-  └── sync-store.ts              # Sync orchestration (periodic + manual + on-close)
+  └── sync-store.ts              # Manual sync orchestration with stats tracking
 lib/hooks/
   ├── use-cart.ts                # Cart management hook with auto pending tracking
   └── use-sync.ts                # Sync state and manual trigger hook
 components/providers/
-  └── sync-provider.tsx          # Auto-initializes sync when authenticated
+  └── sync-provider.tsx          # Handles initial login sync (restores backup)
+components/layout/
+  └── sync-indicator.tsx         # Manual backup button with sync stats
 app/layout.tsx                   # Updated with SyncProvider
 ```
 
@@ -168,15 +171,20 @@ app/layout.tsx                   # Updated with SyncProvider
 - Automatic subtotal/total calculation
 - localStorage persistence
 
-**Sync Orchestration:**
-- **Periodic sync**: Every 5 minutes (configurable interval)
-- **Manual sync**: Via `sync()` method
-- **Auto-sync on**:
-  - Window close/beforeunload (if pending changes)
-  - Tab visibility change (when hidden)
-  - Window focus (if >5min since last sync)
-- Prevents concurrent syncs
-- Tracks sync status, errors, and pending changes
+**Sync Orchestration (Manual Backup Only):**
+- **Manual sync**: User clicks "Backup to cloud" button to upload data to Supabase
+- **Initial login sync**: Automatically restores backup from Supabase if local database is empty
+- **Conflict resolution**: Last-write-wins via `updatedAt` timestamp comparison
+- **Sync statistics**: Tracks pushed/pulled/skipped counts (↑uploaded, ↓downloaded)
+- **Prevents concurrent syncs**: Blocks new syncs while one is in progress
+- **Works offline**: All operations hit local Dexie first, sync is optional backup
+
+**Sync Flow:**
+1. User works offline → all changes saved to local Dexie
+2. User clicks "Backup to cloud" → uploads unsynced changes (where `syncedAt === null`)
+3. Downloads remote changes from Supabase → only replaces if remote `updatedAt` > local
+4. User clears PWA/browser data → local database wiped
+5. User logs in again → detects empty database → automatically pulls backup from Supabase
 
 **Usage Example:**
 ```typescript
@@ -185,11 +193,11 @@ import { useSync } from '@/lib/hooks/use-sync'
 
 function POSComponent() {
   const { items, addItem, total } = useCart()
-  const { isSyncing, sync, hasPendingChanges } = useSync()
+  const { isSyncing, sync, hasPendingChanges, lastSyncStats } = useSync()
 
-  // Cart automatically marks pending changes
-  // Sync runs automatically in background
-  // Manual sync available via sync() method
+  // All cart operations work offline (Dexie)
+  // User controls when to backup via sync() method
+  // lastSyncStats shows ↑5 ↓2 (5 uploaded, 2 downloaded)
 }
 ```
 

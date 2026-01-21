@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -99,7 +100,12 @@ export function ProductsList({
   return (
     <div className="space-y-3 lg:space-y-4">
       {/* Search and Filter Controls */}
-      <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+        className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between lg:gap-4"
+      >
         <div className="flex flex-col gap-2 lg:flex-1 lg:flex-row">
           <Input
             placeholder="Search by name or barcode..."
@@ -132,7 +138,7 @@ export function ProductsList({
         >
           Add Product
         </Button>
-      </div>
+      </motion.div>
 
       {/* Empty State */}
       {filteredProducts.length === 0 && (
@@ -157,10 +163,16 @@ export function ProductsList({
 
       {/* Mobile Card View */}
       <div className="space-y-2 lg:hidden">
-        {filteredProducts.map((product) => {
+        {filteredProducts.map((product, index) => {
           const stockStatus = getStockStatus(product)
           return (
-            <Card key={product.id} className="p-3">
+            <motion.div
+              key={product.id}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.05, ease: 'easeOut' }}
+            >
+              <Card className="p-3">
               <div className="space-y-2">
                 {/* Product Name and Stock Status */}
                 <div className="flex items-start justify-between gap-2">
@@ -225,6 +237,7 @@ export function ProductsList({
                 </div>
               </div>
             </Card>
+            </motion.div>
           )
         })}
       </div>
@@ -266,10 +279,16 @@ export function ProductsList({
                 </TableCell>
               </TableRow>
             ) : (
-              filteredProducts.map((product) => {
+              filteredProducts.map((product, index) => {
                 const stockStatus = getStockStatus(product)
                 return (
-                  <TableRow key={product.id}>
+                  <motion.tr
+                    key={product.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.03, ease: 'easeOut' }}
+                    className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+                  >
                     <TableCell className="font-medium">{product.name}</TableCell>
                     <TableCell className="font-mono text-sm">
                       {product.barcode || '-'}
@@ -314,7 +333,7 @@ export function ProductsList({
                         </Button>
                       </div>
                     </TableCell>
-                  </TableRow>
+                  </motion.tr>
                 )
               })
             )}
