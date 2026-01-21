@@ -1,404 +1,82 @@
-# TindaKo POS PWA
+# TindaKo POS PWA - Implementation Plan
 
 ## Stack
-
-- Next.js 16.1.3 + React 19 + Tailwind v4 (existing)
-- Supabase (PostgreSQL + Auth)
-- Dexie.js (IndexedDB, offline-first)
-- Zustand v5 (state)
-- Serwist (PWA)
-- html5-qrcode, papaparse
+Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Serwist + Framer Motion
 
 ## Architecture
-
 ```
-UI (React) → Zustand (state) → Dexie (local) ↔ Sync → Supabase (cloud)
+UI (React) → Zustand → Dexie (local) ↔ Manual Sync → Supabase (backup)
 ```
+- Offline-first: all operations hit Dexie first
+- Sync: manual backup only (user clicks "Backup to cloud" button)
+- Auto-restore: pulls backup on first login if local DB empty
+- Conflict resolution: last-write-wins via `updatedAt` timestamps
 
-- Offline-first: all ops hit Dexie first
-- Sync: manual backup only (user-controlled) + auto-restore on first login
-- Conflict: last-write-wins via updatedAt timestamp comparison
-- Supabase acts as cloud backup, not real-time sync
+## Database Schema
+All tables: `id`, `userId`, `syncedAt`, `updatedAt`, `createdAt`, `isDeleted`
 
-## Folders
+- **products**: name, barcode, categoryId, costPrice, sellingPrice, stockQty, lowStockThreshold
+- **categories**: name, color, sortOrder
+- **sales**: items[], subtotal, discount, total, amountPaid, change, paymentMethod, customerId
+- **customers**: name, phone, totalUtang
+- **utangTransactions**: customerId, saleId, type, amount, balanceAfter
+- **inventoryMovements**: productId, type, qty, notes
 
-```
-app/(auth)/login, signup
-app/(dashboard)/pos, products, inventory, utang, reports, settings
-app/manifest.ts, sw.ts
-components/ui, pos, products, utang, layout
-lib/db (dexie), lib/supabase, lib/stores, lib/hooks, lib/utils
-```
+## ✅ Completed Features
 
-## DB Schema
+### Phase 1-3: Core Foundation
+- [x] **Database**: Dexie (local) + Supabase (cloud) with RLS policies
+- [x] **Authentication**: Supabase email/password, session persistence, DAL security
+- [x] **Sync**: Manual backup with last-write-wins conflict resolution, sync stats tracking
+- [x] **Testing**: Vitest + React Testing Library (14/14 tests passing)
+- [x] **PWA**: Service worker, installable, offline-capable, manifest
+- [x] **State Management**: Zustand stores (auth, cart, sync) with localStorage persistence
 
-All tables: id, userId, syncedAt, updatedAt, isDeleted
+### Phase 3: Pages & UI
+- [x] **POS Page**: Product grid, cart, checkout, barcode scanner, atomic transactions, framer-motion animations
+- [x] **Products Page**: CRUD products & categories, search/filter, stock status, auto-seed default categories, framer-motion animations
+- [x] **Inventory Page**: Manual adjustments (in/out/adjust), low stock alerts, movement history, framer-motion animations
+- [x] **Layout**: Responsive header, sidebar (desktop), drawer (mobile), sync indicator
+- [x] **Design System**: Mobile-first font sizing, shadcn/ui components
 
-| Table              | Key Fields                                                                        |
-| ------------------ | --------------------------------------------------------------------------------- |
-| products           | name, barcode, categoryId, costPrice, sellingPrice, stockQty, lowStockThreshold   |
-| categories         | name, color, sortOrder                                                            |
-| sales              | items[], subtotal, discount, total, amountPaid, change, paymentMethod, customerId |
-| customers          | name, phone, totalUtang                                                           |
-| utangTransactions  | customerId, saleId, type, amount, balanceAfter                                    |
-| inventoryMovements | productId, type, qty, notes                                                       |
+## 📋 Todo
 
-## MVP Features
+### Phase 3: Remaining Pages
+- [ ] **Utang Page**: Customer credit tracking, payment recording, balance history
+- [ ] **Reports Page**: Daily/weekly/monthly sales reports
+- [ ] **Settings Page**: App configuration
 
-**Auth**
-
-- Supabase email/pwd login
-- Signup flow
-- Auth middleware
-- Session persist
-
-**Products**
-
-- CRUD products
-- Categories CRUD
-- Search/filter
-
-**POS**
-
-- Product grid (tap add)
-- Cart + qty
-- Discount (fixed/%)
-- Cash payment + change calc
-- Receipt view
-- Void sale
-
-**Inventory**
-
-- Auto-deduct on sale
-- Low stock alerts
-- Manual adjustment
-
-**Utang**
-
-- Customer CRUD
-- Credit sale
-- Payment recording
-- Balance + history
-
-**Technical**
-
-- PWA manifest + SW
-- Offline (Dexie)
-- Hybrid sync
-- Mobile bottom-nav / desktop sidebar
-- Sync status indicator
-
-## Phase 2 (later)
-
-- CSV import
-- Barcode scanner
-- Reports (daily/weekly/monthly)
-- Profit calc
-
-## Implementation Status
-
-### ✅ Completed
-
-#### Phase 1: Database Layer
-
-**Dependencies Installed:**
-- @supabase/supabase-js, @supabase/ssr
-- dexie, dexie-react-hooks
-- zustand, nanoid, date-fns
-
-**Database Schema (Dexie + Supabase):**
-- ✅ All 6 tables created with TypeScript interfaces (`lib/db/schema.ts`)
-- ✅ Dexie local database configured (`lib/db/index.ts`)
-- ✅ Supabase tables with RLS policies enabled
-- ✅ Bidirectional sync logic (`lib/db/sync.ts`)
-- ✅ Foreign key constraints configured
-- ✅ Auto-updating timestamps via triggers
-- ✅ Optimized RLS policies (no performance warnings)
-
-**Tables:**
-1. categories - Product categorization
-2. customers - Customer management with credit tracking
-3. products - Product catalog with inventory
-4. sales - POS transactions with JSONB items
-5. utang_transactions - Credit/payment ledger
-6. inventory_movements - Inventory audit trail
-
-**Infrastructure:**
-- ✅ Supabase client (`lib/supabase/client.ts`)
-- ✅ Migration files (`supabase/migrations/`)
-- ✅ .env.example with required variables
-- ✅ .mcp.json.example for Claude Code integration
-- ✅ Updated .gitignore for sensitive files
-
-#### Phase 2: Authentication (Next.js Official Pattern)
-
-**Security Architecture:**
-- ✅ Data Access Layer (`lib/dal.ts`) - PRIMARY security with `verifySession()` and `getUser()`
-- ✅ Supabase server client (`lib/supabase/server.ts`)
-- ✅ Server Actions for auth operations (`lib/actions/auth.ts`)
-- ✅ Proxy for optimistic checks (`proxy.ts` - Next.js 16 naming)
-
-**Client State:**
-- ✅ Zustand auth store (`lib/stores/auth-store.ts`) with localStorage persistence
-- ✅ Auth hook (`lib/hooks/use-auth.ts`) - read-only state access
-- ✅ Auth provider (`components/providers/auth-provider.tsx`)
-
-**Pages & Components:**
-- ✅ Login page with `useActionState` (`app/(auth)/login/page.tsx`)
-- ✅ Signup page with `useActionState` + validation (`app/(auth)/signup/page.tsx`)
-- ✅ Submit button component (`components/auth/submit-button.tsx`)
-- ✅ Protected dashboard layout (`app/(dashboard)/layout.tsx`)
-- ✅ POS page placeholder (`app/(dashboard)/pos/page.tsx`)
-
-**User Isolation:**
-- ✅ All sync functions filter by userId
-- ✅ RLS policies enforce user-scoped data access
-
-#### Phase 3: State Management & Sync Orchestration
-
-**State Management:**
-- ✅ Cart store (`lib/stores/cart-store.ts`) with localStorage persistence
-- ✅ Sync store (`lib/stores/sync-store.ts`) with manual backup orchestration
-- ✅ Sync provider (`components/providers/sync-provider.tsx`) - handles initial login restore
-- ✅ Cart hook (`lib/hooks/use-cart.ts`) with auto pending change tracking
-- ✅ Sync hook (`lib/hooks/use-sync.ts`) with stats tracking
-- ✅ Sync indicator (`components/layout/sync-indicator.tsx`) - manual backup button
-
-**Sync Strategies (Manual Backup Only):**
-- ✅ Manual sync: User-controlled backup via "Backup to cloud" button
-- ✅ Initial login sync: Auto-restores backup from Supabase if local DB is empty
-- ✅ Conflict resolution: Last-write-wins via `updatedAt` timestamp comparison
-- ✅ Sync statistics: Tracks pushed/pulled/skipped counts (↑uploaded, ↓downloaded)
-- ✅ Prevents concurrent syncs
-- ✅ All operations work offline-first (Dexie), Supabase is optional backup
-
-**Cart Features:**
-- ✅ Add/remove items with stock validation
-- ✅ Update quantities with bounds checking
-- ✅ Customer selection
-- ✅ Discount management
-- ✅ Payment method selection (cash/gcash/card)
-- ✅ Automatic subtotal/total calculation
-- ✅ Integrates with sync store for pending change tracking
-
-#### Phase 3: PWA Setup
-
-**Dependencies:**
-- ✅ @serwist/next 9.5.0
-- ✅ serwist 9.5.0
-
-**Configuration:**
-- ✅ next.config.ts with Serwist plugin (webpack mode)
-- ✅ package.json build script updated with --webpack flag
-- ✅ Service worker enabled only in production
-
-**Files Created:**
-- ✅ app/sw.ts - Service worker with precaching and runtime caching
-- ✅ app/manifest.ts - PWA manifest with app metadata
-- ✅ app/page.tsx - Landing page with install feature
-- ✅ components/pwa/install-button.tsx - Custom PWA install button
-- ✅ public/icon-192.svg - PWA icon (192x192)
-- ✅ public/icon-512.svg - PWA icon (512x512)
-- ✅ public/sw.js - Generated service worker (42.8 KB)
-- ✅ proxy.ts - Updated to allow public routes (/, /login, /signup)
-
-**Features:**
-- ✅ Service worker with precaching and runtime caching
-- ✅ Installable on mobile and desktop browsers
-- ✅ Custom install button with beforeinstallprompt API
-- ✅ iOS fallback instructions (Safari doesn't support custom install)
-- ✅ Landing page at / showcasing app features
-- ✅ Public routes (no auth required for landing page)
-- ✅ Offline-capable architecture
-- ✅ Manifest accessible at /manifest.webmanifest
-- ✅ Theme color: #10b981 (emerald-500)
-- ✅ Standalone display mode, start URL: /pos
-- ✅ Build verified successful
-
-**Known Limitations:**
-- Uses webpack instead of Turbopack (Serwist doesn't support Turbopack yet)
-- SVG icons (recommend PNG/WebP for production)
-- PWA features only work in production build
-
-### 🔄 In Progress
-
-None
-
-#### Phase 3: UI Components & Layout
-
-- ✅ shadcn/ui initialized (button, input, label, card, badge, separator)
-- ✅ Layout components (header, sidebar, sync indicator, dashboard layout)
-- ✅ Folders: components/ui/, components/layout/, components/pos/, components/products/
-
-#### Phase 3: POS Page
-
-- ✅ POS page (product grid, cart, checkout, barcode scanner)
-- ✅ processSale() with atomic transactions
-- ✅ Stock validation and deduction
-- ✅ Utang transaction handling
-
-#### Phase 3: Products Page
-
-- ✅ Products CRUD (create, read, update, delete)
-- ✅ Categories CRUD with color-coded badges
-- ✅ Search by name/barcode, filter by category
-- ✅ Stock status indicators (In Stock, Low Stock, Out of Stock)
-- ✅ Auto-seeding 8 default Filipino sari-sari store categories
-- ✅ Edge case handling for new users
-- ✅ Barcode uniqueness validation
-
-### 📋 Todo (Phase 3: Remaining Pages)
-
-- [ ] Inventory page (adjustments, low stock alerts)
-- [ ] Utang page (customers, transactions, payments)
-- [ ] Reports page (daily/weekly/monthly sales)
-- [ ] Settings page
-
-**Phase 4 (Future Enhancements):**
+### Phase 4: Future Enhancements
 - [ ] CSV import (papaparse)
-- [ ] Barcode scanner (html5-qrcode)
-- [ ] Advanced analytics
+- [ ] Advanced barcode scanner (html5-qrcode)
+- [ ] Profit calculations
 - [ ] Multi-store support
 
-## Dependencies
-
-**Installed:**
+## Commands
 ```bash
-pnpm add @supabase/supabase-js @supabase/ssr dexie dexie-react-hooks zustand nanoid date-fns @serwist/next serwist
+pnpm dev          # Dev server
+pnpm build        # Production build (uses --webpack for Serwist)
+pnpm start        # Production server
+pnpm test         # Run tests
+pnpm test:ui      # Vitest UI
 ```
 
-**Todo:**
-```bash
-pnpm add papaparse html5-qrcode
-pnpm add -D @types/papaparse
+## Key Files
+```
+lib/db/              # Dexie schema, sync logic
+lib/stores/          # Zustand stores (auth, cart, sync)
+lib/hooks/           # React hooks (useAuth, useCart, useSync)
+lib/actions/         # Server Actions (auth, pos, products, inventory)
+components/pos/      # POS interface components
+components/products/ # Products & categories components
+components/inventory/# Inventory management components
+app/(dashboard)/     # Protected pages (pos, products, inventory)
+app/(auth)/          # Login, signup
+supabase/migrations/ # Database migrations
 ```
 
-## Config Snippets
-
-**next.config.ts**
-
-```ts
-import type { NextConfig } from "next";
-import withSerwistInit from "@serwist/next";
-
-const withSerwist = withSerwistInit({
-  swSrc: "app/sw.ts",
-  swDest: "public/sw.js",
-  disable: process.env.NODE_ENV !== "production",
-});
-
-const nextConfig: NextConfig = {
-  /* config options here */
-};
-
-export default withSerwist(nextConfig);
-```
-
-**package.json** (build script)
-
-```json
-{
-  "scripts": {
-    "build": "next build --webpack"
-  }
-}
-```
-
-**Note:** Use `--webpack` flag because Serwist doesn't support Turbopack yet.
-
-**lib/supabase/client.ts**
-
-```ts
-import { createBrowserClient } from "@supabase/ssr";
-export const createClient = () =>
-  createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
-```
-
-**lib/db/index.ts**
-
-```ts
-import Dexie from "dexie";
-const db = new Dexie("TindaKoDB");
-db.version(1).stores({
-  products: "id, userId, categoryId, barcode, syncedAt",
-  categories: "id, userId, syncedAt",
-  sales: "id, userId, customerId, createdAt, syncedAt",
-  customers: "id, userId, syncedAt",
-  utangTransactions: "id, userId, customerId, syncedAt",
-  inventoryMovements: "id, userId, productId, syncedAt",
-});
-export { db };
-```
-
-**app/sw.ts**
-
-```ts
-import { defaultCache } from "@serwist/next/worker";
-import { Serwist } from "serwist";
-declare const self: ServiceWorkerGlobalScope;
-const serwist = new Serwist({
-  precacheEntries: self.__SW_MANIFEST,
-  skipWaiting: true,
-  clientsClaim: true,
-  runtimeCaching: defaultCache,
-});
-serwist.addEventListeners();
-```
-
-**app/manifest.ts**
-
-```ts
-export default function manifest() {
-  return {
-    name: "TindaKo POS",
-    short_name: "TindaKo",
-    start_url: "/pos",
-    display: "standalone",
-    theme_color: "#10b981",
-    icons: [
-      { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
-      { src: "/icon-512.png", sizes: "512x512", type: "image/png" },
-    ],
-  };
-}
-```
-
-## Key Files (priority order)
-
-1. lib/supabase/client.ts, server.ts
-2. proxy.ts
-3. lib/db/schema.ts, index.ts, sync.ts
-4. lib/stores/auth-store.ts, cart-store.ts, sync-store.ts
-5. lib/hooks/use-auth.ts, use-cart.ts, use-sync.ts
-6. components/providers/auth-provider.tsx, sync-provider.tsx
-7. app/manifest.ts, sw.ts
-8. components/ui/\*
-9. app/(auth)/login, signup
-10. app/(dashboard)/layout.tsx
-11. app/(dashboard)/pos/page.tsx
-
-## Verification Checklist
-
-**Authentication:**
-- [x] Login/signup works
-- [x] Session persists on refresh
-- [x] Protected routes redirect to login
-- [x] Auth state syncs to localStorage
-- [x] DAL verifySession() works
-
-**PWA:**
-- [x] PWA installs (manifest + service worker)
-- [x] Build generates service worker
-- [x] Manifest accessible at /manifest.webmanifest
-- [x] Service worker enabled in production only
-
-**Todo:**
-- [ ] Offline mode fully functional (airplane mode test with data)
-- [ ] Sync to Supabase (manual trigger)
-- [ ] Sale flow complete
-- [ ] Utang records and tracks balance
-- [ ] Stock deducts automatically
-- [ ] Multi-device sync works
+## Testing Status
+- ✅ 14/14 tests passing
+- ✅ Unit tests: sync logic, helpers
+- ✅ Integration tests: sync store, full workflow
+- ✅ Mocked: IndexedDB (fake-indexeddb), Supabase (vi.mock)
