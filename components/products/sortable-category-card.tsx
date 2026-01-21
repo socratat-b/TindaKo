@@ -1,11 +1,9 @@
 'use client'
 
-import { useSortable } from '@dnd-kit/sortable'
-import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
-import { GripVertical } from 'lucide-react'
+import { ChevronUp, ChevronDown } from 'lucide-react'
 import type { Category } from '@/lib/db/schema'
 
 interface SortableCategoryCardProps {
@@ -13,6 +11,10 @@ interface SortableCategoryCardProps {
   productCount: number
   onEdit: (category: Category) => void
   onDelete: (category: Category) => void
+  onMoveUp?: () => void
+  onMoveDown?: () => void
+  isFirst?: boolean
+  isLast?: boolean
 }
 
 export function SortableCategoryCard({
@@ -20,46 +22,34 @@ export function SortableCategoryCard({
   productCount,
   onEdit,
   onDelete,
+  onMoveUp,
+  onMoveDown,
+  isFirst = false,
+  isLast = false,
 }: SortableCategoryCardProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    isDragging,
-  } = useSortable({ id: category.id })
-
   return (
-    <motion.div
-      ref={setNodeRef}
-      layout
-      initial={{ opacity: 0, y: 20 }}
-      animate={{
-        opacity: isDragging ? 0.5 : 1,
-        x: transform?.x ?? 0,
-        y: transform?.y ?? 0,
-        scale: isDragging ? 1.02 : 1,
-        boxShadow: isDragging
-          ? '0 10px 30px -5px rgba(0, 0, 0, 0.15)'
-          : '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
-      }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{
-        layout: { type: 'spring', stiffness: 300, damping: 30 },
-        opacity: { duration: 0.2 },
-        scale: { duration: 0.2 },
-      }}
-    >
-      <Card className="p-3">
+    <Card className="p-3 mb-2">
       <div className="flex gap-2">
-        {/* Drag Handle */}
-        <div
-          className="flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
-          {...attributes}
-          {...listeners}
-          style={{ touchAction: 'none' }}
-        >
-          <GripVertical className="h-5 w-5 text-muted-foreground hover:text-foreground transition-colors" />
+        {/* Up/Down Arrows */}
+        <div className="flex flex-col gap-1">
+          <button
+            type="button"
+            onClick={onMoveUp}
+            disabled={isFirst}
+            className="flex items-center justify-center h-4 disabled:opacity-30"
+            aria-label="Move up"
+          >
+            <ChevronUp className="h-4 w-4 text-muted-foreground" />
+          </button>
+          <button
+            type="button"
+            onClick={onMoveDown}
+            disabled={isLast}
+            className="flex items-center justify-center h-4 disabled:opacity-30"
+            aria-label="Move down"
+          >
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          </button>
         </div>
 
         {/* Content */}
@@ -68,11 +58,6 @@ export function SortableCategoryCard({
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
               <h3 className="text-sm font-semibold truncate">{category.name}</h3>
-              {isDragging && (
-                <p className="text-[9px] text-muted-foreground mt-0.5">
-                  Dragging...
-                </p>
-              )}
             </div>
             <Badge variant="secondary" className="text-[10px] shrink-0">
               {productCount} {productCount === 1 ? 'product' : 'products'}
@@ -120,6 +105,5 @@ export function SortableCategoryCard({
         </div>
       </div>
     </Card>
-    </motion.div>
   )
 }

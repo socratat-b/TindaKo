@@ -38,34 +38,23 @@ export function SortableCategoryRow({
   return (
     <MotionTableRow
       ref={setNodeRef}
-      layout
-      initial={{ opacity: 0, x: -20 }}
-      animate={{
-        opacity: isDragging ? 0.5 : 1,
-        x: transform?.x ?? 0,
-        y: transform?.y ?? 0,
-        scale: isDragging ? 1.01 : 1,
-      }}
-      exit={{ opacity: 0, x: -20 }}
-      transition={{
-        layout: { type: 'spring', stiffness: 350, damping: 35 },
-        opacity: { duration: 0.2 },
-        scale: { duration: 0.15 },
-      }}
       style={{
-        boxShadow: isDragging
-          ? '0 5px 15px -3px rgba(0, 0, 0, 0.1)'
-          : 'none',
+        transform: transform
+          ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
+          : undefined,
+        opacity: isDragging ? 0.5 : 1,
+        transition: 'opacity 150ms ease',
       }}
     >
       <TableCell className="w-12">
-        <div
-          className="flex items-center justify-center cursor-grab active:cursor-grabbing"
+        <button
+          type="button"
+          className="flex items-center justify-center cursor-grab active:cursor-grabbing p-1"
           {...attributes}
           {...listeners}
         >
           <GripVertical className="h-5 w-5 text-muted-foreground" />
-        </div>
+        </button>
       </TableCell>
       <TableCell className="font-medium">{category.name}</TableCell>
       <TableCell>

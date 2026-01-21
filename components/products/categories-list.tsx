@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {
@@ -15,8 +15,7 @@ import {
 import {
   DndContext,
   closestCenter,
-  KeyboardSensor,
-  PointerSensor,
+  MouseSensor,
   TouchSensor,
   useSensor,
   useSensors,
@@ -25,7 +24,6 @@ import {
 import {
   arrayMove,
   SortableContext,
-  sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CategoryFormDialog } from './category-form-dialog'
@@ -49,67 +47,92 @@ export function CategoriesList({
 }: CategoriesListProps) {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
-  const [localCategories, setLocalCategories] = useState<Category[]>([])
 
-  // Sort categories - use local state for drag reordering, fallback to props
+  // Sort categories by sortOrder
   const sortedCategories = useMemo(() => {
-    // If local state exists but length doesn't match categories, it means add/delete happened
-    // In that case, ignore local state and use fresh data from props
-    if (localCategories.length > 0 && localCategories.length === categories.length) {
-      return localCategories
-    }
-    // Otherwise, use categories from props and sort by sortOrder
     return [...categories].sort((a, b) => a.sortOrder - b.sortOrder)
-  }, [categories, localCategories])
+  }, [categories])
 
-  // Drag and drop sensors
+  // Drag and drop sensors - simple configuration
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8, // Require 8px movement before drag starts (helps with scrolling on mobile)
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 200, // 200ms press delay for touch devices
-        tolerance: 5, // Allow 5px of movement during the delay
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
+    useSensor(MouseSensor),
+    useSensor(TouchSensor)
   )
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  // Desktop drag and drop handler
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
 
-    if (over && active.id !== over.id) {
-      const oldIndex = sortedCategories.findIndex((cat) => cat.id === active.id)
-      const newIndex = sortedCategories.findIndex((cat) => cat.id === over.id)
+    if (!over || active.id === over.id) {
+      return
+    }
 
-      // Move array positions AND update sortOrder property on each item
-      const reorderedCategories = arrayMove(sortedCategories, oldIndex, newIndex).map(
-        (cat, index) => ({
-          ...cat,
-          sortOrder: index, // Update the sortOrder property to match new position
-        })
-      )
+    const oldIndex = sortedCategories.findIndex((cat) => cat.id === active.id)
+    const newIndex = sortedCategories.findIndex((cat) => cat.id === over.id)
 
-      // Optimistically update the UI immediately (no await!)
-      setLocalCategories(reorderedCategories)
+    if (oldIndex === -1 || newIndex === -1) {
+      return
+    }
 
-      // Update sort orders in database (fire and forget)
-      const updates = reorderedCategories.map((cat) => ({
-        id: cat.id,
-        sortOrder: cat.sortOrder,
-      }))
+    // Reorder the array
+    const reorderedCategories = arrayMove(sortedCategories, oldIndex, newIndex)
 
-      // Fire database update in the background - no blocking
-      updateCategoriesOrder(updates).catch((error) => {
-        // Only revert on error
-        setLocalCategories([])
-        alert(error instanceof Error ? error.message : 'Failed to update order')
-      })
+    // Update sortOrder for ALL categories based on new positions (start at 1)
+    const updates = reorderedCategories.map((cat, index) => ({
+      id: cat.id,
+      sortOrder: index + 1,
+    }))
+
+    try {
+      await updateCategoriesOrder(updates)
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Failed to update order')
+      console.error('Drag and drop error:', error)
+    }
+  }
+
+  // Mobile up/down handlers
+  const handleMoveUp = async (index: number) => {
+    if (index === 0) return
+
+    const newCategories = [...sortedCategories]
+    // Swap with previous item
+    const temp = newCategories[index]
+    newCategories[index] = newCategories[index - 1]
+    newCategories[index - 1] = temp
+
+    // Update sortOrder for ALL categories
+    const updates = newCategories.map((cat, idx) => ({
+      id: cat.id,
+      sortOrder: idx + 1,
+    }))
+
+    try {
+      await updateCategoriesOrder(updates)
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Failed to move category')
+    }
+  }
+
+  const handleMoveDown = async (index: number) => {
+    if (index === sortedCategories.length - 1) return
+
+    const newCategories = [...sortedCategories]
+    // Swap with next item
+    const temp = newCategories[index]
+    newCategories[index] = newCategories[index + 1]
+    newCategories[index + 1] = temp
+
+    // Update sortOrder for ALL categories
+    const updates = newCategories.map((cat, idx) => ({
+      id: cat.id,
+      sortOrder: idx + 1,
+    }))
+
+    try {
+      await updateCategoriesOrder(updates)
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Failed to move category')
     }
   }
 
@@ -148,7 +171,7 @@ export function CategoriesList({
   const nextSortOrder =
     categories.length > 0
       ? Math.max(...categories.map((c) => c.sortOrder)) + 1
-      : 0
+      : 1 // Start sortOrder at 1
 
   return (
     <DndContext
@@ -185,41 +208,25 @@ export function CategoriesList({
           </Card>
         )}
 
-        {/* Mobile Card View */}
-        <SortableContext
-          items={sortedCategories.map((cat) => cat.id)}
-          strategy={verticalListSortingStrategy}
-        >
-          <motion.div
-            className="space-y-2 lg:hidden"
-            variants={{
-              hidden: { opacity: 0 },
-              show: {
-                opacity: 1,
-                transition: {
-                  staggerChildren: 0.05,
-                },
-              },
-            }}
-            initial="hidden"
-            animate="show"
-          >
-            <AnimatePresence mode="popLayout">
-              {sortedCategories.map((category) => {
-                const productCount = productCounts[category.id] || 0
-                return (
-                  <SortableCategoryCard
-                    key={category.id}
-                    category={category}
-                    productCount={productCount}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                  />
-                )
-              })}
-            </AnimatePresence>
-          </motion.div>
-        </SortableContext>
+        {/* Mobile Card View - Up/Down Buttons */}
+        <div className="lg:hidden">
+          {sortedCategories.map((category, index) => {
+            const productCount = productCounts[category.id] || 0
+            return (
+              <SortableCategoryCard
+                key={category.id}
+                category={category}
+                productCount={productCount}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onMoveUp={() => handleMoveUp(index)}
+                onMoveDown={() => handleMoveDown(index)}
+                isFirst={index === 0}
+                isLast={index === sortedCategories.length - 1}
+              />
+            )
+          })}
+        </div>
 
         {/* Desktop Table View */}
         <SortableContext
@@ -251,20 +258,18 @@ export function CategoriesList({
                     </TableCell>
                   </TableRow>
                 ) : (
-                  <AnimatePresence mode="popLayout">
-                    {sortedCategories.map((category) => {
-                      const productCount = productCounts[category.id] || 0
-                      return (
-                        <SortableCategoryRow
-                          key={category.id}
-                          category={category}
-                          productCount={productCount}
-                          onEdit={handleEdit}
-                          onDelete={handleDelete}
-                        />
-                      )
-                    })}
-                  </AnimatePresence>
+                  sortedCategories.map((category) => {
+                    const productCount = productCounts[category.id] || 0
+                    return (
+                      <SortableCategoryRow
+                        key={category.id}
+                        category={category}
+                        productCount={productCount}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                      />
+                    )
+                  })
                 )}
               </TableBody>
             </Table>

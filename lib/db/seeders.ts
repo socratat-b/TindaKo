@@ -5,14 +5,14 @@ import type { Category } from './schema'
  * Default categories for Filipino sari-sari stores
  */
 const DEFAULT_CATEGORIES = [
-  { name: 'Inumin (Beverages)', color: '#3b82f6', sortOrder: 0 },
-  { name: 'Meryenda (Snacks)', color: '#f97316', sortOrder: 1 },
-  { name: 'Canned Goods', color: '#ef4444', sortOrder: 2 },
-  { name: 'Pancit & Noodles', color: '#eab308', sortOrder: 3 },
-  { name: 'Personal Care', color: '#ec4899', sortOrder: 4 },
-  { name: 'Household Items', color: '#6b7280', sortOrder: 5 },
-  { name: 'Pampalasa (Condiments)', color: '#a855f7', sortOrder: 6 },
-  { name: 'Bigas & Grains', color: '#22c55e', sortOrder: 7 },
+  { name: 'Inumin (Beverages)', color: '#3b82f6', sortOrder: 1 },
+  { name: 'Meryenda (Snacks)', color: '#f97316', sortOrder: 2 },
+  { name: 'Canned Goods', color: '#ef4444', sortOrder: 3 },
+  { name: 'Pancit & Noodles', color: '#eab308', sortOrder: 4 },
+  { name: 'Personal Care', color: '#ec4899', sortOrder: 5 },
+  { name: 'Household Items', color: '#6b7280', sortOrder: 6 },
+  { name: 'Pampalasa (Condiments)', color: '#a855f7', sortOrder: 7 },
+  { name: 'Bigas & Grains', color: '#22c55e', sortOrder: 8 },
 ]
 
 /**
