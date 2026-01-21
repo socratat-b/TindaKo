@@ -96,7 +96,7 @@ Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Ser
 - ✅ **Components**: shadcn/ui (button, input, card, badge, dialog, select, popover, textarea, etc.)
 
 ### 📋 Todo: Phase 3 Remaining
-- [ ] **Utang Page**: Customer credit tracking, payment recording
+- [x] **Utang Page**: Customer credit tracking, payment recording
 - [ ] **Reports Page**: Sales reports (daily/weekly/monthly)
 - [ ] **Settings Page**: App configuration
 
@@ -141,12 +141,14 @@ Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Ser
 lib/db/              # Dexie schema, sync.ts (manual backup logic)
 lib/stores/          # Zustand: auth-store, cart-store, sync-store
 lib/hooks/           # useAuth, useCart, useSync
-lib/actions/         # Server Actions: auth, pos, products, inventory
+lib/actions/         # Server Actions: auth, pos, products, inventory, utang
+lib/utils/           # Client-side utilities: customer-utils, utang-utils
 components/pos/      # POS interface with framer-motion animations
 components/products/ # Products & categories with framer-motion animations
 components/inventory/# Inventory management with framer-motion animations
+components/utang/    # Customer credit tracking with framer-motion animations
 components/layout/   # Header, sidebar, sync indicator
-app/(dashboard)/     # Protected pages: pos, products, inventory
+app/(dashboard)/     # Protected pages: pos, products, inventory, utang
 app/(auth)/          # Login, signup
 supabase/migrations/ # Database migrations
 ```
@@ -156,15 +158,15 @@ supabase/migrations/ # Database migrations
 - ✅ Offline-first POS: sales, cart, checkout, barcode scanning
 - ✅ Products & categories management with search/filter
 - ✅ Inventory management: manual adjustments, low stock alerts, movement history
+- ✅ Utang (customer credit): customer management, payment recording (partial/full), manual charges, transaction history
 - ✅ Manual backup sync ("Backup to cloud" button)
 - ✅ Auto-restore from Supabase on first login
 - ✅ PWA installable with offline support
-- ✅ Framer-motion animations (POS, Products, Inventory)
+- ✅ Framer-motion animations (POS, Products, Inventory, Utang)
 - ✅ Testing infrastructure (14/14 tests passing)
 - ✅ Responsive mobile-first design
 
 ## What's Left
 
-- Utang (customer credit) tracking page
 - Reports page
 - Settings page

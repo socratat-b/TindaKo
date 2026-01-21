@@ -1,30 +1,35 @@
 # TindaKo POS PWA - Implementation Plan
 
 ## Stack
+
 Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Serwist + Framer Motion
 
 ## Architecture
+
 ```
 UI (React) → Zustand → Dexie (local) ↔ Manual Sync → Supabase (backup)
 ```
+
 - Offline-first: all operations hit Dexie first
 - Sync: manual backup only (user clicks "Backup to cloud" button)
 - Auto-restore: pulls backup on first login if local DB empty
 - Conflict resolution: last-write-wins via `updatedAt` timestamps
 
 ## Database Schema
+
 All tables: `id`, `userId`, `syncedAt`, `updatedAt`, `createdAt`, `isDeleted`
 
 - **products**: name, barcode, categoryId, costPrice, sellingPrice, stockQty, lowStockThreshold
 - **categories**: name, color, sortOrder
 - **sales**: items[], subtotal, discount, total, amountPaid, change, paymentMethod, customerId
-- **customers**: name, phone, totalUtang
+- **customers**: name, phone, address, totalUtang
 - **utangTransactions**: customerId, saleId, type, amount, balanceAfter
 - **inventoryMovements**: productId, type, qty, notes
 
 ## ✅ Completed Features
 
 ### Phase 1-3: Core Foundation
+
 - [x] **Database**: Dexie (local) + Supabase (cloud) with RLS policies
 - [x] **Authentication**: Supabase email/password, session persistence, DAL security
 - [x] **Sync**: Manual backup with last-write-wins conflict resolution, sync stats tracking
@@ -33,6 +38,7 @@ All tables: `id`, `userId`, `syncedAt`, `updatedAt`, `createdAt`, `isDeleted`
 - [x] **State Management**: Zustand stores (auth, cart, sync) with localStorage persistence
 
 ### Phase 3: Pages & UI
+
 - [x] **POS Page**: Product grid, cart, checkout, barcode scanner, atomic transactions, framer-motion animations
 - [x] **Products Page**: CRUD products & categories, search/filter, stock status, auto-seed default categories, framer-motion animations
 - [x] **Inventory Page**: Manual adjustments (in/out/adjust), low stock alerts, movement history, framer-motion animations
@@ -42,17 +48,20 @@ All tables: `id`, `userId`, `syncedAt`, `updatedAt`, `createdAt`, `isDeleted`
 ## 📋 Todo
 
 ### Phase 3: Remaining Pages
-- [ ] **Utang Page**: Customer credit tracking, payment recording, balance history
+
+- [x] **Utang Page**: Customer credit tracking, payment recording, balance history
 - [ ] **Reports Page**: Daily/weekly/monthly sales reports
 - [ ] **Settings Page**: App configuration
 
 ### Phase 4: Future Enhancements
+
 - [ ] CSV import (papaparse)
 - [ ] Advanced barcode scanner (html5-qrcode)
 - [ ] Profit calculations
 - [ ] Multi-store support
 
 ## Commands
+
 ```bash
 pnpm dev          # Dev server
 pnpm build        # Production build (uses --webpack for Serwist)
@@ -62,6 +71,7 @@ pnpm test:ui      # Vitest UI
 ```
 
 ## Key Files
+
 ```
 lib/db/              # Dexie schema, sync logic
 lib/stores/          # Zustand stores (auth, cart, sync)
@@ -76,6 +86,7 @@ supabase/migrations/ # Database migrations
 ```
 
 ## Testing Status
+
 - ✅ 14/14 tests passing
 - ✅ Unit tests: sync logic, helpers
 - ✅ Integration tests: sync store, full workflow
