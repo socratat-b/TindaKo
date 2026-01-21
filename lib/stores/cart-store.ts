@@ -9,7 +9,7 @@ interface CartItem extends SaleItem {
 
 interface CartState {
   items: CartItem[]
-  paymentMethod: 'cash' | 'gcash' | 'card'
+  paymentMethod: 'cash' | 'gcash' | 'card' | 'utang'
 
   // Computed values
   subtotal: number
@@ -19,7 +19,7 @@ interface CartState {
   addItem: (product: Product, quantity?: number) => void
   removeItem: (productId: string) => void
   updateQuantity: (productId: string, quantity: number) => void
-  setPaymentMethod: (method: 'cash' | 'gcash' | 'card') => void
+  setPaymentMethod: (method: 'cash' | 'gcash' | 'card' | 'utang') => void
   clearCart: () => void
 }
 

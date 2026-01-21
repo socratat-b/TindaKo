@@ -20,6 +20,7 @@ export interface Category extends BaseEntity {
 export interface Customer extends BaseEntity {
   name: string
   phone: string | null
+  address: string | null
   totalUtang: number
 }
 
@@ -48,7 +49,7 @@ export interface Sale extends BaseEntity {
   total: number
   amountPaid: number
   change: number
-  paymentMethod: 'cash' | 'gcash' | 'card'
+  paymentMethod: 'cash' | 'gcash' | 'card' | 'utang'
   customerId: string | null
 }
 

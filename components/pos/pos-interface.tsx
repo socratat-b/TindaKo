@@ -23,7 +23,7 @@ export default function POSInterface({ userId }: POSInterfaceProps) {
   const cart = useCart()
   const { setHasPendingChanges } = useSyncStore()
 
-  const handleCheckout = async (amountPaid: number) => {
+  const handleCheckout = async (amountPaid: number, customerId: string | null) => {
     try {
       await processSale({
         items: cart.items,
@@ -32,7 +32,7 @@ export default function POSInterface({ userId }: POSInterfaceProps) {
         total: cart.total,
         amountPaid,
         paymentMethod: cart.paymentMethod,
-        customerId: null,
+        customerId,
         userId,
       })
 
@@ -125,6 +125,7 @@ export default function POSInterface({ userId }: POSInterfaceProps) {
         open={checkoutOpen}
         onOpenChange={setCheckoutOpen}
         onCheckout={handleCheckout}
+        userId={userId}
       />
     </>
   )

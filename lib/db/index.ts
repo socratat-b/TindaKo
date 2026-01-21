@@ -17,7 +17,7 @@ class TindaKoDB extends Dexie {
     // Tables will be added here by /add-table skill
     this.version(1).stores({
       categories: 'id, userId, syncedAt, sortOrder',
-      customers: 'id, userId, syncedAt, name, phone',
+      customers: 'id, userId, syncedAt, name, phone, address',
       products: 'id, userId, syncedAt, categoryId, barcode, name',
       sales: 'id, userId, syncedAt, createdAt, customerId',
       utangTransactions: 'id, userId, syncedAt, customerId, saleId, createdAt',

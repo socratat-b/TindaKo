@@ -170,6 +170,7 @@ export function CartDisplay({ onCheckout }: CartDisplayProps) {
                 <SelectItem value="cash">Cash</SelectItem>
                 <SelectItem value="gcash">GCash</SelectItem>
                 <SelectItem value="card">Card</SelectItem>
+                <SelectItem value="utang">Utang</SelectItem>
               </SelectContent>
             </Select>
           </div>
