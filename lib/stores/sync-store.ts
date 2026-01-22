@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { syncAll, SyncStats } from '@/lib/db/sync'
+import { syncAll, pushToCloud, pullFromCloud, SyncStats } from '@/lib/db/sync'
 
 type SyncStatus = 'idle' | 'syncing' | 'error' | 'success'
 
@@ -11,7 +11,9 @@ interface SyncState {
   hasPendingChanges: boolean
 
   // Actions
-  sync: (isInitialSync?: boolean) => Promise<void>
+  backup: (userId?: string) => Promise<void> // Push-only (manual backup)
+  restore: (userId?: string) => Promise<void> // Pull-only (auto-restore)
+  sync: (isInitialSync?: boolean) => Promise<void> // Full sync (both push + pull, for future use)
   setHasPendingChanges: (value: boolean) => void
 }
 
@@ -21,6 +23,85 @@ export const useSyncStore = create<SyncState>((set, get) => ({
   lastSyncStats: null,
   error: null,
   hasPendingChanges: false,
+
+  backup: async (userId?: string) => {
+    const { status } = get()
+
+    // Prevent concurrent operations
+    if (status === 'syncing') {
+      console.log('Backup already in progress')
+      return
+    }
+
+    set({ status: 'syncing', error: null })
+
+    try {
+      const stats = await pushToCloud(userId)
+      set({
+        status: 'success',
+        lastSyncTime: Date.now(),
+        lastSyncStats: stats,
+        hasPendingChanges: false,
+        error: null
+      })
+      console.log('✅ Backup completed at', new Date().toISOString(), stats)
+
+      // Reset status to idle after 3 seconds
+      setTimeout(() => {
+        const currentState = get()
+        if (currentState.status === 'success') {
+          set({ status: 'idle' })
+        }
+      }, 3000)
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      set({
+        status: 'error',
+        error: errorMessage
+      })
+      console.error('❌ Backup failed:', errorMessage)
+      console.error('Full error:', error)
+    }
+  },
+
+  restore: async (userId?: string) => {
+    const { status } = get()
+
+    // Prevent concurrent operations
+    if (status === 'syncing') {
+      console.log('Restore already in progress')
+      return
+    }
+
+    set({ status: 'syncing', error: null })
+
+    try {
+      const stats = await pullFromCloud(userId)
+      set({
+        status: 'success',
+        lastSyncTime: Date.now(),
+        lastSyncStats: stats,
+        error: null
+      })
+      console.log('✅ Restore completed at', new Date().toISOString(), stats)
+
+      // Reset status to idle after 3 seconds
+      setTimeout(() => {
+        const currentState = get()
+        if (currentState.status === 'success') {
+          set({ status: 'idle' })
+        }
+      }, 3000)
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      set({
+        status: 'error',
+        error: errorMessage
+      })
+      console.error('❌ Restore failed:', errorMessage)
+      console.error('Full error:', error)
+    }
+  },
 
   sync: async (isInitialSync = false) => {
     const { status } = get()
@@ -42,7 +123,7 @@ export const useSyncStore = create<SyncState>((set, get) => ({
         hasPendingChanges: false,
         error: null
       })
-      console.log('✅ Manual sync completed at', new Date().toISOString(), stats)
+      console.log('✅ Full sync completed at', new Date().toISOString(), stats)
 
       // Reset status to idle after 3 seconds
       setTimeout(() => {
@@ -53,16 +134,12 @@ export const useSyncStore = create<SyncState>((set, get) => ({
       }, 3000)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      const errorStack = error instanceof Error ? error.stack : undefined
       set({
         status: 'error',
         error: errorMessage
       })
       console.error('❌ Sync failed:', errorMessage)
       console.error('Full error:', error)
-      if (errorStack) {
-        console.error('Stack trace:', errorStack)
-      }
     }
   },
 

@@ -1,6 +1,20 @@
 import { db } from './index'
 import { createClient } from '@/lib/supabase/client'
 import { isSessionValidOffline, isOnline } from '@/lib/auth/session-cache'
+import {
+  pushCategories,
+  pushCustomers,
+  pushProducts,
+  pushSales,
+  pushUtangTransactions,
+  pushInventoryMovements,
+  pullCategories,
+  pullCustomers,
+  pullProducts,
+  pullSales,
+  pullUtangTransactions,
+  pullInventoryMovements,
+} from './sync-helpers'
 
 let lastSyncTime: Record<string, string> = {}
 
@@ -43,7 +57,118 @@ export interface SyncStats {
 }
 
 /**
- * Sync all tables with Supabase
+ * Check if there are any unsynced changes in local database
+ * Returns true if any table has items with syncedAt === null
+ */
+export async function hasUnsyncedChanges(userId: string): Promise<boolean> {
+  try {
+    const [categories, customers, products, sales, utangTxns, inventoryMvmts] = await Promise.all([
+      db.categories.filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted).count(),
+      db.customers.filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted).count(),
+      db.products.filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted).count(),
+      db.sales.filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted).count(),
+      db.utangTransactions.filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted).count(),
+      db.inventoryMovements.filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted).count(),
+    ])
+
+    const total = categories + customers + products + sales + utangTxns + inventoryMvmts
+    return total > 0
+  } catch (error) {
+    console.error('Failed to check for unsynced changes:', error)
+    return false
+  }
+}
+
+/**
+ * PUSH ONLY: Upload unsynced local data to cloud (one-way backup)
+ * Does NOT download any data from cloud
+ * Used for manual "Backup to Cloud" button
+ */
+export async function pushToCloud(userId?: string): Promise<SyncStats> {
+  try {
+    // Check if online before attempting sync
+    const online = await isOnline()
+    if (!online) {
+      console.log('Offline - skipping push')
+      return { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
+    }
+
+    const currentUserId = userId || await getCurrentUserId()
+    const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
+
+    // Push in dependency order
+    const categoriesStats = await pushCategories(currentUserId)
+    stats.pushedCount += categoriesStats.pushedCount
+
+    const customersStats = await pushCustomers(currentUserId)
+    stats.pushedCount += customersStats.pushedCount
+
+    const productsStats = await pushProducts(currentUserId)
+    stats.pushedCount += productsStats.pushedCount
+
+    const salesStats = await pushSales(currentUserId)
+    stats.pushedCount += salesStats.pushedCount
+
+    const utangStats = await pushUtangTransactions(currentUserId)
+    stats.pushedCount += utangStats.pushedCount
+
+    const inventoryStats = await pushInventoryMovements(currentUserId)
+    stats.pushedCount += inventoryStats.pushedCount
+
+    console.log('Push to cloud completed successfully', stats)
+    return stats
+  } catch (error) {
+    console.error('Push to cloud failed:', error)
+    throw error
+  }
+}
+
+/**
+ * PULL ONLY: Download all user data from cloud to local (restore)
+ * Does NOT upload any data to cloud
+ * Used for auto-restore on first login or new device
+ */
+export async function pullFromCloud(userId?: string): Promise<SyncStats> {
+  try {
+    // Check if online before attempting sync
+    const online = await isOnline()
+    if (!online) {
+      console.log('Offline - skipping pull')
+      return { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
+    }
+
+    const currentUserId = userId || await getCurrentUserId()
+    const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
+
+    // Pull in dependency order
+    const categoriesStats = await pullCategories(currentUserId)
+    stats.pulledCount += categoriesStats.pulledCount
+
+    const customersStats = await pullCustomers(currentUserId)
+    stats.pulledCount += customersStats.pulledCount
+
+    const productsStats = await pullProducts(currentUserId)
+    stats.pulledCount += productsStats.pulledCount
+
+    const salesStats = await pullSales(currentUserId)
+    stats.pulledCount += salesStats.pulledCount
+
+    const utangStats = await pullUtangTransactions(currentUserId)
+    stats.pulledCount += utangStats.pulledCount
+
+    const inventoryStats = await pullInventoryMovements(currentUserId)
+    stats.pulledCount += inventoryStats.pulledCount
+
+    console.log('Pull from cloud completed successfully', stats)
+    return stats
+  } catch (error) {
+    console.error('Pull from cloud failed:', error)
+    throw error
+  }
+}
+
+/**
+ * Sync all tables with Supabase (BOTH push AND pull)
  * Syncs in dependency order: categories, customers, products, sales, utangTransactions, inventoryMovements
  * Skips sync if offline
  * @param isInitialSync - If true, pulls all data regardless of lastSyncTime (for first login/restore)

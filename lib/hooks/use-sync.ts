@@ -6,20 +6,22 @@ import { useSyncStore } from '@/lib/stores/sync-store'
  * Hook for accessing sync state and actions
  */
 export function useSync() {
-  const sync = useSyncStore()
+  const syncStore = useSyncStore()
 
   return {
     // State
-    status: sync.status,
-    lastSyncTime: sync.lastSyncTime,
-    lastSyncStats: sync.lastSyncStats,
-    error: sync.error,
-    hasPendingChanges: sync.hasPendingChanges,
-    isSyncing: sync.status === 'syncing',
-    isSuccess: sync.status === 'success',
+    status: syncStore.status,
+    lastSyncTime: syncStore.lastSyncTime,
+    lastSyncStats: syncStore.lastSyncStats,
+    error: syncStore.error,
+    hasPendingChanges: syncStore.hasPendingChanges,
+    isSyncing: syncStore.status === 'syncing',
+    isSuccess: syncStore.status === 'success',
 
     // Actions
-    sync: sync.sync,
-    setHasPendingChanges: sync.setHasPendingChanges
+    backup: syncStore.backup, // Push-only (manual backup)
+    restore: syncStore.restore, // Pull-only (auto-restore)
+    sync: syncStore.sync, // Full sync (both push + pull)
+    setHasPendingChanges: syncStore.setHasPendingChanges
   }
 }

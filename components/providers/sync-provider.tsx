@@ -7,17 +7,17 @@ import { db } from '@/lib/db'
 
 export function SyncProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
-  const { sync } = useSyncStore()
+  const { restore } = useSyncStore()
   const hasInitialSyncedRef = useRef(false)
 
   useEffect(() => {
-    // Only trigger initial sync if user is authenticated and hasn't synced yet
+    // Only trigger initial restore if user is authenticated and hasn't restored yet
     if (!user || hasInitialSyncedRef.current) {
       return
     }
 
     // Check if local database is empty (first login or after data clear)
-    const checkAndSyncInitial = async () => {
+    const checkAndRestoreInitial = async () => {
       try {
         // Check if any table has data
         const [categoriesCount, productsCount, salesCount] = await Promise.all([
@@ -28,19 +28,24 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
 
         const isEmptyDatabase = categoriesCount === 0 && productsCount === 0 && salesCount === 0
 
-        if (isEmptyDatabase) {
-          console.log('Empty database detected - running initial sync to restore backup')
-          await sync(true) // isInitialSync = true
+        // Check if different user logged in
+        const lastUserId = localStorage.getItem('lastLoggedInUserId')
+        const isDifferentUser = lastUserId && lastUserId !== user.id
+
+        if (isEmptyDatabase || isDifferentUser) {
+          console.log('Auto-restoring from cloud for user:', user.id)
+          await restore(user.id) // Pull-only restore from cloud
+          localStorage.setItem('lastLoggedInUserId', user.id)
         }
 
         hasInitialSyncedRef.current = true
       } catch (error) {
-        console.error('Initial sync check failed:', error)
+        console.error('Initial restore check failed:', error)
       }
     }
 
-    checkAndSyncInitial()
-  }, [user, sync])
+    checkAndRestoreInitial()
+  }, [user, restore])
 
   return <>{children}</>
 }
