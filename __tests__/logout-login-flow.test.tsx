@@ -17,8 +17,9 @@ import { pullFromCloud } from '@/lib/db/sync'
 import { createClient } from '@/lib/supabase/client'
 
 // Real Supabase account for testing
-const TEST_EMAIL = 'admin@gmail.com'
-const TEST_PASSWORD = 'tatadmin'
+// Set these in .env.local: TEST_EMAIL, TEST_PASSWORD
+const TEST_EMAIL = process.env.TEST_EMAIL || 'admin@gmail.com'
+const TEST_PASSWORD = process.env.TEST_PASSWORD || 'tatadmin'
 let TEST_USER_ID: string
 
 describe('Logout → Login → Populate IndexedDB Flow (REAL DATA)', () => {
