@@ -21,6 +21,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { ProductFormDialog } from './product-form-dialog'
 import { deleteProduct } from '@/lib/actions/products'
 import { useFormatCurrency } from '@/lib/utils/currency'
@@ -44,6 +54,8 @@ export function ProductsList({
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const [deletingProduct, setDeletingProduct] = useState<Product | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
@@ -63,13 +75,18 @@ export function ProductsList({
     setIsFormOpen(true)
   }
 
-  const handleDelete = async (product: Product) => {
-    if (!confirm(`Are you sure you want to delete "${product.name}"?`)) {
-      return
-    }
+  const handleDelete = (product: Product) => {
+    setDeletingProduct(product)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!deletingProduct) return
 
     try {
-      await deleteProduct(product.id)
+      await deleteProduct(deletingProduct.id)
+      setIsDeleteDialogOpen(false)
+      setDeletingProduct(null)
       onRefresh()
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Failed to delete product')
@@ -351,6 +368,21 @@ export function ProductsList({
         userId={userId}
         onSuccess={onRefresh}
       />
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Product</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{deletingProduct?.name}&quot;? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

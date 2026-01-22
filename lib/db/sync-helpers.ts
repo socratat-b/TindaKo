@@ -146,6 +146,7 @@ export async function pullCategories(userId: string): Promise<SyncStats> {
     .from('categories')
     .select('*')
     .eq('user_id', userId)
+    .eq('is_deleted', false)
 
   if (error) {
     console.error('[pullCategories] Supabase error:', error)
@@ -179,6 +180,7 @@ export async function pullCustomers(userId: string): Promise<SyncStats> {
     .from('customers')
     .select('*')
     .eq('user_id', userId)
+    .eq('is_deleted', false)
 
   if (data) {
     for (const item of data) {
@@ -204,6 +206,7 @@ export async function pullProducts(userId: string): Promise<SyncStats> {
     .from('products')
     .select('*')
     .eq('user_id', userId)
+    .eq('is_deleted', false)
 
   if (error) {
     console.error('[pullProducts] Supabase error:', error)
@@ -242,6 +245,7 @@ export async function pullSales(userId: string): Promise<SyncStats> {
     .from('sales')
     .select('*')
     .eq('user_id', userId)
+    .eq('is_deleted', false)
 
   if (data) {
     for (const item of data) {
@@ -263,6 +267,7 @@ export async function pullUtangTransactions(userId: string): Promise<SyncStats> 
     .from('utang_transactions')
     .select('*')
     .eq('user_id', userId)
+    .eq('is_deleted', false)
 
   if (data) {
     for (const item of data) {
@@ -284,6 +289,7 @@ export async function pullInventoryMovements(userId: string): Promise<SyncStats>
     .from('inventory_movements')
     .select('*')
     .eq('user_id', userId)
+    .eq('is_deleted', false)
 
   if (data) {
     for (const item of data) {

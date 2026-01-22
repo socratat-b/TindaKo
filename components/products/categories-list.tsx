@@ -13,6 +13,16 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
   DndContext,
   closestCenter,
   MouseSensor,
@@ -47,6 +57,8 @@ export function CategoriesList({
 }: CategoriesListProps) {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const [deletingCategory, setDeletingCategory] = useState<Category | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
   // Sort categories by sortOrder
   const sortedCategories = useMemo(() => {
@@ -141,7 +153,7 @@ export function CategoriesList({
     setIsFormOpen(true)
   }
 
-  const handleDelete = async (category: Category) => {
+  const handleDelete = (category: Category) => {
     const productCount = productCounts[category.id] || 0
 
     if (productCount > 0) {
@@ -151,12 +163,17 @@ export function CategoriesList({
       return
     }
 
-    if (!confirm(`Are you sure you want to delete "${category.name}"?`)) {
-      return
-    }
+    setDeletingCategory(category)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!deletingCategory) return
 
     try {
-      await deleteCategory(category.id)
+      await deleteCategory(deletingCategory.id)
+      setIsDeleteDialogOpen(false)
+      setDeletingCategory(null)
       onRefresh()
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Failed to delete category')
@@ -284,6 +301,21 @@ export function CategoriesList({
           onSuccess={onRefresh}
           nextSortOrder={nextSortOrder}
         />
+
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Category</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete &quot;{deletingCategory?.name}&quot;? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmDelete}>Delete</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DndContext>
   )
