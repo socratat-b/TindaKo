@@ -78,21 +78,17 @@ export function LogoutDialog({ open, onOpenChange }: LogoutDialogProps) {
 
       if (hasUnsyncedData) {
         // Auto-backup before logout
-        console.log('Auto-backing up before logout...')
         await pushToCloud(user.id)
-        console.log('Backup complete')
       }
 
       // Clear cart before logout
       clearCart()
 
       // Clear all local data to prevent leakage between users
-      console.log('Clearing local data...')
       await clearAllLocalData()
 
       // Clear lastLoggedInUserId to trigger restore on next login
       localStorage.removeItem('lastLoggedInUserId')
-      console.log('Local data cleared')
 
       // Proceed with logout (redirect will throw NEXT_REDIRECT)
       await logoutAction()
@@ -100,7 +96,6 @@ export function LogoutDialog({ open, onOpenChange }: LogoutDialogProps) {
       // Ignore NEXT_REDIRECT error (expected from redirect)
       const errorMessage = err instanceof Error ? err.message : String(err)
       if (errorMessage.includes('NEXT_REDIRECT')) {
-        console.log('Logout redirect successful')
         return
       }
       console.error('Logout failed:', err)

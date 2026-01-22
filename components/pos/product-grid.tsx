@@ -40,7 +40,6 @@ export function ProductGrid({ userId }: ProductGridProps) {
 
     // Listen for data restore event (from cloud sync)
     const handleDataRestored = () => {
-      console.log('[ProductGrid] Data restored - refreshing from store')
       refreshProducts(userId)
     }
 
@@ -76,9 +75,9 @@ export function ProductGrid({ userId }: ProductGridProps) {
 
   if (showLoadingSkeleton) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-4">
-        <Loader2 className="w-12 h-12 animate-spin text-primary" />
-        <p className="text-lg text-muted-foreground">Loading products...</p>
+      <div className="flex flex-col items-center justify-center h-full gap-3">
+        <Loader2 className="w-8 h-8 animate-spin text-primary lg:w-10 lg:h-10" />
+        <p className="text-sm text-muted-foreground lg:text-base">Loading products...</p>
       </div>
     )
   }

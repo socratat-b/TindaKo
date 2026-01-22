@@ -154,19 +154,16 @@ export async function pullCategories(userId: string): Promise<SyncStats> {
   }
 
   if (data) {
-    console.log('[pullCategories] Fetched', data.length, 'categories from Supabase')
     for (const item of data) {
       try {
         const localData = toCamelCase(item) as any
         localData.syncedAt = new Date().toISOString()
-        console.log('[pullCategories] Putting item:', localData.id)
         await db.categories.put(localData)
         stats.pulledCount++
       } catch (err) {
         console.error('[pullCategories] Failed to put item:', item, err)
       }
     }
-    console.log('[pullCategories] Saved', stats.pulledCount, 'categories to IndexedDB')
   }
 
   return stats
@@ -198,10 +195,6 @@ export async function pullProducts(userId: string): Promise<SyncStats> {
   const supabase = createClient()
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
-  // Verify auth session exists
-  const { data: { session } } = await supabase.auth.getSession()
-  console.log('[pullProducts] Auth session:', session?.user?.id, 'Expected userId:', userId)
-
   const { data, error } = await supabase
     .from('products')
     .select('*')
@@ -214,24 +207,16 @@ export async function pullProducts(userId: string): Promise<SyncStats> {
   }
 
   if (data) {
-    console.log('[pullProducts] Fetched', data.length, 'products from Supabase')
     for (const item of data) {
       try {
         const localData = toCamelCase(item) as any
         localData.syncedAt = new Date().toISOString()
-        console.log('[pullProducts] Putting product:', localData.id, localData.name)
         await db.products.put(localData)
         stats.pulledCount++
-        console.log('[pullProducts] Successfully saved product:', localData.name)
       } catch (err) {
         console.error('[pullProducts] Failed to put product:', item, err)
       }
     }
-    console.log('[pullProducts] Saved', stats.pulledCount, 'products to IndexedDB')
-
-    // Verify it was saved
-    const count = await db.products.count()
-    console.log('[pullProducts] Verification - Total products in IndexedDB:', count)
   }
 
   return stats
