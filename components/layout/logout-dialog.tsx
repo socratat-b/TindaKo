@@ -90,12 +90,21 @@ export function LogoutDialog({ open, onOpenChange }: LogoutDialogProps) {
       console.log('Clearing local data...')
       await clearAllLocalData()
 
-      // Proceed with logout
+      // Clear lastLoggedInUserId to trigger restore on next login
+      localStorage.removeItem('lastLoggedInUserId')
+      console.log('Local data cleared')
+
+      // Proceed with logout (redirect will throw NEXT_REDIRECT)
       await logoutAction()
-      router.push('/login')
     } catch (err) {
+      // Ignore NEXT_REDIRECT error (expected from redirect)
+      const errorMessage = err instanceof Error ? err.message : String(err)
+      if (errorMessage.includes('NEXT_REDIRECT')) {
+        console.log('Logout redirect successful')
+        return
+      }
       console.error('Logout failed:', err)
-      setError(err instanceof Error ? err.message : 'Failed to logout')
+      setError(errorMessage)
       setIsLoading(false)
     }
   }

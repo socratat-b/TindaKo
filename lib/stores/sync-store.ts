@@ -12,7 +12,7 @@ interface SyncState {
 
   // Actions
   backup: (userId?: string) => Promise<void> // Push-only (manual backup)
-  restore: (userId?: string) => Promise<void> // Pull-only (auto-restore)
+  restore: (userId?: string) => Promise<SyncStats> // Pull-only (auto-restore)
   sync: (isInitialSync?: boolean) => Promise<void> // Full sync (both push + pull, for future use)
   setHasPendingChanges: (value: boolean) => void
 }
@@ -70,7 +70,7 @@ export const useSyncStore = create<SyncState>((set, get) => ({
     // Prevent concurrent operations
     if (status === 'syncing') {
       console.log('Restore already in progress')
-      return
+      return { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
     }
 
     set({ status: 'syncing', error: null })
@@ -92,6 +92,8 @@ export const useSyncStore = create<SyncState>((set, get) => ({
           set({ status: 'idle' })
         }
       }, 3000)
+
+      return stats
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       set({
@@ -100,6 +102,7 @@ export const useSyncStore = create<SyncState>((set, get) => ({
       })
       console.error('❌ Restore failed:', errorMessage)
       console.error('Full error:', error)
+      return { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
     }
   },
 

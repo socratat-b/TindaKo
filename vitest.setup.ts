@@ -28,6 +28,16 @@ vi.mock('next/navigation', () => ({
   usePathname: () => '/',
 }))
 
-// Mock environment variables for tests
-process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'
-process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'
+// Load real .env.local for integration tests, otherwise use mock values
+// Integration tests (like logout-login-flow.test.tsx) need real Supabase
+import dotenv from 'dotenv'
+import path from 'path'
+
+// Try to load .env.local
+dotenv.config({ path: path.resolve(process.cwd(), '.env.local') })
+
+// If no real env vars loaded (unit tests), use mock values
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'
+}

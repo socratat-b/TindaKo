@@ -47,6 +47,7 @@ export function ProductGrid({ userId }: ProductGridProps) {
           .filter((c) => !c.isDeleted)
           .sort((a, b) => a.sortOrder - b.sortOrder)
 
+        console.log('[ProductGrid] Loaded', productsData.length, 'products')
         setProducts(productsData)
         setCategories(categoriesData)
       } catch (error) {
@@ -57,6 +58,15 @@ export function ProductGrid({ userId }: ProductGridProps) {
     }
 
     loadData()
+
+    // Listen for data restore event to reload products
+    const handleDataRestored = () => {
+      console.log('[ProductGrid] Data restored event received - reloading')
+      loadData()
+    }
+
+    window.addEventListener('data-restored', handleDataRestored)
+    return () => window.removeEventListener('data-restored', handleDataRestored)
   }, [userId])
 
   // Filter products based on search and category

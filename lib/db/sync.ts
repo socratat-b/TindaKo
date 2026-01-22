@@ -130,39 +130,64 @@ export async function pushToCloud(userId?: string): Promise<SyncStats> {
  */
 export async function pullFromCloud(userId?: string): Promise<SyncStats> {
   try {
+    console.log('[pullFromCloud] Starting pull for userId:', userId)
+
     // Check if online before attempting sync
     const online = await isOnline()
     if (!online) {
-      console.log('Offline - skipping pull')
+      console.log('[pullFromCloud] Offline - skipping pull')
       return { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
     }
 
     const currentUserId = userId || await getCurrentUserId()
+    console.log('[pullFromCloud] Using userId:', currentUserId)
+
+    // Verify auth session exists before pulling (RLS requires it)
+    const supabase = createClient()
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.user) {
+      console.error('[pullFromCloud] No auth session - cannot pull from cloud')
+      return { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
+    }
+    console.log('[pullFromCloud] Auth session verified:', session.user.id)
+
     const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
     // Pull in dependency order
+    console.log('[pullFromCloud] Pulling categories...')
     const categoriesStats = await pullCategories(currentUserId)
     stats.pulledCount += categoriesStats.pulledCount
+    console.log('[pullFromCloud] Categories pulled:', categoriesStats.pulledCount)
 
+    console.log('[pullFromCloud] Pulling customers...')
     const customersStats = await pullCustomers(currentUserId)
     stats.pulledCount += customersStats.pulledCount
+    console.log('[pullFromCloud] Customers pulled:', customersStats.pulledCount)
 
+    console.log('[pullFromCloud] Pulling products...')
     const productsStats = await pullProducts(currentUserId)
     stats.pulledCount += productsStats.pulledCount
+    console.log('[pullFromCloud] Products pulled:', productsStats.pulledCount)
 
+    console.log('[pullFromCloud] Pulling sales...')
     const salesStats = await pullSales(currentUserId)
     stats.pulledCount += salesStats.pulledCount
+    console.log('[pullFromCloud] Sales pulled:', salesStats.pulledCount)
 
+    console.log('[pullFromCloud] Pulling utang transactions...')
     const utangStats = await pullUtangTransactions(currentUserId)
     stats.pulledCount += utangStats.pulledCount
+    console.log('[pullFromCloud] Utang transactions pulled:', utangStats.pulledCount)
 
+    console.log('[pullFromCloud] Pulling inventory movements...')
     const inventoryStats = await pullInventoryMovements(currentUserId)
     stats.pulledCount += inventoryStats.pulledCount
+    console.log('[pullFromCloud] Inventory movements pulled:', inventoryStats.pulledCount)
 
-    console.log('Pull from cloud completed successfully', stats)
+    console.log('[pullFromCloud] Pull from cloud completed successfully', stats)
     return stats
   } catch (error) {
-    console.error('Pull from cloud failed:', error)
+    console.error('[pullFromCloud] Pull from cloud failed:', error)
     throw error
   }
 }

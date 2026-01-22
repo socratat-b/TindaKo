@@ -1,64 +1,69 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { useSyncStore } from '@/lib/stores/sync-store'
 import { useAuth } from '@/lib/hooks/use-auth'
-import { db, clearAllLocalData } from '@/lib/db'
+import { db } from '@/lib/db'
 
 export function SyncProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
   const { restore } = useSyncStore()
+  const pathname = usePathname()
   const lastSyncedUserIdRef = useRef<string | null>(null)
 
   useEffect(() => {
-    // Reset sync flag when user changes or logs out
     if (!user) {
+      // User logged out - reset everything
       lastSyncedUserIdRef.current = null
       return
     }
 
-    // Only trigger restore if user hasn't been synced yet
-    if (lastSyncedUserIdRef.current === user.id) {
+    // Only sync on dashboard pages (not login/signup)
+    const isDashboardPage = pathname !== '/login' && pathname !== '/signup'
+    if (!isDashboardPage) {
       return
     }
 
-    // Check if local database is empty (first login or after data clear)
-    const checkAndRestoreInitial = async () => {
+    // User logged in and on dashboard - check if we need to pull data
+    const pullDataIfNeeded = async () => {
       try {
-        // Check if any table has data
-        const [categoriesCount, productsCount, salesCount] = await Promise.all([
-          db.categories.count(),
-          db.products.count(),
-          db.sales.count()
-        ])
-
-        const isEmptyDatabase = categoriesCount === 0 && productsCount === 0 && salesCount === 0
-
-        // Check if different user logged in
-        const lastUserId = localStorage.getItem('lastLoggedInUserId')
-        const isDifferentUser = lastUserId && lastUserId !== user.id
-
-        if (isDifferentUser) {
-          // Different user detected - clear old user's data first
-          console.log('Different user detected - clearing old data before restore')
-          await clearAllLocalData()
+        // Check if we already pulled data for this user
+        if (lastSyncedUserIdRef.current === user.id) {
+          console.log('[SyncProvider] Data already pulled for this user')
+          return
         }
 
-        if (isEmptyDatabase || isDifferentUser) {
-          console.log('Auto-restoring from cloud for user:', user.id)
-          await restore(user.id) // Pull-only restore from cloud
+        console.log('[SyncProvider] Checking data for user:', user.id)
+
+        // Check if local DB is empty
+        const productsCount = await db.products.count()
+        console.log('[SyncProvider] Products in local DB:', productsCount)
+
+        if (productsCount === 0) {
+          // DB is empty - pull data from cloud
+          console.log('[SyncProvider] Empty DB - pulling data from cloud')
+          lastSyncedUserIdRef.current = user.id // Mark as syncing
+
+          await restore(user.id)
+
+          console.log('[SyncProvider] Data pulled successfully - notifying UI')
+          window.dispatchEvent(new CustomEvent('data-restored'))
+
           localStorage.setItem('lastLoggedInUserId', user.id)
+        } else {
+          // DB has data
+          console.log('[SyncProvider] DB has data - no pull needed')
+          lastSyncedUserIdRef.current = user.id
         }
-
-        // Mark this user as synced
-        lastSyncedUserIdRef.current = user.id
       } catch (error) {
-        console.error('Initial restore check failed:', error)
+        console.error('[SyncProvider] Failed to pull data:', error)
+        lastSyncedUserIdRef.current = null // Reset so it retries
       }
     }
 
-    checkAndRestoreInitial()
-  }, [user, restore])
+    pullDataIfNeeded()
+  }, [user, pathname, restore])
 
   return <>{children}</>
 }

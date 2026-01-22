@@ -33,12 +33,19 @@ export const db = new TindaKoDB()
  * Called on logout to prevent data leakage between users
  */
 export async function clearAllLocalData(): Promise<void> {
-  await Promise.all([
-    db.categories.clear(),
-    db.customers.clear(),
-    db.products.clear(),
-    db.sales.clear(),
-    db.utangTransactions.clear(),
-    db.inventoryMovements.clear(),
-  ])
+  console.log('[clearAllLocalData] Starting to clear all tables...')
+  try {
+    await Promise.all([
+      db.categories.clear(),
+      db.customers.clear(),
+      db.products.clear(),
+      db.sales.clear(),
+      db.utangTransactions.clear(),
+      db.inventoryMovements.clear(),
+    ])
+    console.log('[clearAllLocalData] All tables cleared successfully')
+  } catch (error) {
+    console.error('[clearAllLocalData] Failed to clear tables:', error)
+    throw error
+  }
 }
