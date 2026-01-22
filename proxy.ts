@@ -39,12 +39,43 @@ export async function proxy(request: NextRequest) {
     user = data?.user ?? null
 
     // Check for network errors vs auth errors
-    if (error && error.message?.includes('network')) {
-      networkError = true
+    if (error) {
+      const errorMsg = error.message?.toLowerCase() || ''
+      const isNetworkError =
+        errorMsg.includes('network') ||
+        errorMsg.includes('fetch') ||
+        errorMsg.includes('enotfound') ||
+        errorMsg.includes('timeout') ||
+        errorMsg.includes('connection')
+
+      if (isNetworkError) {
+        networkError = true
+      }
     }
-  } catch {
+  } catch (err) {
     // Network error: allow through, DAL will validate with cached session
-    networkError = true
+    // Check if it's a network-related error
+    const errorMsg = err instanceof Error ? err.message?.toLowerCase() : ''
+    const causeMsg = (err as any)?.cause?.message?.toLowerCase() || ''
+    const errorCode = (err as any)?.cause?.code || ''
+
+    const isNetworkError =
+      errorMsg.includes('fetch') ||
+      errorMsg.includes('network') ||
+      errorMsg.includes('enotfound') ||
+      errorMsg.includes('timeout') ||
+      errorMsg.includes('connection') ||
+      causeMsg.includes('enotfound') ||
+      errorCode === 'ENOTFOUND' ||
+      errorCode === 'ETIMEDOUT' ||
+      errorCode === 'ECONNREFUSED'
+
+    if (isNetworkError) {
+      networkError = true
+    } else {
+      // Non-network error, re-throw
+      throw err
+    }
   }
 
   const path = request.nextUrl.pathname
