@@ -67,8 +67,19 @@ export function ProductGrid({ userId }: ProductGridProps) {
       loadData()
     }
 
+    // Listen for local data changes (products/categories added/updated)
+    const handleLocalDataChanged = () => {
+      console.log('[ProductGrid] Local data changed - reloading')
+      loadData()
+    }
+
     window.addEventListener('data-restored', handleDataRestored)
-    return () => window.removeEventListener('data-restored', handleDataRestored)
+    window.addEventListener('local-data-changed', handleLocalDataChanged)
+
+    return () => {
+      window.removeEventListener('data-restored', handleDataRestored)
+      window.removeEventListener('local-data-changed', handleLocalDataChanged)
+    }
   }, [userId])
 
   // Filter products based on search and category

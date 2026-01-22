@@ -95,6 +95,11 @@ export async function createInventoryMovement(
       }
     )
 
+    // Notify UI that local data changed (product stock updated)
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('local-data-changed'))
+    }
+
     return {
       success: true,
       movementId,

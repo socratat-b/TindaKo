@@ -63,6 +63,12 @@ export async function createProduct(data: ProductFormData): Promise<string> {
     }
 
     await db.products.add(product)
+
+    // Notify UI that local data changed
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('local-data-changed'))
+    }
+
     return productId
   } catch (error) {
     console.error('Failed to create product:', error)
@@ -113,6 +119,11 @@ export async function updateProduct(
       updatedAt: now,
       syncedAt: null,
     })
+
+    // Notify UI that local data changed
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('local-data-changed'))
+    }
   } catch (error) {
     console.error('Failed to update product:', error)
     throw error
@@ -136,6 +147,11 @@ export async function deleteProduct(id: string): Promise<void> {
       updatedAt: now,
       syncedAt: null,
     })
+
+    // Notify UI that local data changed
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('local-data-changed'))
+    }
   } catch (error) {
     console.error('Failed to delete product:', error)
     throw error
@@ -174,6 +190,12 @@ export async function createCategory(data: CategoryFormData): Promise<string> {
     }
 
     await db.categories.add(category)
+
+    // Notify UI that local data changed
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('local-data-changed'))
+    }
+
     return categoryId
   } catch (error) {
     console.error('Failed to create category:', error)
@@ -215,6 +237,11 @@ export async function updateCategory(
       updatedAt: now,
       syncedAt: null,
     })
+
+    // Notify UI that local data changed
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('local-data-changed'))
+    }
   } catch (error) {
     console.error('Failed to update category:', error)
     throw error
@@ -252,6 +279,11 @@ export async function deleteCategory(id: string): Promise<void> {
       updatedAt: now,
       syncedAt: null,
     })
+
+    // Notify UI that local data changed
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('local-data-changed'))
+    }
   } catch (error) {
     console.error('Failed to delete category:', error)
     throw error
@@ -276,6 +308,11 @@ export async function updateCategoriesOrder(
         })
       }
     })
+
+    // Notify UI that local data changed
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('local-data-changed'))
+    }
   } catch (error) {
     console.error('Failed to update categories order:', error)
     throw error

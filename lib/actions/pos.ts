@@ -127,6 +127,11 @@ export async function processSale(data: CheckoutData): Promise<string> {
       }
     )
 
+    // Notify UI that local data changed (products stock updated)
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('local-data-changed'))
+    }
+
     return saleId
   } catch (error) {
     console.error('Failed to process sale:', error)
