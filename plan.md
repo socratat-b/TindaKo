@@ -47,11 +47,11 @@ All tables: `id`, `userId`, `syncedAt`, `updatedAt`, `createdAt`, `isDeleted`
 
 ## 📋 Todo
 
-### Phase 3: Remaining Pages
+### Phase 3: All Pages Complete
 
 - [x] **Utang Page**: Customer credit tracking, payment recording, balance history
-- [ ] **Reports Page**: Daily/weekly/monthly sales reports
-- [ ] **Settings Page**: App configuration
+- [x] **Reports Page**: Daily/weekly/monthly sales reports, date filtering, stats
+- [x] **Settings Page**: Theme switching, currency format, data backup/restore
 
 ### Phase 4: Future Enhancements
 

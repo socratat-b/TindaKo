@@ -84,9 +84,9 @@ Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Ser
 - Production-only (`pnpm build` uses --webpack)
 
 **State Management:**
-- Zustand stores: auth, cart, sync
+- Zustand stores: auth, cart, sync, settings
 - localStorage persistence
-- Hooks: useAuth, useCart, useSync
+- Hooks: useAuth, useCart, useSync, useSettings
 
 **Pages & UI:**
 - ✅ **POS Page**: Product grid, cart, checkout, barcode scanner, atomic transactions, framer-motion animations
@@ -94,13 +94,14 @@ Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Ser
 - ✅ **Inventory Page**: Manual adjustments (in/out/adjust), low stock alerts, movement history, framer-motion animations
 - ✅ **Utang Page**: Customer credit tracking, payment recording (partial/full), manual charges, transaction history, framer-motion animations
 - ✅ **Reports Page**: Sales analytics with date filtering (today/week/month/custom), stats cards, payment breakdown, transaction list, framer-motion animations
+- ✅ **Settings Page**: App configuration, theme switching, currency format, data backup/restore, clear local data, framer-motion animations
 - ✅ **Layout**: Responsive header, sidebar (desktop), drawer (mobile), sync indicator
 - ✅ **Components**: shadcn/ui (button, input, card, badge, dialog, select, popover, textarea, etc.)
 
-### 📋 Todo: Phase 3 Remaining
+### ✅ Phase 3 Completed
 - [x] **Utang Page**: Customer credit tracking, payment recording
 - [x] **Reports Page**: Sales analytics with date filtering, stats, payment breakdown
-- [ ] **Settings Page**: App configuration
+- [x] **Settings Page**: App configuration
 
 ### 🎯 Phase 4: Future Enhancements
 
@@ -136,22 +137,24 @@ Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Ser
 - **Cart**: `lib/stores/cart-store.ts` - shopping cart with validation & persistence
 - **Sync**: `lib/stores/sync-store.ts` - manual backup orchestration & stats tracking
 - **Auth**: `lib/stores/auth-store.ts` - client auth state (read-only via useAuth hook)
+- **Settings**: `lib/stores/settings-store.ts` - app configuration (theme, currency)
 
 ## Key Files
 
 ```
 lib/db/              # Dexie schema, sync.ts (manual backup logic)
-lib/stores/          # Zustand: auth-store, cart-store, sync-store
-lib/hooks/           # useAuth, useCart, useSync
-lib/actions/         # Server Actions: auth, pos, products, inventory, utang
+lib/stores/          # Zustand: auth-store, cart-store, sync-store, settings-store
+lib/hooks/           # useAuth, useCart, useSync, useSettings
+lib/actions/         # Server Actions: auth, pos, products, inventory, utang, settings
 lib/utils/           # Client-side utilities: customer-utils, utang-utils, reports-utils
 components/pos/      # POS interface with framer-motion animations
 components/products/ # Products & categories with framer-motion animations
 components/inventory/# Inventory management with framer-motion animations
 components/utang/    # Customer credit tracking with framer-motion animations
 components/reports/  # Sales analytics with date filtering and stats with framer-motion animations
+components/settings/ # App settings: theme, currency, data management with framer-motion animations
 components/layout/   # Header, sidebar, sync indicator
-app/(dashboard)/     # Protected pages: pos, products, inventory, utang, reports
+app/(dashboard)/     # Protected pages: pos, products, inventory, utang, reports, settings
 app/(auth)/          # Login, signup
 supabase/migrations/ # Database migrations
 ```
@@ -163,13 +166,14 @@ supabase/migrations/ # Database migrations
 - ✅ Inventory management: manual adjustments, low stock alerts, movement history
 - ✅ Utang (customer credit): customer management, payment recording (partial/full), manual charges, transaction history
 - ✅ Reports: sales analytics, date filtering (today/week/month/custom), stats cards, payment breakdown, transaction list
+- ✅ Settings: theme switching (light/dark/system), currency format, data backup/restore, clear local data
 - ✅ Manual backup sync ("Backup to cloud" button)
 - ✅ Auto-restore from Supabase on first login
 - ✅ PWA installable with offline support
-- ✅ Framer-motion animations (POS, Products, Inventory, Utang, Reports)
+- ✅ Framer-motion animations (POS, Products, Inventory, Utang, Reports, Settings)
 - ✅ Testing infrastructure (14/14 tests passing)
 - ✅ Responsive mobile-first design
 
-## What's Left
+## What's Next
 
-- Settings page
+Phase 4 enhancements: CSV import, advanced barcode scanner, profit calculations, multi-store support
