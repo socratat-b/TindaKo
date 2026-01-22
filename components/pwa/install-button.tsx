@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -92,22 +93,30 @@ export function InstallButton() {
 
   return (
     <div className="space-y-4">
-      <button
+      <motion.button
         onClick={handleInstallClick}
-        className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg"
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-4 px-8 rounded-lg text-lg transition-colors shadow-lg"
       >
         Install App
-      </button>
+      </motion.button>
 
       {showIOSInstructions && isIOS && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm">
-          <p className="font-semibold text-blue-900 mb-2">To install on iOS:</p>
-          <ol className="list-decimal list-inside text-blue-800 space-y-1">
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.3 }}
+          className="bg-teal-50 border border-teal-200 rounded-lg p-4 text-sm"
+        >
+          <p className="font-semibold text-teal-900 mb-2">To install on iOS:</p>
+          <ol className="list-decimal list-inside text-teal-800 space-y-1">
             <li>Tap the Share button (square with arrow)</li>
             <li>Scroll down and tap "Add to Home Screen"</li>
             <li>Tap "Add" in the top right</li>
           </ol>
-        </div>
+        </motion.div>
       )}
     </div>
   );

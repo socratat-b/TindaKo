@@ -18,12 +18,12 @@
   --text-2xl: 1.5rem;      /* 24px */
   --text-3xl: 1.875rem;    /* 30px */
 
-  /* Color Palette */
-  --color-primary: #3b82f6;
+  /* Color Palette - Muted teal for eye comfort */
+  --color-primary: #0d9488;
   --color-primary-foreground: #ffffff;
   --color-secondary: #64748b;
   --color-secondary-foreground: #ffffff;
-  --color-accent: #f59e0b;
+  --color-accent: #0d9488;
   --color-accent-foreground: #ffffff;
 
   --color-background: #ffffff;
@@ -34,12 +34,12 @@
   --color-muted-foreground: #64748b;
   --color-border: #e2e8f0;
   --color-input: #e2e8f0;
-  --color-ring: #3b82f6;
+  --color-ring: #0d9488;
 
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
-  --color-info: #3b82f6;
+  --color-success: #059669;
+  --color-warning: #d97706;
+  --color-error: #dc2626;
+  --color-info: #0d9488;
 }
 
 /* Dark Mode Colors */
@@ -53,7 +53,7 @@
     --color-muted-foreground: #94a3b8;
     --color-border: #1e293b;
     --color-input: #1e293b;
-    --color-ring: #60a5fa;
+    --color-ring: #14b8a6;
   }
 }
 
