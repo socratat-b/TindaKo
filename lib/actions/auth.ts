@@ -137,8 +137,18 @@ export async function loginAction(
 export async function logoutAction() {
   const supabase = await createClient()
 
+  // Get current user ID
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    // Not logged in, just redirect
+    redirect('/login')
+  }
+
   // Session cache will be cleared by AuthProvider on client side
   await supabase.auth.signOut()
   revalidatePath('/', 'layout')
+
+  // redirect() throws NEXT_REDIRECT internally - this is expected behavior
   redirect('/login')
 }

@@ -1,9 +1,10 @@
 'use client'
 
+import { useState } from 'react'
 import { useAuth } from '@/lib/hooks/use-auth'
-import { logoutAction } from '@/lib/actions/auth'
 import { Button } from '@/components/ui/button'
 import { SyncIndicator } from './sync-indicator'
+import { LogoutDialog } from './logout-dialog'
 import { Menu, LogOut, User } from 'lucide-react'
 
 interface DashboardHeaderProps {
@@ -12,6 +13,7 @@ interface DashboardHeaderProps {
 
 export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
   const { user } = useAuth()
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false)
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
@@ -38,19 +40,19 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
             <span>{user?.email}</span>
           </div>
 
-          <form action={logoutAction}>
-            <Button
-              type="submit"
-              variant="ghost"
-              size="sm"
-              className="gap-2"
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Logout</span>
-            </Button>
-          </form>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-2"
+            onClick={() => setLogoutDialogOpen(true)}
+          >
+            <LogOut className="h-4 w-4" />
+            <span className="hidden sm:inline">Logout</span>
+          </Button>
         </div>
       </div>
+
+      <LogoutDialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen} />
     </header>
   )
 }
