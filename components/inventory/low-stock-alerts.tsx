@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { AlertTriangle, Package, ArrowUpCircle } from 'lucide-react'
+import { useSettings } from '@/lib/hooks/use-settings'
 import type { Product, Category } from '@/lib/db/schema'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -28,8 +29,14 @@ export function LowStockAlerts({
   categories,
   userId,
 }: LowStockAlertsProps) {
+  const { showLowStockAlerts } = useSettings()
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
   const [isAdjustmentDialogOpen, setIsAdjustmentDialogOpen] = useState(false)
+
+  // Don't show alerts if disabled in settings
+  if (!showLowStockAlerts) {
+    return null
+  }
 
   const getCategoryName = (categoryId: string) => {
     return categories.find((c) => c.id === categoryId)?.name || 'Uncategorized'
