@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react'
 import { useSyncStore } from '@/lib/stores/sync-store'
 import { useAuth } from '@/lib/hooks/use-auth'
-import { db } from '@/lib/db'
+import { db, clearAllLocalData } from '@/lib/db'
 
 export function SyncProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
@@ -31,6 +31,12 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
         // Check if different user logged in
         const lastUserId = localStorage.getItem('lastLoggedInUserId')
         const isDifferentUser = lastUserId && lastUserId !== user.id
+
+        if (isDifferentUser) {
+          // Different user detected - clear old user's data first
+          console.log('Different user detected - clearing old data before restore')
+          await clearAllLocalData()
+        }
 
         if (isEmptyDatabase || isDifferentUser) {
           console.log('Auto-restoring from cloud for user:', user.id)
