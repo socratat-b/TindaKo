@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import type { Product } from '@/lib/db/schema'
 import { useCart } from '@/lib/hooks/use-cart'
 import { useFormatCurrency } from '@/lib/utils/currency'
 import { useSyncStore } from '@/lib/stores/sync-store'
