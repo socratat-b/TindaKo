@@ -15,7 +15,7 @@ export async function pushCategories(userId: string): Promise<SyncStats> {
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   const unsynced = await db.categories
-    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
+    .filter(item => item.syncedAt === null && item.userId === userId)
     .toArray()
 
   for (const item of unsynced) {
@@ -36,7 +36,7 @@ export async function pushCustomers(userId: string): Promise<SyncStats> {
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   const unsynced = await db.customers
-    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
+    .filter(item => item.syncedAt === null && item.userId === userId)
     .toArray()
 
   for (const item of unsynced) {
@@ -57,7 +57,7 @@ export async function pushProducts(userId: string): Promise<SyncStats> {
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   const unsynced = await db.products
-    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
+    .filter(item => item.syncedAt === null && item.userId === userId)
     .toArray()
 
   for (const item of unsynced) {
@@ -78,7 +78,7 @@ export async function pushSales(userId: string): Promise<SyncStats> {
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   const unsynced = await db.sales
-    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
+    .filter(item => item.syncedAt === null && item.userId === userId)
     .toArray()
 
   for (const item of unsynced) {
@@ -99,7 +99,7 @@ export async function pushUtangTransactions(userId: string): Promise<SyncStats> 
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   const unsynced = await db.utangTransactions
-    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
+    .filter(item => item.syncedAt === null && item.userId === userId)
     .toArray()
 
   for (const item of unsynced) {
@@ -120,7 +120,7 @@ export async function pushInventoryMovements(userId: string): Promise<SyncStats>
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   const unsynced = await db.inventoryMovements
-    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
+    .filter(item => item.syncedAt === null && item.userId === userId)
     .toArray()
 
   for (const item of unsynced) {
