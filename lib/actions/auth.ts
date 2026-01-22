@@ -15,12 +15,6 @@ export async function signupAction(
 ): Promise<AuthState> {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
-  const confirmPassword = formData.get('confirmPassword') as string
-
-  // Validate passwords match
-  if (password !== confirmPassword) {
-    return { error: 'Passwords do not match' }
-  }
 
   // Validate password length
   if (password.length < 6) {
@@ -29,23 +23,58 @@ export async function signupAction(
 
   const supabase = await createClient()
 
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-  })
+  let data, error
+  try {
+    const result = await supabase.auth.signUp({
+      email,
+      password,
+    })
+    data = result.data
+    error = result.error
+  } catch (err) {
+    // Network error during signup
+    const errorMsg = err instanceof Error ? err.message?.toLowerCase() : ''
+    const causeMsg = (err as any)?.cause?.message?.toLowerCase() || ''
+    const errorCode = (err as any)?.cause?.code || ''
+
+    const isNetworkError =
+      errorMsg.includes('fetch') ||
+      errorMsg.includes('network') ||
+      errorMsg.includes('enotfound') ||
+      causeMsg.includes('enotfound') ||
+      errorCode === 'ENOTFOUND'
+
+    if (isNetworkError) {
+      return { error: 'Internet connection required to create an account. Please connect to the internet and try again.' }
+    }
+
+    return { error: 'An unexpected error occurred. Please try again.' }
+  }
 
   if (error) {
+    // Check if it's a network-related error
+    const errorMsg = error.message?.toLowerCase() || ''
+    const isNetworkError =
+      errorMsg.includes('fetch') ||
+      errorMsg.includes('network') ||
+      errorMsg.includes('enotfound') ||
+      errorMsg.includes('connection')
+
+    if (isNetworkError) {
+      return { error: 'Internet connection required to create an account. Please connect to the internet and try again.' }
+    }
+
     return { error: error.message }
   }
 
-  // May require email confirmation depending on Supabase settings
+  // Email confirmation is disabled - user is immediately signed in
   if (data.session) {
     // Session will be cached by AuthProvider on client side
     revalidatePath('/', 'layout')
     redirect('/pos')
   }
 
-  return { success: 'Account created! Please check your email to confirm your account.' }
+  return { success: 'Account created successfully!' }
 }
 
 export async function loginAction(
@@ -57,12 +86,46 @@ export async function loginAction(
 
   const supabase = await createClient()
 
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  })
+  let error
+  try {
+    const result = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+    error = result.error
+  } catch (err) {
+    // Network error during login
+    const errorMsg = err instanceof Error ? err.message?.toLowerCase() : ''
+    const causeMsg = (err as any)?.cause?.message?.toLowerCase() || ''
+    const errorCode = (err as any)?.cause?.code || ''
+
+    const isNetworkError =
+      errorMsg.includes('fetch') ||
+      errorMsg.includes('network') ||
+      errorMsg.includes('enotfound') ||
+      causeMsg.includes('enotfound') ||
+      errorCode === 'ENOTFOUND'
+
+    if (isNetworkError) {
+      return { error: 'Internet connection required to sign in. Please connect to the internet and try again.' }
+    }
+
+    return { error: 'An unexpected error occurred. Please try again.' }
+  }
 
   if (error) {
+    // Check if it's a network-related error
+    const errorMsg = error.message?.toLowerCase() || ''
+    const isNetworkError =
+      errorMsg.includes('fetch') ||
+      errorMsg.includes('network') ||
+      errorMsg.includes('enotfound') ||
+      errorMsg.includes('connection')
+
+    if (isNetworkError) {
+      return { error: 'Internet connection required to sign in. Please connect to the internet and try again.' }
+    }
+
     return { error: error.message }
   }
 

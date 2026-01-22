@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { signupAction } from '@/lib/actions/auth'
 import Link from 'next/link'
 import { SubmitButton } from '@/components/auth/submit-button'
+import { OfflineBanner } from '@/components/auth/offline-banner'
 
 export default function SignupPage() {
   const [state, formAction, isPending] = useActionState(signupAction, {})
@@ -44,6 +45,8 @@ export default function SignupPage() {
           className="bg-white rounded-xl shadow-sm border border-gray-100 p-8"
         >
           <form action={formAction} className="space-y-6">
+            <OfflineBanner />
+
             {state.error && (
               <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-600">
                 {state.error}
@@ -83,20 +86,7 @@ export default function SignupPage() {
                   className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500"
                   placeholder="••••••••"
                 />
-              </div>
-
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-900">
-                  Confirm Password
-                </label>
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  required
-                  className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  placeholder="••••••••"
-                />
+                <p className="mt-1 text-xs text-gray-500">Minimum 6 characters</p>
               </div>
             </div>
 
