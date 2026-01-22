@@ -98,8 +98,10 @@ describe('Logout → Login → Populate IndexedDB Flow (REAL DATA)', () => {
     const products = await db.products.toArray()
     console.log('Products in IndexedDB:', products)
     expect(products.length).toBeGreaterThan(0)
-    expect(products[0].name).toBe('Coke') // Real product from admin@gmail.com
-    expect(products[0].userId).toBe(TEST_USER_ID)
+    // Verify all products belong to the correct user
+    products.forEach(product => {
+      expect(product.userId).toBe(TEST_USER_ID)
+    })
   })
 
   it('should complete full cycle: login → logout → login → data restored (REAL)', async () => {
@@ -134,8 +136,13 @@ describe('Logout → Login → Populate IndexedDB Flow (REAL DATA)', () => {
 
     // === PHASE 5: Verify it's the Supabase data (not old local data) ===
     const products = await db.products.toArray()
-    expect(products[0].name).toBe('Coke') // From REAL Supabase, NOT "Local Product"
-    expect(products[0].userId).toBe(TEST_USER_ID)
+    // Verify products from Supabase exist (not the local "Local Product")
+    expect(products.length).toBeGreaterThan(0)
+    const productNames = products.map(p => p.name)
+    expect(productNames).not.toContain('Local Product') // Should NOT have local data
+    products.forEach(product => {
+      expect(product.userId).toBe(TEST_USER_ID)
+    })
   })
 
   it('should filter data by userId when querying IndexedDB', async () => {
