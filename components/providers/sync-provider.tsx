@@ -8,11 +8,17 @@ import { db, clearAllLocalData } from '@/lib/db'
 export function SyncProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
   const { restore } = useSyncStore()
-  const hasInitialSyncedRef = useRef(false)
+  const lastSyncedUserIdRef = useRef<string | null>(null)
 
   useEffect(() => {
-    // Only trigger initial restore if user is authenticated and hasn't restored yet
-    if (!user || hasInitialSyncedRef.current) {
+    // Reset sync flag when user changes or logs out
+    if (!user) {
+      lastSyncedUserIdRef.current = null
+      return
+    }
+
+    // Only trigger restore if user hasn't been synced yet
+    if (lastSyncedUserIdRef.current === user.id) {
       return
     }
 
@@ -44,7 +50,8 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
           localStorage.setItem('lastLoggedInUserId', user.id)
         }
 
-        hasInitialSyncedRef.current = true
+        // Mark this user as synced
+        lastSyncedUserIdRef.current = user.id
       } catch (error) {
         console.error('Initial restore check failed:', error)
       }
