@@ -28,19 +28,20 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     // User logged in and on dashboard - check if we need to pull data
     const pullDataIfNeeded = async () => {
       try {
-        // Check if we already pulled data for this user
-        if (lastSyncedUserIdRef.current === user.id) {
-          console.log('[SyncProvider] Data already pulled for this user')
-          return
-        }
-
         console.log('[SyncProvider] Checking data for user:', user.id)
 
-        // Check if local DB is empty
+        // ALWAYS check if local DB is empty first (in case of logout → login)
         const productsCount = await db.products.count()
         console.log('[SyncProvider] Products in local DB:', productsCount)
 
+        // If DB is empty, we must pull regardless of ref state
         if (productsCount === 0) {
+          // Check if we're already pulling for this user
+          if (lastSyncedUserIdRef.current === user.id) {
+            console.log('[SyncProvider] Already pulling data for this user')
+            return
+          }
+
           // DB is empty - pull data from cloud
           console.log('[SyncProvider] Empty DB - pulling data from cloud')
           lastSyncedUserIdRef.current = user.id // Mark as syncing
@@ -52,7 +53,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
 
           localStorage.setItem('lastLoggedInUserId', user.id)
         } else {
-          // DB has data
+          // DB has data - mark as synced
           console.log('[SyncProvider] DB has data - no pull needed')
           lastSyncedUserIdRef.current = user.id
         }
