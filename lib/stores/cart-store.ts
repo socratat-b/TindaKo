@@ -11,6 +11,7 @@ interface CartItem extends SaleItem {
 interface CartState {
   items: CartItem[]
   paymentMethod: 'cash' | 'gcash' | 'card' | 'utang'
+  userId: string | null // Track which user owns this cart
 
   // Computed values
   subtotal: number
@@ -21,6 +22,7 @@ interface CartState {
   removeItem: (productId: string) => void
   updateQuantity: (productId: string, quantity: number) => void
   setPaymentMethod: (method: 'cash' | 'gcash' | 'card' | 'utang') => void
+  setUserId: (userId: string | null) => void
   clearCart: () => void
 }
 
@@ -29,6 +31,7 @@ export const useCartStore = create<CartState>()(
     (set, get) => ({
       items: [],
       paymentMethod: useSettingsStore.getState().defaultPaymentMethod,
+      userId: null,
       subtotal: 0,
       total: 0,
 
@@ -125,6 +128,24 @@ export const useCartStore = create<CartState>()(
         set({ paymentMethod })
       },
 
+      setUserId: (userId) => {
+        const currentUserId = get().userId
+
+        // If userId changed, clear cart
+        if (currentUserId && currentUserId !== userId) {
+          console.log('User changed - clearing cart')
+          set({
+            items: [],
+            paymentMethod: useSettingsStore.getState().defaultPaymentMethod,
+            userId,
+            subtotal: 0,
+            total: 0
+          })
+        } else {
+          set({ userId })
+        }
+      },
+
       clearCart: () => {
         set({
           items: [],
@@ -139,7 +160,8 @@ export const useCartStore = create<CartState>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         items: state.items,
-        paymentMethod: state.paymentMethod
+        paymentMethod: state.paymentMethod,
+        userId: state.userId
       })
     }
   )

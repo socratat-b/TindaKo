@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { SyncProvider } from "@/components/providers/sync-provider";
+import { CartProvider } from "@/components/providers/cart-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import "./globals.css";
 
@@ -28,7 +29,9 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             <SyncProvider>
-              {children}
+              <CartProvider>
+                {children}
+              </CartProvider>
             </SyncProvider>
           </AuthProvider>
         </ThemeProvider>
