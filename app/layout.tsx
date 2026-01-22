@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Toaster } from "sonner";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { SyncProvider } from "@/components/providers/sync-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
@@ -31,6 +32,7 @@ export default function RootLayout({
             </SyncProvider>
           </AuthProvider>
         </ThemeProvider>
+        <Toaster position="top-center" richColors />
       </body>
     </html>
   );

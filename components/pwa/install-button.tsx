@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -26,7 +27,18 @@ export function InstallButton() {
       setIsInstallable(true);
     };
 
+    // Listen for successful installation
+    const installedHandler = () => {
+      toast.success('App installed successfully!', {
+        description: 'You can now use TindaKo from your home screen.',
+        duration: 5000,
+      });
+      setDeferredPrompt(null);
+      setIsInstallable(false);
+    };
+
     window.addEventListener('beforeinstallprompt', handler);
+    window.addEventListener('appinstalled', installedHandler);
 
     // Check if already installed
     if (window.matchMedia('(display-mode: standalone)').matches) {
@@ -35,6 +47,7 @@ export function InstallButton() {
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
+      window.removeEventListener('appinstalled', installedHandler);
     };
   }, []);
 
@@ -46,12 +59,26 @@ export function InstallButton() {
       return;
     }
 
+    // Show the install prompt
     deferredPrompt.prompt();
 
+    // Show loading toast
+    const loadingToast = toast.loading('Waiting for installation...');
+
+    // Wait for the user to respond to the prompt
     const { outcome } = await deferredPrompt.userChoice;
 
+    // Dismiss loading toast
+    toast.dismiss(loadingToast);
+
     if (outcome === 'accepted') {
-      console.log('PWA installed');
+      // Success toast will be shown by the appinstalled event listener
+      console.log('PWA installation accepted');
+    } else {
+      // User dismissed the install prompt
+      toast.info('Installation cancelled', {
+        description: 'You can install the app later from the menu.',
+      });
     }
 
     setDeferredPrompt(null);
