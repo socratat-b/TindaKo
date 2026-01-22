@@ -66,10 +66,12 @@ Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Ser
 - Migration: `07_add_synced_at_column.sql`
 
 **Authentication:**
-- Supabase email/password auth
+- Supabase email/password auth (email confirmation disabled)
+- Simplified signup flow (removed confirm password field)
 - Data Access Layer (DAL) security with `verifySession()`
-- Session persistence + 30-day offline access
-- Encrypted session caching (Web Crypto API)
+- Session persistence + 30-day offline access via cookies (server-safe)
+- Offline detection with user-friendly error messages
+- Proactive offline banner on auth pages
 
 **Testing:**
 - Vitest + React Testing Library
@@ -79,7 +81,8 @@ Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Ser
 **PWA:**
 - Service worker (Serwist)
 - Installable on mobile/desktop
-- Offline-capable
+- Fully offline-capable (works without internet for 30 days)
+- Offline navigation between pages (middleware + DAL handle network errors)
 - Custom install button (beforeinstallprompt API)
 - Production-only (`pnpm build` uses --webpack)
 
@@ -117,6 +120,7 @@ Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Ser
 - **Client-side IDs**: Use `crypto.randomUUID()` or `nanoid()`
 - **Update timestamps**: Always update `updatedAt` and reset `syncedAt: null` on changes
 - **Filter deleted**: Query with `.filter(item => !item.isDeleted)`
+- **User isolation**: ALWAYS filter by userId: `.where('userId').equals(userId)`
 - **Sync order**: categories, customers, products, sales, utangTransactions, inventoryMovements
 - **Case conversion**: Use `toSnakeCase()` and `toCamelCase()` helpers in `lib/db/sync.ts`
 
@@ -130,8 +134,10 @@ Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Ser
 - **Primary security**: Data Access Layer (`lib/dal.ts`) with `verifySession()`
 - Call `verifySession()` in ALL protected Server Components/Actions
 - Supabase RLS policies with `(select auth.uid()) = user_id` pattern
-- Session cache encrypted with Web Crypto API
+- Offline session validation via cookies (server-safe, no localStorage on server)
+- Middleware (`proxy.ts`) detects network errors (ENOTFOUND, fetch failures)
 - Server Actions use React 19 `useActionState` pattern
+- User-friendly offline error messages on auth pages
 
 ### State Management
 - **Cart**: `lib/stores/cart-store.ts` - shopping cart with validation & persistence
