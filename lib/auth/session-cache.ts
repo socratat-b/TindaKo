@@ -226,6 +226,11 @@ export async function isSessionValidOffline(): Promise<SessionValidation> {
  * Returns true if online, false if offline
  */
 export async function isOnline(): Promise<boolean> {
+  // Quick check: if browser knows it's offline, don't bother with network call
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    return false
+  }
+
   try {
     const supabase = await createClient()
 
@@ -239,6 +244,7 @@ export async function isOnline(): Promise<boolean> {
     await Promise.race([sessionPromise, timeoutPromise])
     return true
   } catch {
+    // Suppress expected network errors (offline state)
     return false
   }
 }
@@ -259,7 +265,7 @@ export async function refreshSessionIfNeeded(): Promise<CachedSession | null> {
     return cached // No refresh needed
   }
 
-  // Check if online
+  // Check if online (navigator.onLine check happens first in isOnline())
   if (!(await isOnline())) {
     return null // Cannot refresh offline
   }
@@ -270,47 +276,84 @@ export async function refreshSessionIfNeeded(): Promise<CachedSession | null> {
     // Attempt refresh with retry logic (2 attempts)
     let refreshError: Error | null = null
     for (let attempt = 0; attempt < 2; attempt++) {
-      const { data, error } = await supabase.auth.refreshSession({
-        refresh_token: cached.refreshToken,
-      })
+      try {
+        const { data, error } = await supabase.auth.refreshSession({
+          refresh_token: cached.refreshToken,
+        })
 
-      if (error) {
-        refreshError = error
-        await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1))) // Exponential backoff
-        continue
-      }
-
-      if (data.session) {
-        // Update cache with new tokens
-        const newSession: CachedSession = {
-          userId: data.session.user.id,
-          email: data.session.user.email ?? null,
-          accessToken: data.session.access_token,
-          refreshToken: data.session.refresh_token,
-          expiresAt: data.session.expires_at
-            ? data.session.expires_at * 1000
-            : now + 60 * 60 * 1000, // Fallback: 1 hour
-          cachedAt: now,
-          maxOfflineExpiry: cached.maxOfflineExpiry, // Preserve original 30-day limit
+        if (error) {
+          refreshError = error
+          await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1))) // Exponential backoff
+          continue
         }
 
-        await cacheSession(newSession)
-        return newSession
+        if (data.session) {
+          // Update cache with new tokens
+          const newSession: CachedSession = {
+            userId: data.session.user.id,
+            email: data.session.user.email ?? null,
+            accessToken: data.session.access_token,
+            refreshToken: data.session.refresh_token,
+            expiresAt: data.session.expires_at
+              ? data.session.expires_at * 1000
+              : now + 60 * 60 * 1000, // Fallback: 1 hour
+            cachedAt: now,
+            maxOfflineExpiry: cached.maxOfflineExpiry, // Preserve original 30-day limit
+          }
+
+          await cacheSession(newSession)
+          return newSession
+        }
+      } catch (err) {
+        // Network error during refresh - suppress console noise
+        const errorMsg = err instanceof Error ? err.message?.toLowerCase() : ''
+        const errorCode = (err as any)?.cause?.code || ''
+        const isNetworkError =
+          errorMsg.includes('fetch') ||
+          errorMsg.includes('network') ||
+          errorCode === 'ENOTFOUND' ||
+          errorCode === 'ETIMEDOUT' ||
+          errorCode === 'ECONNREFUSED'
+
+        if (isNetworkError) {
+          // Expected offline error - return null silently
+          return null
+        }
+
+        // Non-network error - rethrow
+        throw err
       }
     }
 
     // Refresh failed after retries
-    console.error('Token refresh failed:', refreshError)
+    // Only log if it's not a network error
+    if (refreshError && 'message' in refreshError) {
+      const errorMsg = refreshError.message.toLowerCase()
+      if (!errorMsg.includes('fetch') && !errorMsg.includes('network')) {
+        console.error('Token refresh failed:', refreshError)
+      }
 
-    // If refresh token is invalid, clear cache and force re-login
-    if (refreshError && 'message' in refreshError &&
-        (refreshError.message.includes('invalid') || refreshError.message.includes('expired'))) {
-      clearSessionCache()
+      // If refresh token is invalid, clear cache and force re-login
+      if (errorMsg.includes('invalid') || errorMsg.includes('expired')) {
+        clearSessionCache()
+      }
     }
 
     return null
   } catch (error) {
-    console.error('Failed to refresh session:', error)
+    // Suppress network errors
+    const errorMsg = error instanceof Error ? error.message?.toLowerCase() : ''
+    const errorCode = (error as any)?.cause?.code || ''
+    const isNetworkError =
+      errorMsg.includes('fetch') ||
+      errorMsg.includes('network') ||
+      errorCode === 'ENOTFOUND' ||
+      errorCode === 'ETIMEDOUT' ||
+      errorCode === 'ECONNREFUSED'
+
+    if (!isNetworkError) {
+      console.error('Failed to refresh session:', error)
+    }
     return null
   }
 }

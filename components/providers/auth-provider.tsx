@@ -21,32 +21,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Initialize from cache if offline
     const initializeAuth = async () => {
-      try {
-        // Try online first
-        const { data: { session } } = await supabase.auth.getSession()
+      // Quick offline check to avoid unnecessary network calls
+      const browserOffline = typeof navigator !== 'undefined' && !navigator.onLine
 
-        if (session) {
-          setUser(session.user)
-          setLoading(false)
+      if (!browserOffline) {
+        try {
+          // Try online first
+          const { data: { session } } = await supabase.auth.getSession()
 
-          // Cache session for offline access
-          const now = Date.now()
-          const sessionCache: CachedSession = {
-            userId: session.user.id,
-            email: session.user.email ?? null,
-            accessToken: session.access_token,
-            refreshToken: session.refresh_token,
-            expiresAt: session.expires_at
-              ? session.expires_at * 1000
-              : now + 60 * 60 * 1000,
-            cachedAt: now,
-            maxOfflineExpiry: now + 30 * 24 * 60 * 60 * 1000, // 30 days
+          if (session) {
+            setUser(session.user)
+            setLoading(false)
+
+            // Cache session for offline access
+            const now = Date.now()
+            const sessionCache: CachedSession = {
+              userId: session.user.id,
+              email: session.user.email ?? null,
+              accessToken: session.access_token,
+              refreshToken: session.refresh_token,
+              expiresAt: session.expires_at
+                ? session.expires_at * 1000
+                : now + 60 * 60 * 1000,
+              cachedAt: now,
+              maxOfflineExpiry: now + 30 * 24 * 60 * 60 * 1000, // 30 days
+            }
+            await cacheSession(sessionCache)
+            return
           }
-          await cacheSession(sessionCache)
-          return
+        } catch (err) {
+          // Suppress network errors (expected when offline)
+          const errorMsg = err instanceof Error ? err.message?.toLowerCase() : ''
+          const errorCode = (err as any)?.cause?.code || ''
+          const isNetworkError =
+            errorMsg.includes('fetch') ||
+            errorMsg.includes('network') ||
+            errorCode === 'ENOTFOUND' ||
+            errorCode === 'ETIMEDOUT' ||
+            errorCode === 'ECONNREFUSED'
+
+          if (!isNetworkError) {
+            // Log unexpected errors
+            console.error('Auth initialization error:', err)
+          }
+          // Fall through to cache for all errors
         }
-      } catch {
-        // Network error: fall through to cache
       }
 
       // Offline fallback: Load from cache
