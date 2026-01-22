@@ -1,5 +1,13 @@
 import { db } from '@/lib/db'
 import type { Sale, SaleItem, InventoryMovement, UtangTransaction } from '@/lib/db/schema'
+import { useProductsStore } from '@/lib/stores/products-store'
+
+// Helper to refresh products store (works on client-side only)
+const refreshStore = (userId: string) => {
+  if (typeof window !== 'undefined') {
+    useProductsStore.getState().refreshProducts(userId)
+  }
+}
 
 export interface CheckoutData {
   items: SaleItem[]
@@ -127,10 +135,8 @@ export async function processSale(data: CheckoutData): Promise<string> {
       }
     )
 
-    // Notify UI that local data changed (products stock updated)
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('local-data-changed'))
-    }
+    // Refresh products store (stock updated)
+    refreshStore(data.userId)
 
     return saleId
   } catch (error) {

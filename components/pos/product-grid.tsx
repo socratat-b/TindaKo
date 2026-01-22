@@ -2,11 +2,10 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { db } from '@/lib/db'
-import type { Product, Category } from '@/lib/db/schema'
 import { useCart } from '@/lib/hooks/use-cart'
 import { useFormatCurrency } from '@/lib/utils/currency'
 import { useSyncStore } from '@/lib/stores/sync-store'
+import { useProductsStore } from '@/lib/stores/products-store'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -25,62 +24,28 @@ interface ProductGridProps {
 }
 
 export function ProductGrid({ userId }: ProductGridProps) {
-  const [products, setProducts] = useState<Product[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
-  const [isLoading, setIsLoading] = useState(true)
   const { addItem, items: cartItems } = useCart()
   const formatCurrency = useFormatCurrency()
   const { status: syncStatus } = useSyncStore()
 
-  // Load products and categories from Dexie (filtered by userId)
+  // Get products from Zustand store
+  const { products, categories, isLoading, loadProducts, refreshProducts } = useProductsStore()
+
+  // Load products on mount and when data is restored
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true)
-      try {
-        const [allProducts, allCategories] = await Promise.all([
-          db.products.where('userId').equals(userId).toArray(),
-          db.categories.where('userId').equals(userId).toArray(),
-        ])
+    loadProducts(userId)
 
-        const productsData = allProducts.filter((p) => !p.isDeleted)
-        const categoriesData = allCategories
-          .filter((c) => !c.isDeleted)
-          .sort((a, b) => a.sortOrder - b.sortOrder)
-
-        console.log('[ProductGrid] Loaded', productsData.length, 'products')
-        setProducts(productsData)
-        setCategories(categoriesData)
-      } catch (error) {
-        console.error('Failed to load products:', error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    loadData()
-
-    // Listen for data restore event to reload products
+    // Listen for data restore event (from cloud sync)
     const handleDataRestored = () => {
-      console.log('[ProductGrid] Data restored event received - reloading')
-      loadData()
-    }
-
-    // Listen for local data changes (products/categories added/updated)
-    const handleLocalDataChanged = () => {
-      console.log('[ProductGrid] Local data changed - reloading')
-      loadData()
+      console.log('[ProductGrid] Data restored - refreshing from store')
+      refreshProducts(userId)
     }
 
     window.addEventListener('data-restored', handleDataRestored)
-    window.addEventListener('local-data-changed', handleLocalDataChanged)
-
-    return () => {
-      window.removeEventListener('data-restored', handleDataRestored)
-      window.removeEventListener('local-data-changed', handleLocalDataChanged)
-    }
-  }, [userId])
+    return () => window.removeEventListener('data-restored', handleDataRestored)
+  }, [userId, loadProducts, refreshProducts])
 
   // Filter products based on search and category
   const filteredProducts = useMemo(() => {

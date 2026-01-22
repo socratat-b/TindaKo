@@ -1,5 +1,13 @@
 import { db } from '@/lib/db'
 import type { Product, Category } from '@/lib/db/schema'
+import { useProductsStore } from '@/lib/stores/products-store'
+
+// Helper to refresh products store (works on client-side only)
+const refreshStore = (userId: string) => {
+  if (typeof window !== 'undefined') {
+    useProductsStore.getState().refreshProducts(userId)
+  }
+}
 
 export interface ProductFormData {
   name: string
@@ -64,10 +72,8 @@ export async function createProduct(data: ProductFormData): Promise<string> {
 
     await db.products.add(product)
 
-    // Notify UI that local data changed
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('local-data-changed'))
-    }
+    // Refresh products store
+    refreshStore(data.userId)
 
     return productId
   } catch (error) {
@@ -120,10 +126,8 @@ export async function updateProduct(
       syncedAt: null,
     })
 
-    // Notify UI that local data changed
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('local-data-changed'))
-    }
+    // Refresh products store
+    refreshStore(product.userId)
   } catch (error) {
     console.error('Failed to update product:', error)
     throw error
@@ -148,10 +152,8 @@ export async function deleteProduct(id: string): Promise<void> {
       syncedAt: null,
     })
 
-    // Notify UI that local data changed
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('local-data-changed'))
-    }
+    // Refresh products store
+    refreshStore(product.userId)
   } catch (error) {
     console.error('Failed to delete product:', error)
     throw error
@@ -191,10 +193,8 @@ export async function createCategory(data: CategoryFormData): Promise<string> {
 
     await db.categories.add(category)
 
-    // Notify UI that local data changed
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('local-data-changed'))
-    }
+    // Refresh products store
+    refreshStore(data.userId)
 
     return categoryId
   } catch (error) {
@@ -238,10 +238,8 @@ export async function updateCategory(
       syncedAt: null,
     })
 
-    // Notify UI that local data changed
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('local-data-changed'))
-    }
+    // Refresh products store
+    refreshStore(category.userId)
   } catch (error) {
     console.error('Failed to update category:', error)
     throw error
@@ -280,10 +278,8 @@ export async function deleteCategory(id: string): Promise<void> {
       syncedAt: null,
     })
 
-    // Notify UI that local data changed
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('local-data-changed'))
-    }
+    // Refresh products store
+    refreshStore(category.userId)
   } catch (error) {
     console.error('Failed to delete category:', error)
     throw error
@@ -309,9 +305,10 @@ export async function updateCategoriesOrder(
       }
     })
 
-    // Notify UI that local data changed
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('local-data-changed'))
+    // Refresh products store (get userId from first category)
+    const firstCategory = await db.categories.get(updates[0]?.id)
+    if (firstCategory) {
+      refreshStore(firstCategory.userId)
     }
   } catch (error) {
     console.error('Failed to update categories order:', error)
