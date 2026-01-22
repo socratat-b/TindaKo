@@ -27,3 +27,18 @@ class TindaKoDB extends Dexie {
 }
 
 export const db = new TindaKoDB()
+
+/**
+ * Clear all local data from IndexedDB
+ * Called on logout to prevent data leakage between users
+ */
+export async function clearAllLocalData(): Promise<void> {
+  await Promise.all([
+    db.categories.clear(),
+    db.customers.clear(),
+    db.products.clear(),
+    db.sales.clear(),
+    db.utangTransactions.clear(),
+    db.inventoryMovements.clear(),
+  ])
+}
