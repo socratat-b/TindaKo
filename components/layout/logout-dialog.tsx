@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { logoutAction } from '@/lib/actions/auth'
 import { hasUnsyncedChanges, pushToCloud } from '@/lib/db/sync'
+import { clearAllLocalData } from '@/lib/db'
 import { isOnline } from '@/lib/auth/session-cache'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { useCartStore } from '@/lib/stores/cart-store'
@@ -63,17 +64,19 @@ export function LogoutDialog({ open, onOpenChange }: LogoutDialogProps) {
     setError(null)
 
     try {
-      // If has changes, must backup first
-      if (hasChanges) {
-        // Check if online
-        const online = await isOnline()
+      // Check if online first - logout requires internet
+      const online = await isOnline()
 
-        if (!online) {
-          setError('You have unsaved changes and no internet connection. Please connect to the internet to backup your data before logging out.')
-          setIsLoading(false)
-          return
-        }
+      if (!online) {
+        setError('Internet connection required to logout safely. Please connect to the internet.')
+        setIsLoading(false)
+        return
+      }
 
+      // Final check for unsynced changes before clearing data
+      const hasUnsyncedData = await hasUnsyncedChanges(user.id)
+
+      if (hasUnsyncedData) {
         // Auto-backup before logout
         console.log('Auto-backing up before logout...')
         await pushToCloud(user.id)
@@ -82,6 +85,10 @@ export function LogoutDialog({ open, onOpenChange }: LogoutDialogProps) {
 
       // Clear cart before logout
       clearCart()
+
+      // Clear all local data to prevent leakage between users
+      console.log('Clearing local data...')
+      await clearAllLocalData()
 
       // Proceed with logout
       await logoutAction()
@@ -93,49 +100,31 @@ export function LogoutDialog({ open, onOpenChange }: LogoutDialogProps) {
     }
   }
 
-  const handleForceLogout = async () => {
-    setIsLoading(true)
-    try {
-      // Clear cart before logout
-      clearCart()
-
-      await logoutAction()
-      router.push('/login')
-    } catch (err) {
-      console.error('Force logout failed:', err)
-      setIsLoading(false)
-    }
-  }
-
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Logout</DialogTitle>
           <DialogDescription>
-            {hasChanges ? (
-              <div className="space-y-2">
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200">
-                  <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-                  <div className="text-sm text-amber-900">
-                    <p className="font-medium">You have unsaved changes</p>
-                    <p className="text-amber-700 mt-1">
-                      Your data will be automatically backed up to the cloud before logging out.
-                    </p>
-                  </div>
+            {isOffline ? (
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 border border-red-200">
+                <WifiOff className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
+                <div className="text-sm text-red-900">
+                  <p className="font-medium">No Internet Connection</p>
+                  <p className="text-red-700 mt-1">
+                    Internet connection required to logout safely. Please connect to the internet.
+                  </p>
                 </div>
-
-                {isOffline && (
-                  <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 border border-red-200">
-                    <WifiOff className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
-                    <div className="text-sm text-red-900">
-                      <p className="font-medium">No Internet Connection</p>
-                      <p className="text-red-700 mt-1">
-                        Connect to the internet to backup your changes before logging out.
-                      </p>
-                    </div>
-                  </div>
-                )}
+              </div>
+            ) : hasChanges ? (
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200">
+                <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                <div className="text-sm text-amber-900">
+                  <p className="font-medium">You have unsaved changes</p>
+                  <p className="text-amber-700 mt-1">
+                    Your data will be automatically backed up to the cloud before logging out.
+                  </p>
+                </div>
               </div>
             ) : (
               'Are you sure you want to logout?'
@@ -159,41 +148,30 @@ export function LogoutDialog({ open, onOpenChange }: LogoutDialogProps) {
             Cancel
           </Button>
 
-          {hasChanges && isOffline ? (
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={handleForceLogout}
-              disabled={isLoading}
-            >
-              Logout Anyway (Data Will Be Lost)
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              variant={hasChanges ? 'default' : 'destructive'}
-              onClick={handleLogout}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {hasChanges ? 'Backing up & Logging out...' : 'Logging out...'}
-                </>
-              ) : (
-                <>
-                  {hasChanges ? (
-                    <>
-                      <Wifi className="mr-2 h-4 w-4" />
-                      Backup & Logout
-                    </>
-                  ) : (
-                    'Logout'
-                  )}
-                </>
-              )}
-            </Button>
-          )}
+          <Button
+            type="button"
+            variant={hasChanges ? 'default' : 'destructive'}
+            onClick={handleLogout}
+            disabled={isLoading || isOffline}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {hasChanges ? 'Backing up & Logging out...' : 'Logging out...'}
+              </>
+            ) : (
+              <>
+                {hasChanges ? (
+                  <>
+                    <Wifi className="mr-2 h-4 w-4" />
+                    Backup & Logout
+                  </>
+                ) : (
+                  'Logout'
+                )}
+              </>
+            )}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
