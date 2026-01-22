@@ -17,6 +17,7 @@ import { UserPlus, UserCog } from 'lucide-react'
 import type { Customer } from '@/lib/db/schema'
 import { createCustomer, updateCustomer } from '@/lib/utils/customer-utils'
 import { useSyncStore } from '@/lib/stores/sync-store'
+import { useFormatCurrency } from '@/lib/utils/currency'
 
 type CustomerFormDialogProps = {
   open: boolean
@@ -32,6 +33,7 @@ export function CustomerFormDialog({
   customer,
 }: CustomerFormDialogProps) {
   const isEditing = !!customer
+  const formatCurrency = useFormatCurrency()
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [address, setAddress] = useState('')
@@ -169,7 +171,7 @@ export function CustomerFormDialog({
                     customer.totalUtang > 0 ? 'text-destructive' : 'text-muted-foreground'
                   }`}
                 >
-                  ₱{customer.totalUtang.toFixed(2)}
+                  {formatCurrency(customer.totalUtang)}
                 </span>
               </div>
               <p className="mt-1 text-[9px] text-muted-foreground">

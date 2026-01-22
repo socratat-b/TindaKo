@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useCart } from '@/lib/hooks/use-cart'
+import { useSettings } from '@/lib/hooks/use-settings'
 import { useSyncStore } from '@/lib/stores/sync-store'
 import { processSale } from '@/lib/actions/pos'
 import { ProductGrid } from './product-grid'
@@ -20,6 +21,7 @@ interface POSInterfaceProps {
 export default function POSInterface({ userId }: POSInterfaceProps) {
   const [checkoutOpen, setCheckoutOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('products')
+  const { enableBarcodeScanner } = useSettings()
   const cart = useCart()
   const { setHasPendingChanges } = useSyncStore()
 
@@ -49,7 +51,7 @@ export default function POSInterface({ userId }: POSInterfaceProps) {
       {/* Desktop Layout - Hidden on Mobile */}
       <div className="hidden lg:flex h-[calc(100vh-10rem)] flex-col gap-4">
         {/* Barcode Scanner */}
-        <BarcodeScanner />
+        {enableBarcodeScanner && <BarcodeScanner />}
 
         {/* Main POS Layout */}
         <div className="flex-1 grid grid-cols-3 gap-4 min-h-0">
@@ -78,9 +80,11 @@ export default function POSInterface({ userId }: POSInterfaceProps) {
       {/* Mobile Layout - Tabs */}
       <div className="lg:hidden flex flex-col h-[calc(100vh-7.5rem)] overflow-hidden">
         {/* Barcode Scanner */}
-        <div className="flex-none mb-3">
-          <BarcodeScanner />
-        </div>
+        {enableBarcodeScanner && (
+          <div className="flex-none mb-3">
+            <BarcodeScanner />
+          </div>
+        )}
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">

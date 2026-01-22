@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { useCart } from '@/lib/hooks/use-cart'
+import { useFormatCurrency } from '@/lib/utils/currency'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -29,6 +30,7 @@ export function CartDisplay({ onCheckout }: CartDisplayProps) {
     setPaymentMethod,
     clearCart,
   } = useCart()
+  const formatCurrency = useFormatCurrency()
 
   const handleQuantityChange = (productId: string, newQuantity: number) => {
     if (newQuantity < 1) return
@@ -95,7 +97,7 @@ export function CartDisplay({ onCheckout }: CartDisplayProps) {
                         {item.productName}
                       </h4>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        ₱{item.unitPrice.toFixed(2)} each
+                        {formatCurrency(item.unitPrice)} each
                       </p>
                       <p className={`text-xs mt-0.5 font-medium ${
                         remainingStock === 0
@@ -147,7 +149,7 @@ export function CartDisplay({ onCheckout }: CartDisplayProps) {
                         <Plus className="h-3.5 w-3.5" />
                       </Button>
                     </div>
-                    <p className="text-base font-bold">₱{item.total.toFixed(2)}</p>
+                    <p className="text-base font-bold">{formatCurrency(item.total)}</p>
                   </div>
                 </motion.div>
               )
@@ -180,7 +182,7 @@ export function CartDisplay({ onCheckout }: CartDisplayProps) {
           {/* Totals */}
           <div className="flex justify-between items-center">
             <span className="text-base font-semibold">Total</span>
-            <span className="text-2xl font-bold text-emerald-600">₱{total.toFixed(2)}</span>
+            <span className="text-2xl font-bold text-emerald-600">{formatCurrency(total)}</span>
           </div>
 
           {/* Checkout Button */}

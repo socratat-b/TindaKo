@@ -24,6 +24,7 @@ import { DollarSign, Phone } from 'lucide-react'
 import type { Customer } from '@/lib/db/schema'
 import { recordPayment } from '@/lib/utils/utang-utils'
 import { useSyncStore } from '@/lib/stores/sync-store'
+import { useFormatCurrency } from '@/lib/utils/currency'
 
 type PaymentFormDialogProps = {
   open: boolean
@@ -40,6 +41,7 @@ export function PaymentFormDialog({
   customers,
   selectedCustomerId,
 }: PaymentFormDialogProps) {
+  const formatCurrency = useFormatCurrency()
   const [customerId, setCustomerId] = useState(selectedCustomerId || '')
   const [paymentType, setPaymentType] = useState<'partial' | 'full'>('partial')
   const [amount, setAmount] = useState('')
@@ -152,7 +154,7 @@ export function PaymentFormDialog({
                           )}
                         </div>
                         <span className="text-xs font-semibold text-destructive">
-                          ₱{customer.totalUtang.toFixed(2)}
+                          {formatCurrency(customer.totalUtang)}
                         </span>
                       </div>
                     </SelectItem>
@@ -183,7 +185,7 @@ export function PaymentFormDialog({
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Current Balance:</span>
                   <span className="font-semibold text-destructive">
-                    ₱{currentBalance.toFixed(2)}
+                    {formatCurrency(currentBalance)}
                   </span>
                 </div>
               </motion.div>
@@ -218,7 +220,7 @@ export function PaymentFormDialog({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                 >
-                  Full balance of ₱{currentBalance.toFixed(2)} will be paid
+                  Full balance of {formatCurrency(currentBalance)} will be paid
                 </motion.p>
               )}
             </div>
@@ -254,7 +256,7 @@ export function PaymentFormDialog({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
               >
-                Payment cannot exceed current balance of ₱{currentBalance.toFixed(2)}
+                Payment cannot exceed current balance of {formatCurrency(currentBalance)}
               </motion.p>
             )}
             {isValidAmount && (
@@ -266,7 +268,7 @@ export function PaymentFormDialog({
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">New Balance:</span>
                   <span className="font-semibold text-green-700 dark:text-green-300">
-                    ₱{newBalance.toFixed(2)}
+                    {formatCurrency(newBalance)}
                   </span>
                 </div>
               </motion.div>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useCart } from '@/lib/hooks/use-cart'
+import { useFormatCurrency } from '@/lib/utils/currency'
 import { db } from '@/lib/db'
 import {
   Dialog,
@@ -40,6 +41,7 @@ export function CheckoutDialog({
   userId,
 }: CheckoutDialogProps) {
   const { total, paymentMethod, clearCart } = useCart()
+  const formatCurrency = useFormatCurrency()
   const [amountPaid, setAmountPaid] = useState('')
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('')
   const [isProcessing, setIsProcessing] = useState(false)
@@ -162,7 +164,7 @@ export function CheckoutDialog({
               <div className="space-y-2 p-3 rounded-lg bg-muted/50">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Total Amount</span>
-                  <span className="font-semibold text-base">₱{total.toFixed(2)}</span>
+                  <span className="font-semibold text-base">{formatCurrency(total)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Payment Method</span>
@@ -208,7 +210,7 @@ export function CheckoutDialog({
                               : 'text-destructive'
                           }`}
                         >
-                          ₱{Math.max(0, change).toFixed(2)}
+                          {formatCurrency(Math.max(0, change))}
                         </span>
                       </div>
                     </div>
@@ -226,7 +228,7 @@ export function CheckoutDialog({
                         Utang Payment
                       </p>
                       <p className="text-xs text-orange-700 dark:text-orange-300">
-                        Customer will be charged ₱{total.toFixed(2)} for utang
+                        Customer will be charged {formatCurrency(total)} for utang
                       </p>
                     </div>
                   </div>

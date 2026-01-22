@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { Receipt } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useFormatCurrency } from '@/lib/utils/currency';
 import {
   Table,
   TableBody,
@@ -54,6 +55,8 @@ function formatItems(items: Sale['items']): string {
 }
 
 export function SalesList({ sales }: SalesListProps) {
+  const formatCurrency = useFormatCurrency();
+
   if (sales.length === 0) {
     return (
       <motion.div
@@ -115,11 +118,11 @@ export function SalesList({ sales }: SalesListProps) {
                   <TableCell className="text-right">
                     <div className="flex flex-col items-end">
                       <span className="font-semibold">
-                        ₱{sale.total.toFixed(2)}
+                        {formatCurrency(sale.total)}
                       </span>
                       {sale.discount > 0 && (
                         <span className="text-xs text-orange-600">
-                          -₱{sale.discount.toFixed(2)}
+                          -{formatCurrency(sale.discount)}
                         </span>
                       )}
                     </div>
@@ -166,11 +169,11 @@ export function SalesList({ sales }: SalesListProps) {
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-bold">
-                      ₱{sale.total.toFixed(2)}
+                      {formatCurrency(sale.total)}
                     </p>
                     {sale.discount > 0 && (
                       <p className="text-[9px] text-orange-600">
-                        -₱{sale.discount.toFixed(2)}
+                        -{formatCurrency(sale.discount)}
                       </p>
                     )}
                   </div>

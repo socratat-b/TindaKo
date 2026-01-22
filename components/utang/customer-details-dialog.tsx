@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { Phone, User, MapPin } from 'lucide-react'
 import { db } from '@/lib/db'
 import { UtangTransactionsList } from './utang-transactions-list'
+import { useFormatCurrency } from '@/lib/utils/currency'
 
 type CustomerDetailsDialogProps = {
   open: boolean
@@ -23,6 +24,8 @@ export function CustomerDetailsDialog({
   onOpenChange,
   customerId,
 }: CustomerDetailsDialogProps) {
+  const formatCurrency = useFormatCurrency()
+
   // Fetch customer
   const customer = useLiveQuery(
     () => db.customers.get(customerId),
@@ -88,7 +91,7 @@ export function CustomerDetailsDialog({
                       : 'text-muted-foreground'
                   }`}
                 >
-                  ₱{customer.totalUtang.toFixed(2)}
+                  {formatCurrency(customer.totalUtang)}
                 </p>
                 {customer.totalUtang > 0 ? (
                   <Badge

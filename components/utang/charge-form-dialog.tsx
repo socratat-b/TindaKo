@@ -24,6 +24,7 @@ import { Plus, Phone } from 'lucide-react'
 import type { Customer } from '@/lib/db/schema'
 import { recordManualCharge } from '@/lib/utils/utang-utils'
 import { useSyncStore } from '@/lib/stores/sync-store'
+import { useFormatCurrency } from '@/lib/utils/currency'
 
 type ChargeFormDialogProps = {
   open: boolean
@@ -40,6 +41,7 @@ export function ChargeFormDialog({
   customers,
   selectedCustomerId,
 }: ChargeFormDialogProps) {
+  const formatCurrency = useFormatCurrency()
   const [customerId, setCustomerId] = useState(selectedCustomerId || '')
   const [amount, setAmount] = useState('')
   const [notes, setNotes] = useState('')
@@ -143,7 +145,7 @@ export function ChargeFormDialog({
                               : 'text-muted-foreground'
                           }`}
                         >
-                          ₱{customer.totalUtang.toFixed(2)}
+                          {formatCurrency(customer.totalUtang)}
                         </span>
                       </div>
                     </SelectItem>
@@ -178,7 +180,7 @@ export function ChargeFormDialog({
                       currentBalance > 0 ? 'text-destructive' : 'text-muted-foreground'
                     }`}
                   >
-                    ₱{currentBalance.toFixed(2)}
+                    {formatCurrency(currentBalance)}
                   </span>
                 </div>
               </motion.div>
@@ -214,7 +216,7 @@ export function ChargeFormDialog({
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">New Balance:</span>
                   <span className="font-semibold text-destructive">
-                    ₱{newBalance.toFixed(2)}
+                    {formatCurrency(newBalance)}
                   </span>
                 </div>
               </motion.div>

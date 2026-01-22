@@ -15,12 +15,14 @@ import { PaymentFormDialog } from './payment-form-dialog'
 import { ChargeFormDialog } from './charge-form-dialog'
 import { CustomerFormDialog } from './customer-form-dialog'
 import { useSyncStore } from '@/lib/stores/sync-store'
+import { useFormatCurrency } from '@/lib/utils/currency'
 
 type UtangInterfaceProps = {
   userId: string
 }
 
 export default function UtangInterface({ userId }: UtangInterfaceProps) {
+  const formatCurrency = useFormatCurrency()
   const [activeTab, setActiveTab] = useState('customers')
   const [searchQuery, setSearchQuery] = useState('')
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false)
@@ -157,7 +159,7 @@ export default function UtangInterface({ userId }: UtangInterfaceProps) {
                 Total Outstanding
               </p>
               <p className="text-lg font-bold text-destructive md:text-xl">
-                ₱{totalOutstanding.toFixed(2)}
+                {formatCurrency(totalOutstanding)}
               </p>
             </div>
           </div>

@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { Banknote, Smartphone, CreditCard, FileText } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { useFormatCurrency } from '@/lib/utils/currency';
 import type { SalesStats } from '@/lib/utils/reports-utils';
 
 interface PaymentBreakdownProps {
@@ -10,6 +11,8 @@ interface PaymentBreakdownProps {
 }
 
 export function PaymentBreakdown({ stats }: PaymentBreakdownProps) {
+  const formatCurrency = useFormatCurrency();
+
   const paymentMethods = [
     {
       name: 'Cash',
@@ -79,7 +82,7 @@ export function PaymentBreakdown({ stats }: PaymentBreakdownProps) {
                       {method.name}
                     </p>
                     <p className="mt-1 text-sm font-bold md:text-lg">
-                      ₱{data.total.toFixed(2)}
+                      {formatCurrency(data.total)}
                     </p>
                     <div className="mt-1 flex items-center gap-2">
                       <p className="text-[9px] text-muted-foreground md:text-[10px]">

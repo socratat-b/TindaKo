@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
+import { useSettingsStore } from './settings-store'
 import type { Product, SaleItem } from '@/lib/db/schema'
 
 interface CartItem extends SaleItem {
@@ -27,7 +28,7 @@ export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
-      paymentMethod: 'cash',
+      paymentMethod: useSettingsStore.getState().defaultPaymentMethod,
       subtotal: 0,
       total: 0,
 
@@ -127,7 +128,7 @@ export const useCartStore = create<CartState>()(
       clearCart: () => {
         set({
           items: [],
-          paymentMethod: 'cash',
+          paymentMethod: useSettingsStore.getState().defaultPaymentMethod,
           subtotal: 0,
           total: 0
         })

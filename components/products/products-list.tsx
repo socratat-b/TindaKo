@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/select'
 import { ProductFormDialog } from './product-form-dialog'
 import { deleteProduct } from '@/lib/actions/products'
+import { useFormatCurrency } from '@/lib/utils/currency'
 import type { Product, Category } from '@/lib/db/schema'
 
 interface ProductsListProps {
@@ -38,6 +39,7 @@ export function ProductsList({
   userId,
   onRefresh,
 }: ProductsListProps) {
+  const formatCurrency = useFormatCurrency()
   const [search, setSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
@@ -204,11 +206,11 @@ export function ProductsList({
                 <div className="grid grid-cols-3 gap-2 pt-1">
                   <div>
                     <p className="text-[9px] text-muted-foreground">Cost</p>
-                    <p className="text-xs font-medium">₱{product.costPrice.toFixed(2)}</p>
+                    <p className="text-xs font-medium">{formatCurrency(product.costPrice)}</p>
                   </div>
                   <div>
                     <p className="text-[9px] text-muted-foreground">Price</p>
-                    <p className="text-xs font-semibold">₱{product.sellingPrice.toFixed(2)}</p>
+                    <p className="text-xs font-semibold">{formatCurrency(product.sellingPrice)}</p>
                   </div>
                   <div>
                     <p className="text-[9px] text-muted-foreground">Stock</p>
@@ -306,10 +308,10 @@ export function ProductsList({
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      ₱{product.costPrice.toFixed(2)}
+                      {formatCurrency(product.costPrice)}
                     </TableCell>
                     <TableCell className="text-right">
-                      ₱{product.sellingPrice.toFixed(2)}
+                      {formatCurrency(product.sellingPrice)}
                     </TableCell>
                     <TableCell className="text-right">{product.stockQty}</TableCell>
                     <TableCell>

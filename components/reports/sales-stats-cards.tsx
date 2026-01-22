@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { DollarSign, Receipt, TrendingUp, Tag } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { useFormatCurrency } from '@/lib/utils/currency';
 import type { SalesStats } from '@/lib/utils/reports-utils';
 
 interface SalesStatsCardsProps {
@@ -10,10 +11,12 @@ interface SalesStatsCardsProps {
 }
 
 export function SalesStatsCards({ stats }: SalesStatsCardsProps) {
+  const formatCurrency = useFormatCurrency();
+
   const cards = [
     {
       title: 'Total Sales',
-      value: `₱${stats.totalSales.toFixed(2)}`,
+      value: formatCurrency(stats.totalSales),
       icon: DollarSign,
       bgColor: 'bg-green-500/10',
       iconColor: 'text-green-600',
@@ -27,14 +30,14 @@ export function SalesStatsCards({ stats }: SalesStatsCardsProps) {
     },
     {
       title: 'Avg Transaction',
-      value: `₱${stats.averageTransaction.toFixed(2)}`,
+      value: formatCurrency(stats.averageTransaction),
       icon: TrendingUp,
       bgColor: 'bg-purple-500/10',
       iconColor: 'text-purple-600',
     },
     {
       title: 'Total Discount',
-      value: `₱${stats.totalDiscount.toFixed(2)}`,
+      value: formatCurrency(stats.totalDiscount),
       icon: Tag,
       bgColor: 'bg-orange-500/10',
       iconColor: 'text-orange-600',

@@ -16,6 +16,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { db } from '@/lib/db'
+import { useFormatCurrency } from '@/lib/utils/currency'
 
 type UtangTransactionsListProps = {
   transactions: UtangTransaction[]
@@ -54,6 +55,8 @@ export function UtangTransactionsList({
   customers,
   customerId,
 }: UtangTransactionsListProps) {
+  const formatCurrency = useFormatCurrency()
+
   // Fetch all sales to get product details
   const sales = useLiveQuery(
     () => {
@@ -151,7 +154,7 @@ export function UtangTransactionsList({
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
-                      <span className="text-sm">₱{transaction.balanceAfter.toFixed(2)}</span>
+                      <span className="text-sm">{formatCurrency(transaction.balanceAfter)}</span>
                     </TableCell>
                     <TableCell>
                       {transaction.type === 'payment' ? (
@@ -227,7 +230,7 @@ export function UtangTransactionsList({
                       {transaction.amount.toFixed(2)}
                     </span>
                     <p className="text-[10px] text-muted-foreground">
-                      Bal: ₱{transaction.balanceAfter.toFixed(2)}
+                      Bal: {formatCurrency(transaction.balanceAfter)}
                     </p>
                   </div>
                 </div>
@@ -245,7 +248,7 @@ export function UtangTransactionsList({
                           <span className="font-semibold">{item.quantity}x</span>{' '}
                           <span className="text-muted-foreground">{item.productName}</span>
                           <span className="text-[10px] text-muted-foreground ml-1">
-                            (₱{item.unitPrice.toFixed(2)})
+                            ({formatCurrency(item.unitPrice)})
                           </span>
                         </div>
                       ))}

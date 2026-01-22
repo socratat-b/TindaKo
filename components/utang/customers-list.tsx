@@ -17,6 +17,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { CustomerDetailsDialog } from './customer-details-dialog'
+import { useFormatCurrency } from '@/lib/utils/currency'
 
 type CustomersListProps = {
   customers: Customer[]
@@ -29,6 +30,7 @@ export function CustomersList({
   onRecordPayment,
   onAddCharge,
 }: CustomersListProps) {
+  const formatCurrency = useFormatCurrency()
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null)
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
 
@@ -107,7 +109,7 @@ export function CustomersList({
                           : 'text-muted-foreground'
                       }`}
                     >
-                      ₱{customer.totalUtang.toFixed(2)}
+                      {formatCurrency(customer.totalUtang)}
                     </span>
                   </TableCell>
                   <TableCell>
@@ -195,7 +197,7 @@ export function CustomersList({
                         : 'text-muted-foreground'
                     }`}
                   >
-                    ₱{customer.totalUtang.toFixed(2)}
+                    {formatCurrency(customer.totalUtang)}
                   </p>
                   {customer.totalUtang > 0 && (
                     <Badge

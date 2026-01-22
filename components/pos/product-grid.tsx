@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { db } from '@/lib/db'
 import type { Product, Category } from '@/lib/db/schema'
 import { useCart } from '@/lib/hooks/use-cart'
+import { useFormatCurrency } from '@/lib/utils/currency'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -25,6 +26,7 @@ export function ProductGrid() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [isLoading, setIsLoading] = useState(true)
   const { addItem, items: cartItems } = useCart()
+  const formatCurrency = useFormatCurrency()
 
   // Load products and categories from Dexie
   useEffect(() => {
@@ -178,7 +180,7 @@ export function ProductGrid() {
 
                       <div className="flex items-center justify-between">
                         <p className="text-base font-bold text-emerald-600">
-                          ₱{product.sellingPrice.toFixed(2)}
+                          {formatCurrency(product.sellingPrice)}
                         </p>
                         <p
                           className={`text-xs font-medium ${
