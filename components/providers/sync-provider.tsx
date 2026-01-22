@@ -37,16 +37,17 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
 
         // If DB is empty, we must pull data (even if ref is set)
         if (productsCount === 0) {
-          // Safety check: ref should be null after logout, but if not, reset it
-          if (lastSyncedUserIdRef.current !== null && lastSyncedUserIdRef.current !== user.id) {
-            console.warn('[SyncProvider] DB empty but ref set to different user:', lastSyncedUserIdRef.current)
-            lastSyncedUserIdRef.current = null
+          // Check if already pulling (ref set + store status is 'syncing')
+          const { status } = useSyncStore.getState()
+          if (lastSyncedUserIdRef.current === user.id && status === 'syncing') {
+            console.log('[SyncProvider] Already pulling data for this user (status: syncing)')
+            return
           }
 
-          // Prevent duplicate concurrent pulls for same user
-          if (lastSyncedUserIdRef.current === user.id) {
-            console.log('[SyncProvider] Already pulling data for this user')
-            return
+          // DB is empty but ref is set = logout happened, reset it
+          if (lastSyncedUserIdRef.current !== null) {
+            console.log('[SyncProvider] DB empty after logout - resetting ref from:', lastSyncedUserIdRef.current)
+            lastSyncedUserIdRef.current = null
           }
 
           // DB is empty - pull data from cloud
