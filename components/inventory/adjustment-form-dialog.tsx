@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useActionState } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   Dialog,
@@ -33,13 +33,6 @@ type AdjustmentFormDialogProps = {
   categories: Category[]
 }
 
-type FormState = {
-  success: boolean
-  error?: string
-}
-
-const initialState: FormState = { success: false }
-
 export function AdjustmentFormDialog({
   open,
   onOpenChange,
@@ -51,38 +44,40 @@ export function AdjustmentFormDialog({
   const [movementType, setMovementType] = useState<'in' | 'out' | 'adjust'>('in')
   const [quantity, setQuantity] = useState('')
   const [notes, setNotes] = useState('')
+  const [isPending, setIsPending] = useState(false)
+  const [error, setError] = useState<string | undefined>()
 
   const setHasPendingChanges = useSyncStore((state) => state.setHasPendingChanges)
 
-  const [state, formAction, isPending] = useActionState(
-    async (prevState: FormState, formData: FormData) => {
-      const productId = formData.get('productId') as string
-      const type = formData.get('type') as 'in' | 'out' | 'adjust'
-      const qty = parseInt(formData.get('quantity') as string, 10)
-      const notesValue = formData.get('notes') as string
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setIsPending(true)
+    setError(undefined)
 
-      const result = await createInventoryMovement({
-        userId,
-        productId,
-        type,
-        qty,
-        notes: notesValue || undefined,
-      })
+    const qty = parseInt(quantity, 10)
 
-      if (result.success) {
-        setHasPendingChanges(true)
-        setSelectedProductId('')
-        setMovementType('in')
-        setQuantity('')
-        setNotes('')
-        onOpenChange(false)
-        return { success: true }
-      }
+    const result = await createInventoryMovement({
+      userId,
+      productId: selectedProductId,
+      type: movementType,
+      qty,
+      notes: notes || undefined,
+    })
 
-      return { success: false, error: result.error }
-    },
-    initialState
-  )
+    setIsPending(false)
+
+    if (result.success) {
+      setHasPendingChanges(true)
+      setSelectedProductId('')
+      setMovementType('in')
+      setQuantity('')
+      setNotes('')
+      setError(undefined)
+      onOpenChange(false)
+    } else {
+      setError(result.error)
+    }
+  }
 
   const selectedProduct = products.find((p) => p.id === selectedProductId)
 
@@ -102,7 +97,7 @@ export function AdjustmentFormDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form action={formAction} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Product Selection */}
           <div className="space-y-2">
             <Label htmlFor="productId" className="text-xs md:text-sm">
@@ -253,14 +248,14 @@ export function AdjustmentFormDialog({
           </div>
 
           {/* Error Message */}
-          {state.error && (
+          {error && (
             <motion.div
               className="rounded-md bg-destructive/10 p-2 text-xs text-destructive md:p-3 md:text-sm"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               transition={{ duration: 0.2 }}
             >
-              {state.error}
+              {error}
             </motion.div>
           )}
 
