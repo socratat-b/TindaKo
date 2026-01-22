@@ -6,11 +6,11 @@ import { formatDistanceToNow } from 'date-fns'
 import { RefreshCw, CheckCircle2, AlertCircle, Cloud, Upload } from 'lucide-react'
 
 export function SyncIndicator() {
-  const { isSyncing, isSuccess, lastSyncTime, lastSyncStats, error, hasPendingChanges, sync } = useSync()
+  const { isSyncing, isSuccess, lastSyncTime, lastSyncStats, error, hasPendingChanges, backup } = useSync()
 
-  const handleManualSync = () => {
+  const handleManualBackup = () => {
     if (!isSyncing) {
-      sync()
+      backup()
     }
   }
 
@@ -78,8 +78,8 @@ export function SyncIndicator() {
       <Badge
         variant={status.variant}
         className="cursor-pointer hover:opacity-80 transition-opacity"
-        onClick={handleManualSync}
-        title="Manual backup - Click to sync data to Supabase"
+        onClick={handleManualBackup}
+        title="Manual backup - Click to backup data to cloud"
       >
         <Icon
           className={`mr-1.5 h-3.5 w-3.5 ${status.animate ? 'animate-spin' : ''}`}
@@ -87,9 +87,9 @@ export function SyncIndicator() {
         {status.label}
       </Badge>
 
-      {lastSyncTime && !isSyncing && (
+      {lastSyncTime && !isSyncing && isSuccess && (
         <span className="text-xs text-muted-foreground">
-          {formatDistanceToNow(lastSyncTime, { addSuffix: true })}
+          Already backed up
           {lastSyncStats && getSyncStatsText() && (
             <span className="ml-1.5">({getSyncStatsText()})</span>
           )}
