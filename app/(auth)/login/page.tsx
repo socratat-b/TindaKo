@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { loginAction } from '@/lib/actions/auth'
 import Link from 'next/link'
 import { SubmitButton } from '@/components/auth/submit-button'
+import { OfflineBanner } from '@/components/auth/offline-banner'
 
 export default function LoginPage() {
   const [state, formAction, isPending] = useActionState(loginAction, {})
@@ -44,6 +45,8 @@ export default function LoginPage() {
           className="bg-white rounded-xl shadow-sm border border-gray-100 p-8"
         >
           <form action={formAction} className="space-y-6">
+            <OfflineBanner />
+
             {state.error && (
               <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-600">
                 {state.error}
