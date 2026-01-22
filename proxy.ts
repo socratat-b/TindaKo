@@ -72,6 +72,7 @@ export async function proxy(request: NextRequest) {
 
     if (isNetworkError) {
       networkError = true
+      // Suppress console noise for expected offline errors
     } else {
       // Non-network error, re-throw
       throw err
