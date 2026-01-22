@@ -28,23 +28,30 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     // User logged in and on dashboard - check if we need to pull data
     const pullDataIfNeeded = async () => {
       try {
-        console.log('[SyncProvider] Checking data for user:', user.id)
+        console.log('[SyncProvider] Checking data for user:', user.id, 'Ref state:', lastSyncedUserIdRef.current)
 
-        // ALWAYS check if local DB is empty first (in case of logout → login)
+        // ALWAYS check if local DB is empty first
+        // This handles multiple logout → login cycles for the same account
         const productsCount = await db.products.count()
         console.log('[SyncProvider] Products in local DB:', productsCount)
 
-        // If DB is empty, we must pull regardless of ref state
+        // If DB is empty, we must pull data (even if ref is set)
         if (productsCount === 0) {
-          // Check if we're already pulling for this user
+          // Safety check: ref should be null after logout, but if not, reset it
+          if (lastSyncedUserIdRef.current !== null && lastSyncedUserIdRef.current !== user.id) {
+            console.warn('[SyncProvider] DB empty but ref set to different user:', lastSyncedUserIdRef.current)
+            lastSyncedUserIdRef.current = null
+          }
+
+          // Prevent duplicate concurrent pulls for same user
           if (lastSyncedUserIdRef.current === user.id) {
             console.log('[SyncProvider] Already pulling data for this user')
             return
           }
 
           // DB is empty - pull data from cloud
-          console.log('[SyncProvider] Empty DB - pulling data from cloud')
-          lastSyncedUserIdRef.current = user.id // Mark as syncing
+          console.log('[SyncProvider] Empty DB - pulling data from cloud for user:', user.id)
+          lastSyncedUserIdRef.current = user.id // Mark as pulling
 
           await restore(user.id)
 
@@ -53,8 +60,10 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
 
           localStorage.setItem('lastLoggedInUserId', user.id)
         } else {
-          // DB has data - mark as synced
-          console.log('[SyncProvider] DB has data - no pull needed')
+          // DB has data - mark as synced to prevent unnecessary pulls on navigation
+          if (lastSyncedUserIdRef.current !== user.id) {
+            console.log('[SyncProvider] DB has data - marking as synced for user:', user.id)
+          }
           lastSyncedUserIdRef.current = user.id
         }
       } catch (error) {
