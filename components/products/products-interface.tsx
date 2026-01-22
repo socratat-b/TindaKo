@@ -17,13 +17,13 @@ export default function ProductsInterface({ userId }: ProductsInterfaceProps) {
   const [isSeeding, setIsSeeding] = useState(false)
 
   const products = useLiveQuery(
-    () => db.products.filter((p) => !p.isDeleted).toArray(),
-    [refreshKey]
+    () => db.products.where('userId').equals(userId).filter((p) => !p.isDeleted).toArray(),
+    [userId, refreshKey]
   )
 
   const categories = useLiveQuery(
-    () => db.categories.filter((c) => !c.isDeleted).toArray(),
-    [refreshKey]
+    () => db.categories.where('userId').equals(userId).filter((c) => !c.isDeleted).toArray(),
+    [userId, refreshKey]
   )
 
   const productCounts = useMemo(() => {

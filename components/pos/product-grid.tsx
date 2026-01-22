@@ -19,7 +19,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
-export function ProductGrid() {
+interface ProductGridProps {
+  userId: string
+}
+
+export function ProductGrid({ userId }: ProductGridProps) {
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -28,14 +32,14 @@ export function ProductGrid() {
   const { addItem, items: cartItems } = useCart()
   const formatCurrency = useFormatCurrency()
 
-  // Load products and categories from Dexie
+  // Load products and categories from Dexie (filtered by userId)
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true)
       try {
         const [allProducts, allCategories] = await Promise.all([
-          db.products.toArray(),
-          db.categories.toArray(),
+          db.products.where('userId').equals(userId).toArray(),
+          db.categories.where('userId').equals(userId).toArray(),
         ])
 
         const productsData = allProducts.filter((p) => !p.isDeleted)
@@ -53,7 +57,7 @@ export function ProductGrid() {
     }
 
     loadData()
-  }, [])
+  }, [userId])
 
   // Filter products based on search and category
   const filteredProducts = useMemo(() => {

@@ -62,7 +62,7 @@ export default function POSInterface({ userId }: POSInterfaceProps) {
             transition={{ duration: 0.4, delay: 0.1, ease: 'easeOut' }}
             className="col-span-2 overflow-hidden"
           >
-            <ProductGrid />
+            <ProductGrid userId={userId} />
           </motion.div>
 
           {/* Cart - Takes 1 column on large screens */}
@@ -111,7 +111,7 @@ export default function POSInterface({ userId }: POSInterfaceProps) {
           </motion.div>
 
           <TabsContent value="products" className="flex-1 overflow-hidden m-0">
-            <ProductGrid />
+            <ProductGrid userId={userId} />
           </TabsContent>
 
           <TabsContent value="cart" className="flex-1 overflow-hidden m-0">
