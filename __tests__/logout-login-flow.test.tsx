@@ -1,7 +1,7 @@
 /**
  * Integration Test: Logout → Clear Data → Login → Pull Data → Populate IndexedDB
  *
- * Uses REAL Supabase account: admin@gmail.com (has 1 product: Coke)
+ * Uses REAL Supabase account: seller1@test.com / password123
  *
  * This tests the complete flow:
  * 1. User is logged in with data in IndexedDB
@@ -18,23 +18,28 @@ import { createClient } from '@/lib/supabase/client'
 
 // Real Supabase account for testing
 // Set these in .env.local: TEST_EMAIL, TEST_PASSWORD
-const TEST_EMAIL = process.env.TEST_EMAIL || 'admin@gmail.com'
-const TEST_PASSWORD = process.env.TEST_PASSWORD || 'tatadmin'
+const TEST_EMAIL = process.env.TEST_EMAIL || 'seller1@test.com'
+const TEST_PASSWORD = process.env.TEST_PASSWORD || 'password123'
 let TEST_USER_ID: string
 
 describe('Logout → Login → Populate IndexedDB Flow (REAL DATA)', () => {
   beforeEach(async () => {
     // Login to get real user ID
     const supabase = createClient()
+    console.log('🔐 Test attempting login with:', TEST_EMAIL)
+    console.log('📧 Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30) + '...')
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email: TEST_EMAIL,
       password: TEST_PASSWORD,
     })
 
     if (error || !data.user) {
+      console.error('❌ Login error details:', error)
       throw new Error('Failed to login for test: ' + error?.message)
     }
 
+    console.log('✅ Login successful! User ID:', data.user.id)
     TEST_USER_ID = data.user.id
 
     // Clear IndexedDB before each test
