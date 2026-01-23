@@ -7,8 +7,8 @@ import { db, clearAllLocalData } from '@/lib/db'
 import { pullFromCloud } from '@/lib/db/sync'
 import { createClient } from '@/lib/supabase/client'
 
-const TEST_EMAIL = process.env.TEST_EMAIL || 'admin@gmail.com'
-const TEST_PASSWORD = process.env.TEST_PASSWORD || 'tatadmin'
+const TEST_EMAIL = process.env.TEST_EMAIL || 'seller1@test.com'
+const TEST_PASSWORD = process.env.TEST_PASSWORD || 'password123'
 let TEST_USER_ID: string
 
 describe('Multiple logout → login cycles (same account)', () => {
