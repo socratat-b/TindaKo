@@ -39,7 +39,6 @@ export function ProductFormDialog({
     name: '',
     barcode: '',
     categoryId: '',
-    costPrice: '',
     sellingPrice: '',
     stockQty: '',
     lowStockThreshold: '',
@@ -51,7 +50,6 @@ export function ProductFormDialog({
         name: product.name,
         barcode: product.barcode || '',
         categoryId: product.categoryId,
-        costPrice: product.costPrice.toString(),
         sellingPrice: product.sellingPrice.toString(),
         stockQty: product.stockQty.toString(),
         lowStockThreshold: product.lowStockThreshold.toString(),
@@ -61,7 +59,6 @@ export function ProductFormDialog({
         name: '',
         barcode: '',
         categoryId: categories[0]?.id || '',
-        costPrice: '',
         sellingPrice: '',
         stockQty: '0',
         lowStockThreshold: '10',
@@ -76,14 +73,10 @@ export function ProductFormDialog({
     setError(null)
 
     try {
-      const costPrice = parseFloat(formData.costPrice)
       const sellingPrice = parseFloat(formData.sellingPrice)
       const stockQty = parseInt(formData.stockQty, 10)
       const lowStockThreshold = parseInt(formData.lowStockThreshold, 10)
 
-      if (isNaN(costPrice) || costPrice < 0) {
-        throw new Error('Invalid cost price')
-      }
       if (isNaN(sellingPrice) || sellingPrice < 0) {
         throw new Error('Invalid selling price')
       }
@@ -99,7 +92,6 @@ export function ProductFormDialog({
           name: formData.name,
           barcode: formData.barcode || null,
           categoryId: formData.categoryId,
-          costPrice,
           sellingPrice,
           stockQty,
           lowStockThreshold,
@@ -110,7 +102,6 @@ export function ProductFormDialog({
           name: formData.name,
           barcode: formData.barcode || null,
           categoryId: formData.categoryId,
-          costPrice,
           sellingPrice,
           stockQty,
           lowStockThreshold,
@@ -202,36 +193,20 @@ export function ProductFormDialog({
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 lg:gap-4">
-            <div>
-              <Label htmlFor="costPrice" className="text-xs lg:text-sm">Cost Price *</Label>
-              <Input
-                id="costPrice"
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.costPrice}
-                onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
-                required
-                className="h-9 text-xs lg:h-10 lg:text-sm"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="sellingPrice" className="text-xs lg:text-sm">Selling Price *</Label>
-              <Input
-                id="sellingPrice"
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.sellingPrice}
-                onChange={(e) =>
-                  setFormData({ ...formData, sellingPrice: e.target.value })
-                }
-                required
-                className="h-9 text-xs lg:h-10 lg:text-sm"
-              />
-            </div>
+          <div>
+            <Label htmlFor="sellingPrice" className="text-xs lg:text-sm">Selling Price *</Label>
+            <Input
+              id="sellingPrice"
+              type="number"
+              step="0.01"
+              min="0"
+              value={formData.sellingPrice}
+              onChange={(e) =>
+                setFormData({ ...formData, sellingPrice: e.target.value })
+              }
+              required
+              className="h-9 text-xs lg:h-10 lg:text-sm"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-2 lg:gap-4">
