@@ -93,7 +93,7 @@ Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Ser
 
 **Pages & UI:**
 - ✅ **POS Page**: Product grid, cart, checkout, barcode scanner, atomic transactions, framer-motion animations
-- ✅ **Products Page**: CRUD products & categories, search/filter, auto-seed Filipino categories, framer-motion animations
+- ✅ **Products Page**: Quick Add dialog, inline category creation, 30 auto-seeded Filipino categories, search/filter, no costPrice (sellingPrice only), framer-motion animations
 - ✅ **Inventory Page**: Manual adjustments (in/out/adjust), low stock alerts, movement history, framer-motion animations
 - ✅ **Utang Page**: Customer credit tracking, payment recording (partial/full), manual charges, transaction history, framer-motion animations
 - ✅ **Reports Page**: Sales analytics with date filtering (today/week/month/custom), stats cards, payment breakdown, transaction list, framer-motion animations
