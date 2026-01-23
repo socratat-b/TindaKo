@@ -27,7 +27,7 @@ export function InventorySettingsSection() {
             min="0"
             value={lowStockThreshold}
             onChange={(e) => updateSettings({ lowStockThreshold: parseInt(e.target.value) || 0 })}
-            className="h-9 text-xs lg:h-10 lg:text-sm"
+            className="h-9 text-xs lg:h-10 lg:text-sm w-full"
           />
           <p className="text-[10px] lg:text-xs text-muted-foreground">
             Alert when stock falls below this quantity

@@ -9,13 +9,12 @@ export type PaymentMethod = 'cash' | 'gcash' | 'utang'
 interface SettingsState {
   // General
   storeName: string
-  currency: Currency
+  currency: Currency // Locked to 'PHP' - UI selector removed, infrastructure kept for flexibility
   language: Language
   timezone: string
 
   // Display
   theme: Theme
-  compactMode: boolean
   showLowStockAlerts: boolean
 
   // Inventory
@@ -37,7 +36,6 @@ const DEFAULT_SETTINGS: Omit<SettingsState, 'updateSettings' | 'resetToDefaults'
   language: 'en',
   timezone: 'Asia/Manila',
   theme: 'system',
-  compactMode: false,
   showLowStockAlerts: true,
   lowStockThreshold: 10,
   enableBarcodeScanner: true,
@@ -67,7 +65,6 @@ export const useSettingsStore = create<SettingsState>()(
         language: state.language,
         timezone: state.timezone,
         theme: state.theme,
-        compactMode: state.compactMode,
         showLowStockAlerts: state.showLowStockAlerts,
         lowStockThreshold: state.lowStockThreshold,
         enableBarcodeScanner: state.enableBarcodeScanner,

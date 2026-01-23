@@ -15,7 +15,6 @@ import { useSettings } from '@/lib/hooks/use-settings'
 export function GeneralSettingsSection() {
   const {
     storeName,
-    currency,
     language,
     timezone,
     updateSettings
@@ -34,27 +33,8 @@ export function GeneralSettingsSection() {
             value={storeName}
             onChange={(e) => updateSettings({ storeName: e.target.value })}
             placeholder="My Sari-Sari Store"
-            className="h-9 text-xs lg:h-10 lg:text-sm"
+            className="h-9 text-xs lg:h-10 lg:text-sm w-full"
           />
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="currency" className="text-xs lg:text-sm">
-            Currency
-          </Label>
-          <Select
-            value={currency}
-            onValueChange={(value) => updateSettings({ currency: value as any })}
-          >
-            <SelectTrigger id="currency" className="h-9 text-xs lg:h-10 lg:text-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="PHP">Philippine Peso (₱)</SelectItem>
-              <SelectItem value="USD">US Dollar ($)</SelectItem>
-              <SelectItem value="EUR">Euro (€)</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
 
         <div className="space-y-1.5">
@@ -65,7 +45,7 @@ export function GeneralSettingsSection() {
             value={language}
             onValueChange={(value) => updateSettings({ language: value as any })}
           >
-            <SelectTrigger id="language" className="h-9 text-xs lg:h-10 lg:text-sm">
+            <SelectTrigger id="language" className="h-9 text-xs lg:h-10 lg:text-sm w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -83,7 +63,7 @@ export function GeneralSettingsSection() {
             value={timezone}
             onValueChange={(value) => updateSettings({ timezone: value })}
           >
-            <SelectTrigger id="timezone" className="h-9 text-xs lg:h-10 lg:text-sm">
+            <SelectTrigger id="timezone" className="h-9 text-xs lg:h-10 lg:text-sm w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -93,6 +73,20 @@ export function GeneralSettingsSection() {
               <SelectItem value="UTC">UTC</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="pt-2 border-t">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs lg:text-sm font-medium">Currency</p>
+              <p className="text-[10px] lg:text-xs text-muted-foreground">
+                Philippine Peso (₱)
+              </p>
+            </div>
+            <div className="text-2xl font-semibold text-muted-foreground">
+              ₱
+            </div>
+          </div>
         </div>
       </div>
     </Card>

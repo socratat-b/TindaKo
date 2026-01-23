@@ -97,7 +97,7 @@ Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Ser
 - ✅ **Inventory Page**: Manual adjustments (in/out/adjust), low stock alerts, movement history, framer-motion animations
 - ✅ **Utang Page**: Customer credit tracking, payment recording (partial/full), manual charges, transaction history, framer-motion animations
 - ✅ **Reports Page**: Sales analytics with date filtering (today/week/month/custom), stats cards, payment breakdown, transaction list, framer-motion animations
-- ✅ **Settings Page**: App configuration, theme switching, currency format, data backup/restore, clear local data, framer-motion animations
+- ✅ **Settings Page**: App configuration, theme switching, data backup/restore, clear local data, account management, framer-motion animations
 - ✅ **Layout**: Responsive header, sidebar (desktop), drawer (mobile), sync indicator
 - ✅ **Components**: shadcn/ui (button, input, card, badge, dialog, select, popover, textarea, etc.)
 
@@ -202,7 +202,7 @@ lib/actions/products.ts              # Server Actions with input types
 - **Cart**: `lib/stores/cart-store.ts` - shopping cart with validation & persistence
 - **Sync**: `lib/stores/sync-store.ts` - manual backup orchestration & stats tracking
 - **Auth**: `lib/stores/auth-store.ts` - client auth state (read-only via useAuth hook)
-- **Settings**: `lib/stores/settings-store.ts` - app configuration (theme, currency)
+- **Settings**: `lib/stores/settings-store.ts` - app configuration (theme, language, timezone) - currency locked to PHP
 - **Products**: `lib/stores/product-form-store.ts`, `quick-add-product-store.ts`, `products-list-store.ts`
 
 ## Key Files
@@ -227,7 +227,7 @@ components/
 ├── inventory/       # Inventory management with framer-motion animations
 ├── utang/           # Customer credit tracking with framer-motion animations
 ├── reports/         # Sales analytics with date filtering and stats with framer-motion animations
-├── settings/        # App settings: theme, currency, data management with framer-motion animations
+├── settings/        # App settings: theme, language, timezone, account, data management with framer-motion animations
 └── layout/          # Header, sidebar, sync indicator
 
 app/
@@ -244,7 +244,7 @@ supabase/migrations/ # Database migrations
 - ✅ Inventory management: manual adjustments, low stock alerts, movement history
 - ✅ Utang (customer credit): customer management, payment recording (partial/full), manual charges, transaction history
 - ✅ Reports: sales analytics, date filtering (today/week/month/custom), stats cards, payment breakdown, transaction list
-- ✅ Settings: theme switching (light/dark/system), currency format, data backup/restore, clear local data
+- ✅ Settings: theme switching (light/dark/system), language/timezone, data backup/restore, account management, clear local data
 - ✅ Manual backup sync ("Backup to cloud" button)
 - ✅ Auto-restore from Supabase on first login
 - ✅ PWA installable with offline support

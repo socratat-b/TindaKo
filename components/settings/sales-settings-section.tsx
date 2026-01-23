@@ -31,12 +31,12 @@ export function SalesSettingsSection() {
             value={defaultPaymentMethod}
             onValueChange={(value) => updateSettings({ defaultPaymentMethod: value as any })}
           >
-            <SelectTrigger id="default-payment" className="h-9 text-xs lg:h-10 lg:text-sm">
+            <SelectTrigger id="default-payment" className="h-9 text-xs lg:h-10 lg:text-sm w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="cash">Cash</SelectItem>
-              <SelectItem value="card">Card</SelectItem>
+              <SelectItem value="gcash">GCash</SelectItem>
               <SelectItem value="utang">Utang</SelectItem>
             </SelectContent>
           </Select>

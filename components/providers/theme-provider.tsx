@@ -1,39 +1,48 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { ThemeProvider as NextThemesProvider } from 'next-themes'
+import { useEffect } from 'react'
+import { ThemeProvider as NextThemesProvider, useTheme } from 'next-themes'
 import { useSettingsStore } from '@/lib/stores/settings-store'
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const theme = useSettingsStore((state) => state.theme)
+/**
+ * Internal component to sync next-themes with Zustand store
+ */
+function ThemeSync({ children }: { children: React.ReactNode }) {
+  const { theme, setTheme } = useTheme()
+  const zustandTheme = useSettingsStore((state) => state.theme)
   const updateSettings = useSettingsStore((state) => state.updateSettings)
-  const [mounted, setMounted] = useState(false)
 
-  // Prevent flash on initial load
+  // Sync Zustand theme to next-themes on mount
   useEffect(() => {
-    setMounted(true)
+    if (zustandTheme && zustandTheme !== theme) {
+      setTheme(zustandTheme)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  if (!mounted) {
-    return <>{children}</>
-  }
+  // Sync next-themes back to Zustand when it changes externally
+  useEffect(() => {
+    if (theme && theme !== zustandTheme) {
+      updateSettings({ theme: theme as 'light' | 'dark' | 'system' })
+    }
+  }, [theme, zustandTheme, updateSettings])
 
+  return <>{children}</>
+}
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
   return (
     <NextThemesProvider
       attribute="class"
-      defaultTheme={theme}
+      defaultTheme="system"
       enableSystem
       disableTransitionOnChange
-      forcedTheme={undefined}
       storageKey="tindako-theme"
       themes={['light', 'dark', 'system']}
-      value={{
-        light: 'light',
-        dark: 'dark',
-        system: 'system'
-      }}
     >
-      {children}
+      <ThemeSync>
+        {children}
+      </ThemeSync>
     </NextThemesProvider>
   )
 }

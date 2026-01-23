@@ -18,7 +18,6 @@ export function useSettings() {
 
     // Display
     theme: settings.theme,
-    compactMode: settings.compactMode,
     showLowStockAlerts: settings.showLowStockAlerts,
 
     // Inventory

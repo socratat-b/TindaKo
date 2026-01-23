@@ -4,6 +4,8 @@ import { useSettingsStore, type Currency } from '@/lib/stores/settings-store'
 
 /**
  * Currency symbols mapping
+ * Note: Currency is locked to PHP (Philippine Peso) for Filipino users.
+ * The infrastructure supports multiple currencies for future flexibility.
  */
 const CURRENCY_SYMBOLS: Record<Currency, string> = {
   PHP: '₱',

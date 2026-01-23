@@ -1,19 +1,18 @@
 'use client'
 
-import { useState } from 'react'
-import { useAuth } from '@/lib/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { SyncIndicator } from './sync-indicator'
-import { LogoutDialog } from './logout-dialog'
-import { Menu, LogOut, User } from 'lucide-react'
+import { Menu, Clock } from 'lucide-react'
+import { useClock } from '@/lib/hooks/use-clock'
+import { useSettings } from '@/lib/hooks/use-settings'
 
 interface DashboardHeaderProps {
   onMenuClick?: () => void
 }
 
 export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
-  const { user } = useAuth()
-  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false)
+  const { timezone } = useSettings()
+  const currentTime = useClock(timezone)
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
@@ -32,27 +31,15 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
           </h1>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 lg:gap-4">
           <SyncIndicator />
 
-          <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
-            <User className="h-4 w-4" />
-            <span>{user?.email}</span>
+          <div className="flex items-center gap-1.5 text-xs lg:text-sm text-muted-foreground">
+            <Clock className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
+            <span className="font-medium tabular-nums">{currentTime}</span>
           </div>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-2"
-            onClick={() => setLogoutDialogOpen(true)}
-          >
-            <LogOut className="h-4 w-4" />
-            <span className="hidden sm:inline">Logout</span>
-          </Button>
         </div>
       </div>
-
-      <LogoutDialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen} />
     </header>
   )
 }
