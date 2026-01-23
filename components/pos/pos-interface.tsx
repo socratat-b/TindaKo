@@ -13,10 +13,7 @@ import { BarcodeScanner } from './barcode-scanner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ShoppingCart, Package } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-
-interface POSInterfaceProps {
-  userId: string
-}
+import type { POSInterfaceProps } from '@/lib/types'
 
 export default function POSInterface({ userId }: POSInterfaceProps) {
   const [checkoutOpen, setCheckoutOpen] = useState(false)

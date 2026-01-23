@@ -27,8 +27,6 @@ function getPaymentMethodBadgeVariant(method: string): 'default' | 'secondary' |
       return 'default';
     case 'gcash':
       return 'secondary';
-    case 'card':
-      return 'outline';
     case 'utang':
       return 'outline';
     default:

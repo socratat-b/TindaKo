@@ -101,14 +101,22 @@ export function ProductGrid({ userId }: ProductGridProps) {
           />
         </div>
         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-          <SelectTrigger className="w-full lg:w-[120px] h-9 text-sm">
+          <SelectTrigger className="w-full lg:w-[180px] h-9 text-sm">
             <SelectValue placeholder="Category" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="all" className="text-sm">
+              All Categories
+            </SelectItem>
             {categories.map((category) => (
-              <SelectItem key={category.id} value={category.id}>
-                {category.name}
+              <SelectItem key={category.id} value={category.id} className="text-sm">
+                <div className="flex items-center gap-2">
+                  <div
+                    className="h-3 w-3 rounded-full"
+                    style={{ backgroundColor: category.color }}
+                  />
+                  {category.name}
+                </div>
               </SelectItem>
             ))}
           </SelectContent>

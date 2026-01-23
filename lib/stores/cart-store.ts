@@ -10,7 +10,7 @@ interface CartItem extends SaleItem {
 
 interface CartState {
   items: CartItem[]
-  paymentMethod: 'cash' | 'gcash' | 'card' | 'utang'
+  paymentMethod: 'cash' | 'gcash' | 'utang'
   userId: string | null // Track which user owns this cart
 
   // Computed values
@@ -21,7 +21,7 @@ interface CartState {
   addItem: (product: Product, quantity?: number) => void
   removeItem: (productId: string) => void
   updateQuantity: (productId: string, quantity: number) => void
-  setPaymentMethod: (method: 'cash' | 'gcash' | 'card' | 'utang') => void
+  setPaymentMethod: (method: 'cash' | 'gcash' | 'utang') => void
   setUserId: (userId: string | null) => void
   clearCart: () => void
 }

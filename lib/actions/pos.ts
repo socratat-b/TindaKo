@@ -15,7 +15,7 @@ export interface CheckoutData {
   discount: number
   total: number
   amountPaid: number
-  paymentMethod: 'cash' | 'gcash' | 'card' | 'utang'
+  paymentMethod: 'cash' | 'gcash' | 'utang'
   customerId: string | null
   userId: string
 }

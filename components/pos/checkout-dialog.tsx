@@ -1,10 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useLiveQuery } from 'dexie-react-hooks'
 import { useCart } from '@/lib/hooks/use-cart'
+import { useCheckout } from '@/lib/hooks/use-checkout'
 import { useFormatCurrency } from '@/lib/utils/currency'
-import { db } from '@/lib/db'
 import {
   Dialog,
   DialogContent,
@@ -26,13 +24,7 @@ import {
 } from '@/components/ui/select'
 import { Loader2, CheckCircle2, UserPlus, AlertCircle } from 'lucide-react'
 import { QuickAddCustomerDialog } from './quick-add-customer-dialog'
-
-interface CheckoutDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onCheckout: (amountPaid: number, customerId: string | null) => Promise<void>
-  userId: string
-}
+import type { CheckoutDialogProps } from '@/lib/types'
 
 export function CheckoutDialog({
   open,
@@ -42,100 +34,33 @@ export function CheckoutDialog({
 }: CheckoutDialogProps) {
   const { total, paymentMethod, clearCart } = useCart()
   const formatCurrency = useFormatCurrency()
-  const [amountPaid, setAmountPaid] = useState('')
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string>('')
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [isSuccess, setIsSuccess] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [isQuickAddOpen, setIsQuickAddOpen] = useState(false)
 
-  // Fetch customers only on client side (fixes IndexedDB SSR error)
-  const customers = useLiveQuery(
-    () => {
-      if (typeof window === 'undefined') return []
-      return db.customers
-        .where('userId')
-        .equals(userId)
-        .filter((c) => !c.isDeleted)
-        .sortBy('name')
-    },
-    [userId]
-  )
-
-  const amountPaidNum = parseFloat(amountPaid) || 0
-  const change = amountPaidNum - total
-  const isUtangPayment = paymentMethod === 'utang'
-
-  // Auto-fill amount for non-cash payments
-  useEffect(() => {
-    if (open) {
-      if (paymentMethod === 'cash') {
-        setAmountPaid('')
-      } else if (paymentMethod === 'utang') {
-        setAmountPaid('0')
-      } else {
-        setAmountPaid(total.toString())
-      }
-    }
-  }, [paymentMethod, total, open])
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-
-    // Validate utang payment requires customer selection
-    if (isUtangPayment && !selectedCustomerId) {
-      setError('Please select a customer for utang payment')
-      return
-    }
-
-    // Validate amount paid for cash
-    if (paymentMethod === 'cash' && amountPaidNum < total) {
-      setError('Amount paid must be at least the total amount')
-      return
-    }
-
-    setIsProcessing(true)
-
-    try {
-      // For utang, amount paid is 0 (full debt)
-      // For gcash/card, amount paid equals total
-      // For cash, use entered amount
-      const finalAmountPaid = isUtangPayment ? 0 : paymentMethod === 'cash' ? amountPaidNum : total
-
-      await onCheckout(finalAmountPaid, selectedCustomerId || null)
-
-      setIsSuccess(true)
-
-      // Clear cart and close dialog after a short delay
-      setTimeout(() => {
-        clearCart()
-        setIsSuccess(false)
-        setAmountPaid('')
-        setSelectedCustomerId('')
-        onOpenChange(false)
-      }, 1500)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to process sale')
-    } finally {
-      setIsProcessing(false)
-    }
-  }
-
-  const handleOpenChange = (newOpen: boolean) => {
-    if (!isProcessing && !isSuccess) {
-      onOpenChange(newOpen)
-      if (!newOpen) {
-        setAmountPaid('')
-        setSelectedCustomerId('')
-        setError(null)
-      }
-    }
-  }
-
-  const handleCustomerCreated = (customerId: string) => {
-    setSelectedCustomerId(customerId)
-  }
+  const {
+    amountPaid,
+    selectedCustomerId,
+    isProcessing,
+    isSuccess,
+    error,
+    isQuickAddOpen,
+    customers,
+    amountPaidNum,
+    change,
+    isUtangPayment,
+    setAmountPaid,
+    setSelectedCustomerId,
+    setIsQuickAddOpen,
+    handleSubmit,
+    handleOpenChange,
+    handleCustomerCreated,
+  } = useCheckout({
+    open,
+    onOpenChange,
+    onCheckout,
+    userId,
+    total,
+    paymentMethod,
+    clearCart,
+  })
 
   return (
     <>

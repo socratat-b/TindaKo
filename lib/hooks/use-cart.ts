@@ -27,7 +27,7 @@ export function useCart() {
     setHasPendingChanges(true)
   }
 
-  const setPaymentMethod = (method: 'cash' | 'gcash' | 'card') => {
+  const setPaymentMethod = (method: 'cash' | 'gcash' | 'utang') => {
     cart.setPaymentMethod(method)
     setHasPendingChanges(true)
   }

@@ -48,7 +48,7 @@ export interface Sale extends BaseEntity {
   total: number
   amountPaid: number
   change: number
-  paymentMethod: 'cash' | 'gcash' | 'card' | 'utang'
+  paymentMethod: 'cash' | 'gcash' | 'utang'
   customerId: string | null
 }
 

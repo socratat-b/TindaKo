@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Banknote, Smartphone, CreditCard, FileText } from 'lucide-react';
+import { Banknote, Smartphone, FileText } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useFormatCurrency } from '@/lib/utils/currency';
 import type { SalesStats } from '@/lib/utils/reports-utils';
@@ -27,13 +27,6 @@ export function PaymentBreakdown({ stats }: PaymentBreakdownProps) {
       icon: Smartphone,
       bgColor: 'bg-blue-500/10',
       iconColor: 'text-blue-600',
-    },
-    {
-      name: 'Card',
-      key: 'card' as const,
-      icon: CreditCard,
-      bgColor: 'bg-purple-500/10',
-      iconColor: 'text-purple-600',
     },
     {
       name: 'Utang',

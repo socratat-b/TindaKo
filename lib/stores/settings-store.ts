@@ -4,7 +4,7 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 export type Currency = 'PHP' | 'USD' | 'EUR'
 export type Language = 'en' | 'fil'
 export type Theme = 'light' | 'dark' | 'system'
-export type PaymentMethod = 'cash' | 'gcash' | 'card' | 'utang'
+export type PaymentMethod = 'cash' | 'gcash' | 'utang'
 
 interface SettingsState {
   // General

@@ -26,7 +26,6 @@ export interface SalesStats {
   paymentBreakdown: {
     cash: { count: number; total: number; percentage: number };
     gcash: { count: number; total: number; percentage: number };
-    card: { count: number; total: number; percentage: number };
     utang: { count: number; total: number; percentage: number };
   };
 }
@@ -117,7 +116,6 @@ export function calculateSalesStats(sales: Sale[]): SalesStats {
       paymentBreakdown: {
         cash: { count: 0, total: 0, percentage: 0 },
         gcash: { count: 0, total: 0, percentage: 0 },
-        card: { count: 0, total: 0, percentage: 0 },
         utang: { count: 0, total: 0, percentage: 0 },
       },
     };
@@ -133,7 +131,6 @@ export function calculateSalesStats(sales: Sale[]): SalesStats {
   const paymentMethods = {
     cash: { count: 0, total: 0 },
     gcash: { count: 0, total: 0 },
-    card: { count: 0, total: 0 },
     utang: { count: 0, total: 0 },
   };
 
@@ -154,10 +151,6 @@ export function calculateSalesStats(sales: Sale[]): SalesStats {
     gcash: {
       ...paymentMethods.gcash,
       percentage: totalSales > 0 ? (paymentMethods.gcash.total / totalSales) * 100 : 0,
-    },
-    card: {
-      ...paymentMethods.card,
-      percentage: totalSales > 0 ? (paymentMethods.card.total / totalSales) * 100 : 0,
     },
     utang: {
       ...paymentMethods.utang,

@@ -36,7 +36,6 @@ export function SalesSettingsSection() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="cash">Cash</SelectItem>
-              <SelectItem value="gcash">GCash</SelectItem>
               <SelectItem value="card">Card</SelectItem>
               <SelectItem value="utang">Utang</SelectItem>
             </SelectContent>
