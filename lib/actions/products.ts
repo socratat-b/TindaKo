@@ -13,7 +13,6 @@ export interface ProductFormData {
   name: string
   barcode: string | null
   categoryId: string
-  costPrice: number
   sellingPrice: number
   stockQty: number
   lowStockThreshold: number
@@ -41,12 +40,12 @@ export async function createProduct(data: ProductFormData): Promise<string> {
       throw new Error('Invalid category')
     }
 
-    // Check if barcode already exists
+    // Check if barcode already exists (within same user)
     if (data.barcode) {
       const existing = await db.products
         .where('barcode')
         .equals(data.barcode)
-        .and((p) => !p.isDeleted)
+        .and((p) => !p.isDeleted && p.userId === data.userId)
         .first()
 
       if (existing) {
@@ -60,7 +59,6 @@ export async function createProduct(data: ProductFormData): Promise<string> {
       name: data.name.trim(),
       barcode: data.barcode?.trim() || null,
       categoryId: data.categoryId,
-      costPrice: data.costPrice,
       sellingPrice: data.sellingPrice,
       stockQty: data.stockQty,
       lowStockThreshold: data.lowStockThreshold,
@@ -97,12 +95,12 @@ export async function updateProduct(
       throw new Error('Product not found')
     }
 
-    // If barcode is being updated, check for duplicates
+    // If barcode is being updated, check for duplicates (within same user)
     if (data.barcode && data.barcode !== product.barcode) {
       const existing = await db.products
         .where('barcode')
         .equals(data.barcode)
-        .and((p) => !p.isDeleted && p.id !== id)
+        .and((p) => !p.isDeleted && p.id !== id && p.userId === product.userId)
         .first()
 
       if (existing) {
@@ -168,11 +166,14 @@ export async function createCategory(data: CategoryFormData): Promise<string> {
   const categoryId = crypto.randomUUID()
 
   try {
-    // Check if category name already exists
+    // Check if category name already exists (within same user)
+    const trimmedName = data.name.trim().toLowerCase()
     const existing = await db.categories
-      .where('name')
-      .equalsIgnoreCase(data.name.trim())
-      .and((c) => !c.isDeleted)
+      .filter((c) =>
+        c.userId === data.userId &&
+        !c.isDeleted &&
+        c.name.toLowerCase() === trimmedName
+      )
       .first()
 
     if (existing) {
@@ -218,12 +219,16 @@ export async function updateCategory(
       throw new Error('Category not found')
     }
 
-    // If name is being updated, check for duplicates
+    // If name is being updated, check for duplicates (within same user)
     if (data.name && data.name.trim() !== category.name) {
+      const trimmedName = data.name.trim().toLowerCase()
       const existing = await db.categories
-        .where('name')
-        .equalsIgnoreCase(data.name.trim())
-        .and((c) => !c.isDeleted && c.id !== id)
+        .filter((c) =>
+          c.userId === category.userId &&
+          !c.isDeleted &&
+          c.id !== id &&
+          c.name.toLowerCase() === trimmedName
+        )
         .first()
 
       if (existing) {
