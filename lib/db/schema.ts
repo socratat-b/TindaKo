@@ -28,7 +28,6 @@ export interface Product extends BaseEntity {
   name: string
   barcode: string | null
   categoryId: string
-  costPrice: number
   sellingPrice: number
   stockQty: number
   lowStockThreshold: number
