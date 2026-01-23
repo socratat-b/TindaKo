@@ -1,28 +1,26 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { createProduct, updateProduct } from '@/lib/actions/products'
-import type { Product, Category } from '@/lib/db/schema'
-
-interface ProductFormDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  product?: Product | null
-  categories: Category[]
-  userId: string
-  onSuccess: () => void
-}
+} from "@/components/ui/select";
+import { PRESET_COLORS } from "@/lib/constants/colors";
+import { useProductForm } from "@/lib/hooks/use-product-form";
+import { AnimatePresence, motion } from "framer-motion";
+import { Plus } from "lucide-react";
+import type { ProductFormDialogProps } from "@/lib/types";
 
 export function ProductFormDialog({
   open,
@@ -32,108 +30,46 @@ export function ProductFormDialog({
   userId,
   onSuccess,
 }: ProductFormDialogProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const [formData, setFormData] = useState({
-    name: '',
-    barcode: '',
-    categoryId: '',
-    sellingPrice: '',
-    stockQty: '',
-    lowStockThreshold: '',
-  })
-
-  useEffect(() => {
-    if (product) {
-      setFormData({
-        name: product.name,
-        barcode: product.barcode || '',
-        categoryId: product.categoryId,
-        sellingPrice: product.sellingPrice.toString(),
-        stockQty: product.stockQty.toString(),
-        lowStockThreshold: product.lowStockThreshold.toString(),
-      })
-    } else {
-      setFormData({
-        name: '',
-        barcode: '',
-        categoryId: categories[0]?.id || '',
-        sellingPrice: '',
-        stockQty: '0',
-        lowStockThreshold: '10',
-      })
-    }
-    setError(null)
-  }, [product, categories, open])
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      const sellingPrice = parseFloat(formData.sellingPrice)
-      const stockQty = parseInt(formData.stockQty, 10)
-      const lowStockThreshold = parseInt(formData.lowStockThreshold, 10)
-
-      if (isNaN(sellingPrice) || sellingPrice < 0) {
-        throw new Error('Invalid selling price')
-      }
-      if (isNaN(stockQty) || stockQty < 0) {
-        throw new Error('Invalid stock quantity')
-      }
-      if (isNaN(lowStockThreshold) || lowStockThreshold < 0) {
-        throw new Error('Invalid low stock threshold')
-      }
-
-      if (product) {
-        await updateProduct(product.id, {
-          name: formData.name,
-          barcode: formData.barcode || null,
-          categoryId: formData.categoryId,
-          sellingPrice,
-          stockQty,
-          lowStockThreshold,
-          userId,
-        })
-      } else {
-        await createProduct({
-          name: formData.name,
-          barcode: formData.barcode || null,
-          categoryId: formData.categoryId,
-          sellingPrice,
-          stockQty,
-          lowStockThreshold,
-          userId,
-        })
-      }
-
-      onSuccess()
-      onOpenChange(false)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save product')
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  const {
+    formData,
+    categoryFormData,
+    showCategoryForm,
+    isLoading,
+    error,
+    sortedCategories,
+    setFormData,
+    setCategoryFormData,
+    handleCategoryChange,
+    handleCreateCategory,
+    handleCancelCategoryForm,
+    handleSubmit,
+  } = useProductForm({
+    userId,
+    onSuccess,
+    onOpenChange,
+    product,
+    categories,
+    open,
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[calc(100vw-2rem)] max-w-md sm:w-full">
         <DialogHeader>
           <DialogTitle className="text-base lg:text-lg">
-            {product ? 'Edit Product' : 'Add Product'}
+            {product ? "Edit Product" : "Add Product"}
           </DialogTitle>
         </DialogHeader>
 
         {categories.length === 0 ? (
           <div className="space-y-4 py-4">
             <div className="rounded bg-yellow-500/10 p-3 lg:p-4">
-              <p className="text-xs font-medium text-yellow-700 lg:text-sm">No categories available</p>
+              <p className="text-xs font-medium text-yellow-700 lg:text-sm">
+                No categories available
+              </p>
               <p className="mt-2 text-xs text-yellow-600 lg:text-sm">
-                Please create at least one category first. Go to the Categories tab to
-                add categories like Inumin, Meryenda, or Canned Goods.
+                Please create at least one category first. Go to the Categories
+                tab to add categories like Inumin, Meryenda, or Canned Goods.
               </p>
             </div>
             <Button
@@ -146,120 +82,247 @@ export function ProductFormDialog({
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3 lg:space-y-4">
             {error && (
-              <div className="rounded bg-red-500/10 p-3 text-xs text-red-500 lg:text-sm">{error}</div>
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="rounded-md bg-destructive/10 p-2 text-xs text-destructive lg:p-3 lg:text-sm"
+              >
+                {error}
+              </motion.div>
             )}
 
-          <div>
-            <Label htmlFor="name" className="text-xs lg:text-sm">
-              Product Name *
-            </Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
-              disabled={isLoading}
-              className="h-9 text-xs lg:h-10 lg:text-sm"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="barcode" className="text-xs lg:text-sm">Barcode</Label>
-            <Input
-              id="barcode"
-              value={formData.barcode}
-              onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-              placeholder="Optional"
-              className="h-9 text-xs lg:h-10 lg:text-sm"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="category" className="text-xs lg:text-sm">Category *</Label>
-            <Select
-              value={formData.categoryId}
-              onValueChange={(value) => setFormData({ ...formData, categoryId: value })}
-            >
-              <SelectTrigger className="h-9 text-xs lg:h-10 lg:text-sm">
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label htmlFor="sellingPrice" className="text-xs lg:text-sm">Selling Price *</Label>
-            <Input
-              id="sellingPrice"
-              type="number"
-              step="0.01"
-              min="0"
-              value={formData.sellingPrice}
-              onChange={(e) =>
-                setFormData({ ...formData, sellingPrice: e.target.value })
-              }
-              required
-              className="h-9 text-xs lg:h-10 lg:text-sm"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 lg:gap-4">
-            <div>
-              <Label htmlFor="stockQty" className="text-xs lg:text-sm">Stock Quantity *</Label>
+            {/* Product Name */}
+            <div className="space-y-1.5">
+              <Label htmlFor="name" className="text-xs lg:text-sm">
+                Product Name HAHAH tt
+              </Label>
               <Input
-                id="stockQty"
-                type="number"
-                min="0"
-                value={formData.stockQty}
-                onChange={(e) => setFormData({ ...formData, stockQty: e.target.value })}
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ name: e.target.value })}
                 required
+                disabled={isLoading}
+                className="h-9 text-xs lg:h-10 lg:text-sm"
+                autoFocus
+              />
+            </div>
+
+            {/* Barcode */}
+            <div className="space-y-1.5">
+              <Label htmlFor="barcode" className="text-xs lg:text-sm">
+                Barcode
+              </Label>
+              <Input
+                id="barcode"
+                value={formData.barcode}
+                onChange={(e) => setFormData({ barcode: e.target.value })}
+                placeholder="Optional"
+                disabled={isLoading}
                 className="h-9 text-xs lg:h-10 lg:text-sm"
               />
             </div>
 
-            <div>
-              <Label htmlFor="lowStockThreshold" className="text-xs lg:text-sm">Low Stock Alert *</Label>
+            {/* Category */}
+            <div className="space-y-1.5">
+              <Label htmlFor="category" className="text-xs lg:text-sm">
+                Category *
+              </Label>
+
+              <AnimatePresence mode="wait">
+                {showCategoryForm ? (
+                  <motion.div
+                    key="category-form"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="space-y-3 rounded-md border p-3"
+                  >
+                    <div className="space-y-1.5">
+                      <Label htmlFor="new-category-name" className="text-xs">
+                        Category Name *
+                      </Label>
+                      <Input
+                        id="new-category-name"
+                        value={categoryFormData.name}
+                        onChange={(e) =>
+                          setCategoryFormData({ name: e.target.value })
+                        }
+                        placeholder="e.g. Frozen Goods"
+                        disabled={isLoading}
+                        className="h-8 text-xs"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Color</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {PRESET_COLORS.map((color) => (
+                          <button
+                            key={color}
+                            type="button"
+                            onClick={() => setCategoryFormData({ color })}
+                            disabled={isLoading}
+                            className={`h-7 w-7 rounded-full border-2 transition-all ${
+                              categoryFormData.color === color
+                                ? "scale-110 border-foreground"
+                                : "border-transparent hover:scale-105"
+                            }`}
+                            style={{ backgroundColor: color }}
+                            title={color}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleCancelCategoryForm}
+                        disabled={isLoading}
+                        className="h-8 flex-1 text-xs"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={handleCreateCategory}
+                        disabled={isLoading || !categoryFormData.name.trim()}
+                        className="h-8 flex-1 text-xs"
+                      >
+                        Create Category
+                      </Button>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="category-select"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Select
+                      value={formData.categoryId}
+                      onValueChange={handleCategoryChange}
+                      disabled={isLoading}
+                    >
+                      <SelectTrigger className="h-9 w-full text-xs lg:h-10 lg:text-sm">
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent className="w-full">
+                        {sortedCategories.map((cat) => (
+                          <SelectItem
+                            key={cat.id}
+                            value={cat.id}
+                            className="text-xs lg:text-sm"
+                          >
+                            <div className="flex items-center gap-2">
+                              <div
+                                className="h-3 w-3 rounded-full"
+                                style={{ backgroundColor: cat.color }}
+                              />
+                              {cat.name}
+                            </div>
+                          </SelectItem>
+                        ))}
+                        <SelectItem
+                          value="create-new"
+                          className="text-xs lg:text-sm"
+                        >
+                          <div className="flex items-center gap-2 font-medium text-primary">
+                            <Plus className="h-3 w-3" />
+                            Create Custom Category
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Selling Price */}
+            <div className="space-y-1.5">
+              <Label htmlFor="sellingPrice" className="text-xs lg:text-sm">
+                Selling Price *
+              </Label>
               <Input
-                id="lowStockThreshold"
+                id="sellingPrice"
                 type="number"
+                step="0.01"
                 min="0"
-                value={formData.lowStockThreshold}
-                onChange={(e) =>
-                  setFormData({ ...formData, lowStockThreshold: e.target.value })
-                }
+                value={formData.sellingPrice}
+                onChange={(e) => setFormData({ sellingPrice: e.target.value })}
                 required
+                disabled={isLoading}
                 className="h-9 text-xs lg:h-10 lg:text-sm"
               />
             </div>
-          </div>
 
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={isLoading}
-              className="h-9 flex-1 text-xs lg:h-10 lg:flex-none lg:text-sm"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="h-9 flex-1 text-xs lg:h-10 lg:flex-none lg:text-sm"
-            >
-              {isLoading ? 'Saving...' : product ? 'Update' : 'Create'}
-            </Button>
-          </div>
-        </form>
+            {/* Stock Quantity & Low Stock Alert */}
+            <div className="grid grid-cols-2 gap-2 lg:gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="stockQty" className="text-xs lg:text-sm">
+                  Stock Quantity *
+                </Label>
+                <Input
+                  id="stockQty"
+                  type="number"
+                  min="0"
+                  value={formData.stockQty}
+                  onChange={(e) => setFormData({ stockQty: e.target.value })}
+                  required
+                  disabled={isLoading}
+                  className="h-9 text-xs lg:h-10 lg:text-sm"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label
+                  htmlFor="lowStockThreshold"
+                  className="text-xs lg:text-sm"
+                >
+                  Low Stock Alert *
+                </Label>
+                <Input
+                  id="lowStockThreshold"
+                  type="number"
+                  min="0"
+                  value={formData.lowStockThreshold}
+                  onChange={(e) =>
+                    setFormData({ lowStockThreshold: e.target.value })
+                  }
+                  required
+                  disabled={isLoading}
+                  className="h-9 text-xs lg:h-10 lg:text-sm"
+                />
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={isLoading}
+                className="h-9 flex-1 text-xs lg:h-10 lg:flex-none lg:text-sm"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isLoading || showCategoryForm}
+                className="h-9 flex-1 text-xs lg:h-10 lg:flex-none lg:text-sm"
+              >
+                {isLoading ? "Saving..." : product ? "Update" : "Create"}
+              </Button>
+            </div>
+          </form>
         )}
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -1,14 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/lib/db'
 import { seedDefaultCategories } from '@/lib/db/seeders'
 import { ProductsList } from './products-list'
-
-interface ProductsInterfaceProps {
-  userId: string
-}
+import type { ProductsInterfaceProps } from '@/lib/types'
 
 export default function ProductsInterface({ userId }: ProductsInterfaceProps) {
   const [refreshKey, setRefreshKey] = useState(0)
@@ -24,26 +21,27 @@ export default function ProductsInterface({ userId }: ProductsInterfaceProps) {
     [userId, refreshKey]
   )
 
+  const handleRefresh = useCallback(() => {
+    setRefreshKey((prev) => prev + 1)
+  }, [])
+
   // Auto-seed default categories for new users
   useEffect(() => {
     if (categories && categories.length === 0 && !isSeeding) {
-      setIsSeeding(true)
-      seedDefaultCategories(userId)
-        .then(() => {
+      const seedCategories = async () => {
+        setIsSeeding(true)
+        try {
+          await seedDefaultCategories(userId)
           handleRefresh()
-        })
-        .catch((err) => {
+        } catch (err) {
           console.error('Failed to seed categories:', err)
-        })
-        .finally(() => {
+        } finally {
           setIsSeeding(false)
-        })
+        }
+      }
+      seedCategories()
     }
-  }, [categories, userId, isSeeding])
-
-  const handleRefresh = () => {
-    setRefreshKey((prev) => prev + 1)
-  }
+  }, [categories, userId, isSeeding, handleRefresh])
 
   if (!products || !categories) {
     return (

@@ -139,29 +139,101 @@ Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Ser
 - Server Actions use React 19 `useActionState` pattern
 - User-friendly offline error messages on auth pages
 
-### State Management
+### State Management & Code Organization
+
+**Pattern: Zustand + Custom Hooks for Complex Components**
+
+For complex components with state and business logic, follow this architecture:
+
+1. **Zustand Store** (`lib/stores/`) - Pure state management
+   - Only state and simple setters
+   - No business logic or API calls
+   - Reusable across components
+
+2. **Custom Hook** (`lib/hooks/`) - Business logic
+   - Combines Zustand store with API calls
+   - Handles side effects (useEffect, API calls, toasts)
+   - Returns clean API for component
+
+3. **Component** (`components/`) - Pure UI
+   - Only presentation logic
+   - Single custom hook call
+   - No useState, minimal useEffect
+
+4. **Types** (`lib/types/`) - Centralized type definitions
+   - Component props interfaces
+   - Hook parameters interfaces
+   - Form data types (local state)
+   - Separate from action inputs (API payloads)
+
+**Example Structure (Products feature):**
+
+```
+lib/types/products.ts           # All types in one organized file
+├── Component Props             # ProductFormDialogProps, ProductsListProps
+├── Hook Parameters             # UseProductFormParams, UseProductsListParams
+└── Form Data Types             # ProductFormData, CategoryFormData
+
+lib/stores/product-form-store.ts    # State only (formData, isLoading, error)
+lib/hooks/use-product-form.ts       # Logic (handleSubmit, validation, API calls)
+components/products/
+├── product-form-dialog.tsx          # UI only (calls useProductForm hook)
+├── quick-add-product-dialog.tsx
+└── products-list.tsx
+
+lib/actions/products.ts              # Server Actions with input types
+└── CreateProductInput, CreateCategoryInput  # API payloads (parsed numbers, userId)
+```
+
+**Type Naming Conventions:**
+- Component props: `ComponentNameProps` (e.g., `ProductFormDialogProps`)
+- Hook params: `UseHookNameParams` (e.g., `UseProductFormParams`)
+- Form state: `FormData` (e.g., `ProductFormData` - strings for inputs)
+- Action inputs: `CreateXInput` / `UpdateXInput` (e.g., `CreateProductInput` - parsed types)
+
+**Benefits:**
+- ✅ Separation of concerns (state / logic / UI)
+- ✅ Testability (hooks can be tested independently)
+- ✅ Reusability (stores can be accessed anywhere)
+- ✅ Type safety (centralized, organized types)
+- ✅ Maintainability (changes in one place)
+
+**Existing Zustand Stores:**
 - **Cart**: `lib/stores/cart-store.ts` - shopping cart with validation & persistence
 - **Sync**: `lib/stores/sync-store.ts` - manual backup orchestration & stats tracking
 - **Auth**: `lib/stores/auth-store.ts` - client auth state (read-only via useAuth hook)
 - **Settings**: `lib/stores/settings-store.ts` - app configuration (theme, currency)
+- **Products**: `lib/stores/product-form-store.ts`, `quick-add-product-store.ts`, `products-list-store.ts`
 
 ## Key Files
 
 ```
-lib/db/              # Dexie schema, sync.ts (manual backup logic)
-lib/stores/          # Zustand: auth-store, cart-store, sync-store, settings-store
-lib/hooks/           # useAuth, useCart, useSync, useSettings
-lib/actions/         # Server Actions: auth, pos, products, inventory, utang, settings
-lib/utils/           # Client-side utilities: customer-utils, utang-utils, reports-utils
-components/pos/      # POS interface with framer-motion animations
-components/products/ # Products & categories with framer-motion animations
-components/inventory/# Inventory management with framer-motion animations
-components/utang/    # Customer credit tracking with framer-motion animations
-components/reports/  # Sales analytics with date filtering and stats with framer-motion animations
-components/settings/ # App settings: theme, currency, data management with framer-motion animations
-components/layout/   # Header, sidebar, sync indicator
-app/(dashboard)/     # Protected pages: pos, products, inventory, utang, reports, settings
-app/(auth)/          # Login, signup
+lib/
+├── db/              # Dexie schema, sync.ts (manual backup logic)
+├── stores/          # Zustand stores (state only)
+├── hooks/           # Custom hooks (business logic + API calls)
+├── actions/         # Server Actions: auth, pos, products, inventory, utang, settings
+├── types/           # Centralized TypeScript types/interfaces
+│   ├── index.ts     # Barrel exports
+│   └── products.ts  # Product-related types
+├── constants/       # Shared constants
+│   ├── index.ts     # Barrel exports
+│   └── colors.ts    # PRESET_COLORS for category selection
+└── utils/           # Client-side utilities: customer-utils, utang-utils, reports-utils
+
+components/
+├── pos/             # POS interface with framer-motion animations
+├── products/        # Products & categories with framer-motion animations
+├── inventory/       # Inventory management with framer-motion animations
+├── utang/           # Customer credit tracking with framer-motion animations
+├── reports/         # Sales analytics with date filtering and stats with framer-motion animations
+├── settings/        # App settings: theme, currency, data management with framer-motion animations
+└── layout/          # Header, sidebar, sync indicator
+
+app/
+├── (dashboard)/     # Protected pages: pos, products, inventory, utang, reports, settings
+└── (auth)/          # Login, signup
+
 supabase/migrations/ # Database migrations
 ```
 

@@ -1,6 +1,5 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -13,33 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { createProduct, createCategory } from '@/lib/actions/products'
-import type { Category } from '@/lib/db/schema'
+import { useQuickAddProduct } from '@/lib/hooks/use-quick-add-product'
+import { PRESET_COLORS } from '@/lib/constants/colors'
+import type { QuickAddProductDialogProps } from '@/lib/types'
 import { Zap, Plus } from 'lucide-react'
-import { toast } from 'sonner'
-
-interface QuickAddProductDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  categories: Category[]
-  userId: string
-  onSuccess: () => void
-}
-
-const PRESET_COLORS = [
-  '#3b82f6', // blue
-  '#ef4444', // red
-  '#22c55e', // green
-  '#eab308', // yellow
-  '#a855f7', // purple
-  '#f97316', // orange
-  '#6b7280', // gray
-  '#ec4899', // pink
-  '#06b6d4', // cyan
-  '#d97706', // amber
-  '#8b5cf6', // violet
-  '#10b981', // emerald
-]
 
 export function QuickAddProductDialog({
   open,
@@ -48,162 +24,26 @@ export function QuickAddProductDialog({
   userId,
   onSuccess,
 }: QuickAddProductDialogProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [showCategoryForm, setShowCategoryForm] = useState(false)
-
-  // Sort categories: custom categories (sortOrder=0) first, then by sortOrder
-  const sortedCategories = [...categories].sort((a, b) => a.sortOrder - b.sortOrder)
-
-  // Product form state
-  const [formData, setFormData] = useState({
-    name: '',
-    categoryId: '',
-    sellingPrice: '',
-    stockQty: '',
+  const {
+    formData,
+    categoryFormData,
+    showCategoryForm,
+    isLoading,
+    error,
+    sortedCategories,
+    setFormData,
+    setCategoryFormData,
+    handleCategoryChange,
+    handleCreateCategory,
+    handleCancelCategoryForm,
+    handleSubmit,
+  } = useQuickAddProduct({
+    userId,
+    onSuccess,
+    onOpenChange,
+    categories,
+    open,
   })
-
-  // Category form state
-  const [categoryFormData, setCategoryFormData] = useState({
-    name: '',
-    color: PRESET_COLORS[0],
-  })
-
-  // Reset form when dialog opens
-  useEffect(() => {
-    if (open) {
-      // Use the first category from the sorted list
-      const firstCategoryId = sortedCategories[0]?.id || ''
-      setFormData({
-        name: '',
-        categoryId: firstCategoryId,
-        sellingPrice: '',
-        stockQty: '0',
-      })
-      setCategoryFormData({
-        name: '',
-        color: PRESET_COLORS[0],
-      })
-      setShowCategoryForm(false)
-      setError(null)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, categories])
-
-  const handleCategoryChange = (value: string) => {
-    if (value === 'create-new') {
-      setShowCategoryForm(true)
-    } else {
-      setFormData({ ...formData, categoryId: value })
-    }
-  }
-
-  const handleCreateCategory = async () => {
-    if (!categoryFormData.name.trim()) {
-      setError('Category name is required')
-      return
-    }
-
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      // sortOrder = 0 to place custom categories at the top
-      const sortOrder = 0
-      const newCategoryId = await createCategory({
-        name: categoryFormData.name,
-        color: categoryFormData.color,
-        sortOrder,
-        userId,
-      })
-
-      // Auto-select the new category
-      setFormData({ ...formData, categoryId: newCategoryId })
-      setShowCategoryForm(false)
-      setCategoryFormData({ name: '', color: PRESET_COLORS[0] })
-
-      // Show success toast
-      toast.success('Category created successfully', {
-        description: `"${categoryFormData.name}" is now available`,
-        duration: 3000,
-      })
-
-      // Refresh categories list
-      onSuccess()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create category')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleCancelCategoryForm = () => {
-    setShowCategoryForm(false)
-    setCategoryFormData({ name: '', color: PRESET_COLORS[0] })
-    setError(null)
-  }
-
-  const handleSubmit = async (e: React.FormEvent, saveAndAddAnother = false) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      // Validation
-      if (!formData.name.trim()) {
-        throw new Error('Product name is required')
-      }
-      if (!formData.categoryId) {
-        throw new Error('Category is required')
-      }
-
-      const sellingPrice = parseFloat(formData.sellingPrice)
-      const stockQty = parseInt(formData.stockQty, 10)
-
-      if (isNaN(sellingPrice) || sellingPrice < 0) {
-        throw new Error('Invalid selling price')
-      }
-      if (isNaN(stockQty) || stockQty < 0) {
-        throw new Error('Invalid stock quantity')
-      }
-
-      // Create product with minimal fields
-      await createProduct({
-        name: formData.name,
-        barcode: null,
-        categoryId: formData.categoryId,
-        sellingPrice,
-        stockQty,
-        lowStockThreshold: 10, // Default threshold
-        userId,
-      })
-
-      // Success feedback
-      toast.success(`"${formData.name}" added successfully`, {
-        description: saveAndAddAnother ? 'Ready to add another product' : 'Product has been saved',
-        duration: 3000,
-      })
-
-      onSuccess()
-
-      if (saveAndAddAnother) {
-        // Reset form but keep category selection and dialog open
-        setFormData({
-          name: '',
-          categoryId: formData.categoryId,
-          sellingPrice: '',
-          stockQty: '0',
-        })
-      } else {
-        // Close dialog
-        onOpenChange(false)
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create product')
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -234,7 +74,7 @@ export function QuickAddProductDialog({
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) => setFormData({ name: e.target.value })}
               placeholder="e.g. Coca Cola 1.5L"
               disabled={isLoading}
               className="h-9 text-xs lg:h-10 lg:text-sm"
@@ -266,7 +106,7 @@ export function QuickAddProductDialog({
                       id="new-category-name"
                       value={categoryFormData.name}
                       onChange={(e) =>
-                        setCategoryFormData({ ...categoryFormData, name: e.target.value })
+                        setCategoryFormData({ name: e.target.value })
                       }
                       placeholder="e.g. Frozen Goods"
                       disabled={isLoading}
@@ -282,7 +122,7 @@ export function QuickAddProductDialog({
                           key={color}
                           type="button"
                           onClick={() =>
-                            setCategoryFormData({ ...categoryFormData, color })
+                            setCategoryFormData({ color })
                           }
                           disabled={isLoading}
                           className={`h-7 w-7 rounded-full border-2 transition-all ${
@@ -369,7 +209,7 @@ export function QuickAddProductDialog({
               step="0.01"
               min="0"
               value={formData.sellingPrice}
-              onChange={(e) => setFormData({ ...formData, sellingPrice: e.target.value })}
+              onChange={(e) => setFormData({ sellingPrice: e.target.value })}
               placeholder="0.00"
               disabled={isLoading}
               className="h-9 text-xs lg:h-10 lg:text-sm"
@@ -386,7 +226,7 @@ export function QuickAddProductDialog({
               type="number"
               min="0"
               value={formData.stockQty}
-              onChange={(e) => setFormData({ ...formData, stockQty: e.target.value })}
+              onChange={(e) => setFormData({ stockQty: e.target.value })}
               placeholder="0"
               disabled={isLoading}
               className="h-9 text-xs lg:h-10 lg:text-sm"

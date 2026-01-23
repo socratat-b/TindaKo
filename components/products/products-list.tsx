@@ -1,6 +1,5 @@
 'use client'
 
-import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -33,17 +32,10 @@ import {
 } from '@/components/ui/alert-dialog'
 import { ProductFormDialog } from './product-form-dialog'
 import { QuickAddProductDialog } from './quick-add-product-dialog'
-import { deleteProduct } from '@/lib/actions/products'
+import { useProductsList } from '@/lib/hooks/use-products-list'
 import { useFormatCurrency } from '@/lib/utils/currency'
 import { Zap } from 'lucide-react'
-import type { Product, Category } from '@/lib/db/schema'
-
-interface ProductsListProps {
-  products: Product[]
-  categories: Category[]
-  userId: string
-  onRefresh: () => void
-}
+import type { ProductsListProps } from '@/lib/types'
 
 export function ProductsList({
   products,
@@ -52,72 +44,28 @@ export function ProductsList({
   onRefresh,
 }: ProductsListProps) {
   const formatCurrency = useFormatCurrency()
-  const [search, setSearch] = useState('')
-  const [categoryFilter, setCategoryFilter] = useState<string>('all')
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
-  const [isFormOpen, setIsFormOpen] = useState(false)
-  const [isQuickAddOpen, setIsQuickAddOpen] = useState(false)
-  const [deletingProduct, setDeletingProduct] = useState<Product | null>(null)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
-  const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
-      const matchesSearch =
-        product.name.toLowerCase().includes(search.toLowerCase()) ||
-        product.barcode?.toLowerCase().includes(search.toLowerCase())
-
-      const matchesCategory =
-        categoryFilter === 'all' || product.categoryId === categoryFilter
-
-      return matchesSearch && matchesCategory
-    })
-  }, [products, search, categoryFilter])
-
-  const handleEdit = (product: Product) => {
-    setEditingProduct(product)
-    setIsFormOpen(true)
-  }
-
-  const handleDelete = (product: Product) => {
-    setDeletingProduct(product)
-    setIsDeleteDialogOpen(true)
-  }
-
-  const handleConfirmDelete = async () => {
-    if (!deletingProduct) return
-
-    try {
-      await deleteProduct(deletingProduct.id)
-      setIsDeleteDialogOpen(false)
-      setDeletingProduct(null)
-      onRefresh()
-    } catch (error) {
-      alert(error instanceof Error ? error.message : 'Failed to delete product')
-    }
-  }
-
-  const handleFormClose = () => {
-    setIsFormOpen(false)
-    setEditingProduct(null)
-  }
-
-  const getCategoryName = (categoryId: string) => {
-    return categories.find((c) => c.id === categoryId)?.name || 'Unknown'
-  }
-
-  const getCategoryColor = (categoryId: string) => {
-    return categories.find((c) => c.id === categoryId)?.color || '#6b7280'
-  }
-
-  const getStockStatus = (product: Product) => {
-    if (product.stockQty === 0) {
-      return { label: 'Out of Stock', variant: 'destructive' as const }
-    }
-    if (product.stockQty <= product.lowStockThreshold) {
-      return { label: 'Low Stock', variant: 'secondary' as const }
-    }
-    return { label: 'In Stock', variant: 'default' as const }
-  }
+  const {
+    search,
+    categoryFilter,
+    editingProduct,
+    isFormOpen,
+    isQuickAddOpen,
+    deletingProduct,
+    isDeleteDialogOpen,
+    filteredProducts,
+    setSearch,
+    setCategoryFilter,
+    setIsQuickAddOpen,
+    setIsDeleteDialogOpen,
+    handleEdit,
+    handleDelete,
+    handleConfirmDelete,
+    handleFormClose,
+    getCategoryName,
+    getCategoryColor,
+    getStockStatus,
+  } = useProductsList({ products, categories, onRefresh })
 
   return (
     <div className="space-y-3 lg:space-y-4">
@@ -137,7 +85,7 @@ export function ProductsList({
           />
 
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="h-9 w-full text-xs lg:h-10 lg:w-[180px] lg:text-sm">
+            <SelectTrigger className="h-9 w-full text-xs lg:h-10 lg:w-45 lg:text-sm">
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
@@ -381,7 +329,12 @@ export function ProductsList({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete}>Delete</AlertDialogAction>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

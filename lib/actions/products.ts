@@ -9,7 +9,7 @@ const refreshStore = (userId: string) => {
   }
 }
 
-export interface ProductFormData {
+export interface CreateProductInput {
   name: string
   barcode: string | null
   categoryId: string
@@ -19,7 +19,7 @@ export interface ProductFormData {
   userId: string
 }
 
-export interface CategoryFormData {
+export interface CreateCategoryInput {
   name: string
   color: string
   sortOrder: number
@@ -29,7 +29,7 @@ export interface CategoryFormData {
 /**
  * Create a new product
  */
-export async function createProduct(data: ProductFormData): Promise<string> {
+export async function createProduct(data: CreateProductInput): Promise<string> {
   const now = new Date().toISOString()
   const productId = crypto.randomUUID()
 
@@ -85,7 +85,7 @@ export async function createProduct(data: ProductFormData): Promise<string> {
  */
 export async function updateProduct(
   id: string,
-  data: Partial<ProductFormData>
+  data: Partial<CreateProductInput>
 ): Promise<void> {
   const now = new Date().toISOString()
 
@@ -161,7 +161,7 @@ export async function deleteProduct(id: string): Promise<void> {
 /**
  * Create a new category
  */
-export async function createCategory(data: CategoryFormData): Promise<string> {
+export async function createCategory(data: CreateCategoryInput): Promise<string> {
   const now = new Date().toISOString()
   const categoryId = crypto.randomUUID()
 
@@ -209,7 +209,7 @@ export async function createCategory(data: CategoryFormData): Promise<string> {
  */
 export async function updateCategory(
   id: string,
-  data: Partial<CategoryFormData>
+  data: Partial<CreateCategoryInput>
 ): Promise<void> {
   const now = new Date().toISOString()
 
