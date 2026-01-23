@@ -32,8 +32,10 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { ProductFormDialog } from './product-form-dialog'
+import { QuickAddProductDialog } from './quick-add-product-dialog'
 import { deleteProduct } from '@/lib/actions/products'
 import { useFormatCurrency } from '@/lib/utils/currency'
+import { Zap } from 'lucide-react'
 import type { Product, Category } from '@/lib/db/schema'
 
 interface ProductsListProps {
@@ -54,6 +56,7 @@ export function ProductsList({
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const [isQuickAddOpen, setIsQuickAddOpen] = useState(false)
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
@@ -149,13 +152,12 @@ export function ProductsList({
         </div>
 
         <Button
-          onClick={() => {
-            setEditingProduct(null)
-            setIsFormOpen(true)
-          }}
-          className="h-9 w-full text-xs lg:h-10 lg:w-auto lg:text-sm"
+          onClick={() => setIsQuickAddOpen(true)}
+          className="h-9 w-full gap-1.5 text-xs lg:h-10 lg:w-auto lg:text-sm"
+          variant="default"
         >
-          Add Product
+          <Zap className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
+          <span>Quick Add Product</span>
         </Button>
       </motion.div>
 
@@ -167,7 +169,7 @@ export function ProductsList({
               <>
                 <p className="text-sm font-medium lg:text-lg">Welcome to TindaKo!</p>
                 <p className="text-xs text-muted-foreground lg:text-sm">
-                  Start by adding your first product. Click &quot;Add Product&quot; to get started.
+                  Start by adding your first product. Click &quot;Quick Add Product&quot; to get started.
                 </p>
                 <p className="mt-2 text-[10px] text-muted-foreground lg:text-xs">
                   Tip: Add common items like Coke 1L, Lucky Me Pancit Canton, or Del Monte Sardinas
@@ -220,11 +222,7 @@ export function ProductsList({
                 </Badge>
 
                 {/* Pricing and Stock Info */}
-                <div className="grid grid-cols-3 gap-2 pt-1">
-                  <div>
-                    <p className="text-[9px] text-muted-foreground">Cost</p>
-                    <p className="text-xs font-medium">{formatCurrency(product.costPrice)}</p>
-                  </div>
+                <div className="grid grid-cols-2 gap-2 pt-1">
                   <div>
                     <p className="text-[9px] text-muted-foreground">Price</p>
                     <p className="text-xs font-semibold">{formatCurrency(product.sellingPrice)}</p>
@@ -269,7 +267,6 @@ export function ProductsList({
               <TableHead>Product Name</TableHead>
               <TableHead>Barcode</TableHead>
               <TableHead>Category</TableHead>
-              <TableHead className="text-right">Cost</TableHead>
               <TableHead className="text-right">Price</TableHead>
               <TableHead className="text-right">Stock</TableHead>
               <TableHead>Status</TableHead>
@@ -279,13 +276,13 @@ export function ProductsList({
           <TableBody>
             {filteredProducts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="py-12 text-center">
+                <TableCell colSpan={7} className="py-12 text-center">
                   <div className="flex flex-col items-center gap-2">
                     {products.length === 0 ? (
                       <>
                         <p className="text-lg font-medium">Welcome to TindaKo!</p>
                         <p className="text-sm text-muted-foreground">
-                          Start by adding your first product. Click &quot;Add Product&quot; to get started.
+                          Start by adding your first product. Click &quot;Quick Add Product&quot; to get started.
                         </p>
                         <p className="mt-2 text-xs text-muted-foreground">
                           Tip: Add common items like Coke 1L, Lucky Me Pancit Canton, or Del Monte Sardinas
@@ -325,9 +322,6 @@ export function ProductsList({
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      {formatCurrency(product.costPrice)}
-                    </TableCell>
-                    <TableCell className="text-right">
                       {formatCurrency(product.sellingPrice)}
                     </TableCell>
                     <TableCell className="text-right">{product.stockQty}</TableCell>
@@ -359,6 +353,14 @@ export function ProductsList({
           </TableBody>
         </Table>
       </div>
+
+      <QuickAddProductDialog
+        open={isQuickAddOpen}
+        onOpenChange={setIsQuickAddOpen}
+        categories={categories}
+        userId={userId}
+        onSuccess={onRefresh}
+      />
 
       <ProductFormDialog
         open={isFormOpen}
