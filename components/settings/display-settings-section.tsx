@@ -3,15 +3,9 @@
 import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Switch } from '@/components/ui/switch'
-import { useSettings } from '@/lib/hooks/use-settings'
 import { useTheme } from 'next-themes'
 
 export function DisplaySettingsSection() {
-  const {
-    showLowStockAlerts,
-    updateSettings
-  } = useSettings()
   const { theme, setTheme } = useTheme()
 
   const handleThemeChange = (value: string) => {
@@ -45,22 +39,6 @@ export function DisplaySettingsSection() {
               </Label>
             </div>
           </RadioGroup>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label htmlFor="low-stock-alerts" className="text-xs lg:text-sm">
-              Low Stock Alerts
-            </Label>
-            <p className="text-[10px] lg:text-xs text-muted-foreground">
-              Show alerts for low stock items
-            </p>
-          </div>
-          <Switch
-            id="low-stock-alerts"
-            checked={showLowStockAlerts}
-            onCheckedChange={(checked) => updateSettings({ showLowStockAlerts: checked })}
-          />
         </div>
       </div>
     </Card>
