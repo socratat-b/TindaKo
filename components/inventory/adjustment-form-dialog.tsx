@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   Dialog,
@@ -21,17 +20,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ArrowUpCircle, ArrowDownCircle, Settings } from 'lucide-react'
-import type { Product, Category } from '@/lib/db/schema'
-import { createInventoryMovement } from '@/lib/actions/inventory'
-import { useSyncStore } from '@/lib/stores/sync-store'
-
-type AdjustmentFormDialogProps = {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  userId: string
-  products: Product[]
-  categories: Category[]
-}
+import { useAdjustmentForm } from '@/lib/hooks/use-adjustment-form'
+import type { AdjustmentFormDialogProps } from '@/lib/types'
 
 export function AdjustmentFormDialog({
   open,
@@ -39,47 +29,20 @@ export function AdjustmentFormDialog({
   userId,
   products,
   categories,
+  initialProductId,
+  mode = 'manual',
 }: AdjustmentFormDialogProps) {
-  const [selectedProductId, setSelectedProductId] = useState('')
-  const [movementType, setMovementType] = useState<'in' | 'out' | 'adjust'>('in')
-  const [quantity, setQuantity] = useState('')
-  const [notes, setNotes] = useState('')
-  const [isPending, setIsPending] = useState(false)
-  const [error, setError] = useState<string | undefined>()
+  const { formData, isLoading, error, setFormData, handleSubmit } = useAdjustmentForm({
+    userId,
+    onOpenChange,
+    open,
+    initialProductId,
+    mode,
+  })
 
-  const setHasPendingChanges = useSyncStore((state) => state.setHasPendingChanges)
+  const isRestockMode = mode === 'restock'
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setIsPending(true)
-    setError(undefined)
-
-    const qty = parseInt(quantity, 10)
-
-    const result = await createInventoryMovement({
-      userId,
-      productId: selectedProductId,
-      type: movementType,
-      qty,
-      notes: notes || undefined,
-    })
-
-    setIsPending(false)
-
-    if (result.success) {
-      setHasPendingChanges(true)
-      setSelectedProductId('')
-      setMovementType('in')
-      setQuantity('')
-      setNotes('')
-      setError(undefined)
-      onOpenChange(false)
-    } else {
-      setError(result.error)
-    }
-  }
-
-  const selectedProduct = products.find((p) => p.id === selectedProductId)
+  const selectedProduct = products.find((p) => p.id === formData.productId)
 
   const getCategoryName = (categoryId: string) => {
     return categories.find((c) => c.id === categoryId)?.name || 'Uncategorized'
@@ -90,161 +53,220 @@ export function AdjustmentFormDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="text-lg md:text-xl">
-            New Inventory Adjustment
+            {isRestockMode && selectedProduct
+              ? `Restock - ${selectedProduct.name}`
+              : 'Adjust Stock'}
           </DialogTitle>
           <DialogDescription className="text-xs md:text-sm">
-            Add, remove, or adjust product stock levels
+            {isRestockMode
+              ? 'Add items to increase stock level'
+              : 'Add, remove, or adjust product stock levels'}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Product Selection */}
+          {/* Product Selection - Conditional based on mode */}
           <div className="space-y-2">
-            <Label htmlFor="productId" className="text-xs md:text-sm">
-              Product *
-            </Label>
-            <Select
-              name="productId"
-              value={selectedProductId}
-              onValueChange={setSelectedProductId}
-              required
-            >
-              <SelectTrigger className="h-9 text-xs md:h-10 md:text-sm">
-                <SelectValue placeholder="Select a product" />
-              </SelectTrigger>
-              <SelectContent>
-                {products.map((product) => (
-                  <SelectItem
-                    key={product.id}
-                    value={product.id}
-                    className="text-xs md:text-sm"
+            {isRestockMode ? (
+              <>
+                {/* Read-only product display for restock mode */}
+                {selectedProduct && (
+                  <motion.div
+                    className="rounded-lg bg-muted p-4"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.2 }}
                   >
-                    <div className="flex items-center justify-between gap-2">
-                      <span>{product.name}</span>
-                      <span className="text-[10px] text-muted-foreground">
-                        Stock: {product.stockQty}
-                      </span>
+                    <h3 className="text-lg font-bold md:text-xl">{selectedProduct.name}</h3>
+                    <p className="text-xs text-muted-foreground md:text-sm">
+                      {getCategoryName(selectedProduct.categoryId)}
+                    </p>
+
+                    <div className="mt-4 space-y-2">
+                      <div className="flex justify-between text-sm md:text-base">
+                        <span className="text-muted-foreground">Current Stock:</span>
+                        <span
+                          className={`text-xl font-bold md:text-2xl ${
+                            selectedProduct.stockQty === 0
+                              ? 'text-red-600 dark:text-red-400'
+                              : selectedProduct.stockQty <= selectedProduct.lowStockThreshold
+                                ? 'text-orange-600 dark:text-orange-400'
+                                : ''
+                          }`}
+                        >
+                          {selectedProduct.stockQty}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-xs md:text-sm">
+                        <span className="text-muted-foreground">Need at least:</span>
+                        <span className="font-medium">{selectedProduct.lowStockThreshold}</span>
+                      </div>
                     </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {selectedProduct && (
-              <motion.div
-                className="rounded-md bg-muted p-2 text-[10px] md:text-xs"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Category:</span>
-                  <span className="font-medium">
-                    {getCategoryName(selectedProduct.categoryId)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Current Stock:</span>
-                  <span className="font-semibold">{selectedProduct.stockQty}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Low Stock Alert:</span>
-                  <span>{selectedProduct.lowStockThreshold}</span>
-                </div>
-              </motion.div>
+                  </motion.div>
+                )}
+              </>
+            ) : (
+              <>
+                {/* Full product selector for manual mode */}
+                <Label htmlFor="productId" className="text-xs md:text-sm">
+                  Select Product *
+                </Label>
+                <Select
+                  name="productId"
+                  value={formData.productId}
+                  onValueChange={(value) => setFormData({ productId: value })}
+                  required
+                >
+                  <SelectTrigger className="h-9 w-full text-xs md:h-10 md:text-sm">
+                    <SelectValue placeholder="Select a product" />
+                  </SelectTrigger>
+                  <SelectContent className="w-full max-w-[calc(100vw-2rem)] md:max-w-[calc(var(--radix-select-trigger-width))]">
+                    {products.map((product) => (
+                      <SelectItem
+                        key={product.id}
+                        value={product.id}
+                        className="text-xs md:text-sm"
+                      >
+                        <div className="flex items-center justify-between gap-2 w-full">
+                          <span className="flex-1 truncate">{product.name}</span>
+                          <span className="text-[10px] text-muted-foreground shrink-0">
+                            Stock: {product.stockQty}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedProduct && (
+                  <motion.div
+                    className="rounded-md bg-muted p-3"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <div className="space-y-1.5 text-xs md:text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">
+                          {getCategoryName(selectedProduct.categoryId)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Current Stock:</span>
+                        <span className="text-base font-bold">{selectedProduct.stockQty}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Alert Level:</span>
+                        <span className="font-medium">{selectedProduct.lowStockThreshold}</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </>
             )}
           </div>
 
-          {/* Movement Type */}
-          <div className="space-y-2">
-            <Label htmlFor="type" className="text-xs md:text-sm">
-              Adjustment Type *
-            </Label>
-            <Select
-              name="type"
-              value={movementType}
-              onValueChange={(value) => setMovementType(value as 'in' | 'out' | 'adjust')}
-              required
-            >
-              <SelectTrigger className="h-9 text-xs md:h-10 md:text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="in" className="text-xs md:text-sm">
-                  <div className="flex items-center gap-2">
-                    <ArrowUpCircle className="h-4 w-4 text-green-600" />
-                    <span>Stock In (Add)</span>
+          {/* Movement Type - Hidden in restock mode */}
+          {!isRestockMode && (
+            <div className="space-y-2">
+              <Label className="text-xs md:text-sm">What do you want to do? *</Label>
+              <div className="space-y-2">
+                <label className="flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-muted">
+                  <input
+                    type="radio"
+                    name="type"
+                    value="in"
+                    checked={formData.type === 'in'}
+                    onChange={(e) => setFormData({ type: e.target.value as 'in' })}
+                    className="mt-1"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <ArrowUpCircle className="h-4 w-4 text-green-600" />
+                      <span className="text-xs font-medium md:text-sm">Add Stock</span>
+                    </div>
+                    <p className="mt-0.5 text-[10px] text-muted-foreground md:text-xs">
+                      Add new items (from supplier or restock)
+                    </p>
                   </div>
-                </SelectItem>
-                <SelectItem value="out" className="text-xs md:text-sm">
-                  <div className="flex items-center gap-2">
-                    <ArrowDownCircle className="h-4 w-4 text-red-600" />
-                    <span>Stock Out (Remove)</span>
+                </label>
+
+                <label className="flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-muted">
+                  <input
+                    type="radio"
+                    name="type"
+                    value="out"
+                    checked={formData.type === 'out'}
+                    onChange={(e) => setFormData({ type: e.target.value as 'out' })}
+                    className="mt-1"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <ArrowDownCircle className="h-4 w-4 text-red-600" />
+                      <span className="text-xs font-medium md:text-sm">Remove Stock</span>
+                    </div>
+                    <p className="mt-0.5 text-[10px] text-muted-foreground md:text-xs">
+                      Reduce items (damaged, expired, or lost)
+                    </p>
                   </div>
-                </SelectItem>
-                <SelectItem value="adjust" className="text-xs md:text-sm">
-                  <div className="flex items-center gap-2">
-                    <Settings className="h-4 w-4 text-blue-600" />
-                    <span>Adjust (Set new total)</span>
+                </label>
+
+                <label className="flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-muted">
+                  <input
+                    type="radio"
+                    name="type"
+                    value="adjust"
+                    checked={formData.type === 'adjust'}
+                    onChange={(e) => setFormData({ type: e.target.value as 'adjust' })}
+                    className="mt-1"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <Settings className="h-4 w-4 text-blue-600" />
+                      <span className="text-xs font-medium md:text-sm">Set Exact Count</span>
+                    </div>
+                    <p className="mt-0.5 text-[10px] text-muted-foreground md:text-xs">
+                      Set the correct total (after manual counting)
+                    </p>
                   </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-[10px] text-muted-foreground">
-              {movementType === 'in' &&
-                'Add stock to the current quantity (e.g., receiving new inventory)'}
-              {movementType === 'out' &&
-                'Remove stock from the current quantity (e.g., damaged items)'}
-              {movementType === 'adjust' &&
-                'Set the stock to a specific quantity (e.g., after physical count)'}
-            </p>
-          </div>
+                </label>
+              </div>
+            </div>
+          )}
 
           {/* Quantity */}
           <div className="space-y-2">
             <Label htmlFor="quantity" className="text-xs md:text-sm">
-              {movementType === 'adjust' ? 'New Total Quantity *' : 'Quantity *'}
+              {isRestockMode
+                ? 'How many items to add? *'
+                : formData.type === 'adjust'
+                  ? 'New Total Quantity *'
+                  : 'How many? *'}
             </Label>
             <Input
               type="number"
               id="quantity"
               name="quantity"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
+              value={formData.quantity}
+              onChange={(e) => setFormData({ quantity: e.target.value })}
               min="1"
               step="1"
               required
               className="h-9 text-xs md:h-10 md:text-sm"
-              placeholder={movementType === 'adjust' ? 'Enter new total' : 'Enter quantity'}
+              placeholder={formData.type === 'adjust' ? 'Enter new total' : 'Enter quantity'}
             />
-            {selectedProduct && quantity && (
+            {selectedProduct && formData.quantity && (
               <motion.p
-                className="text-[10px] text-muted-foreground"
+                className="text-[10px] text-muted-foreground md:text-xs"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
               >
-                {movementType === 'in' &&
-                  `New stock: ${selectedProduct.stockQty} + ${quantity} = ${selectedProduct.stockQty + parseInt(quantity)}`}
-                {movementType === 'out' &&
-                  `New stock: ${selectedProduct.stockQty} - ${quantity} = ${selectedProduct.stockQty - parseInt(quantity)}`}
-                {movementType === 'adjust' && `New stock will be set to: ${quantity}`}
+                {formData.type === 'in' &&
+                  `New stock will be: ${selectedProduct.stockQty} + ${formData.quantity} = ${selectedProduct.stockQty + parseInt(formData.quantity)}`}
+                {formData.type === 'out' &&
+                  `New stock will be: ${selectedProduct.stockQty} - ${formData.quantity} = ${selectedProduct.stockQty - parseInt(formData.quantity)}`}
+                {formData.type === 'adjust' && `New stock will be set to: ${formData.quantity}`}
               </motion.p>
             )}
-          </div>
-
-          {/* Notes */}
-          <div className="space-y-2">
-            <Label htmlFor="notes" className="text-xs md:text-sm">
-              Notes (Optional)
-            </Label>
-            <Textarea
-              id="notes"
-              name="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={3}
-              className="resize-none text-xs md:text-sm"
-              placeholder="Add notes about this adjustment..."
-            />
           </div>
 
           {/* Error Message */}
@@ -265,17 +287,21 @@ export function AdjustmentFormDialog({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={isPending}
+              disabled={isLoading}
               className="flex-1 h-9 text-xs md:h-10 md:text-sm"
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              disabled={isPending || !selectedProductId || !quantity}
+              disabled={isLoading || !formData.productId || !formData.quantity}
               className="flex-1 h-9 text-xs md:h-10 md:text-sm"
             >
-              {isPending ? 'Creating...' : 'Create Adjustment'}
+              {isLoading
+                ? 'Saving...'
+                : isRestockMode
+                  ? 'Add Stock'
+                  : 'Save Changes'}
             </Button>
           </div>
         </form>
