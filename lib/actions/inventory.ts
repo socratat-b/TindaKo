@@ -14,7 +14,6 @@ export type CreateInventoryMovementInput = {
   productId: string
   type: 'in' | 'out' | 'adjust'
   qty: number
-  notes?: string
 }
 
 export type InventoryMovementResult = {
@@ -92,7 +91,7 @@ export async function createInventoryMovement(
           productId: data.productId,
           type: data.type,
           qty: data.qty,
-          notes: data.notes || null,
+          notes: null,
           createdAt: now,
           updatedAt: now,
           syncedAt: null,
