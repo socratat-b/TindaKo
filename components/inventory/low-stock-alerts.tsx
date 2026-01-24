@@ -3,8 +3,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { AlertTriangle, Package, ArrowUpCircle } from 'lucide-react'
-import { useSettings } from '@/lib/hooks/use-settings'
-import type { Product, Category } from '@/lib/db/schema'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -16,27 +14,21 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Pagination } from '@/components/ui/pagination'
 import { AdjustmentFormDialog } from './adjustment-form-dialog'
-
-type LowStockAlertsProps = {
-  products: Product[]
-  categories: Category[]
-  userId: string
-}
+import type { LowStockAlertsProps } from '@/lib/types'
 
 export function LowStockAlerts({
-  products,
+  lowStockProducts,
+  allProducts,
   categories,
   userId,
+  currentPage,
+  itemsPerPage,
+  onPageChange,
 }: LowStockAlertsProps) {
-  const { showLowStockAlerts } = useSettings()
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
   const [isAdjustmentDialogOpen, setIsAdjustmentDialogOpen] = useState(false)
-
-  // Don't show alerts if disabled in settings
-  if (!showLowStockAlerts) {
-    return null
-  }
 
   const getCategoryName = (categoryId: string) => {
     return categories.find((c) => c.id === categoryId)?.name || 'Uncategorized'
@@ -57,7 +49,7 @@ export function LowStockAlerts({
     setIsAdjustmentDialogOpen(true)
   }
 
-  if (!products || products.length === 0) {
+  if (!lowStockProducts || lowStockProducts.length === 0) {
     return (
       <motion.div
         className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center"
@@ -75,7 +67,13 @@ export function LowStockAlerts({
   }
 
   // Sort by stock quantity (lowest first)
-  const sortedProducts = [...products].sort((a, b) => a.stockQty - b.stockQty)
+  const sortedProducts = [...lowStockProducts].sort((a, b) => a.stockQty - b.stockQty)
+
+  // Pagination calculations
+  const totalPages = Math.ceil(sortedProducts.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedProducts = sortedProducts.slice(startIndex, endIndex)
 
   return (
     <>
@@ -87,7 +85,7 @@ export function LowStockAlerts({
           <div className="flex-1">
             <h2 className="text-base font-semibold md:text-lg">Low Stock Alerts</h2>
             <p className="mt-1 text-xs text-muted-foreground md:text-sm">
-              {products.length} {products.length === 1 ? 'product' : 'products'} below
+              {lowStockProducts.length} {lowStockProducts.length === 1 ? 'product' : 'products'} below
               threshold. Restock soon to avoid running out.
             </p>
           </div>
@@ -107,7 +105,7 @@ export function LowStockAlerts({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedProducts.map((product, index) => {
+                {paginatedProducts.map((product, index) => {
                   const status = getStockStatus(product.stockQty, product.lowStockThreshold)
                   const categoryName = getCategoryName(product.categoryId)
 
@@ -169,7 +167,7 @@ export function LowStockAlerts({
 
         {/* Mobile Card View */}
         <div className="grid gap-2 md:hidden">
-          {sortedProducts.map((product, index) => {
+          {paginatedProducts.map((product, index) => {
             const status = getStockStatus(product.stockQty, product.lowStockThreshold)
             const categoryName = getCategoryName(product.categoryId)
 
@@ -246,21 +244,34 @@ export function LowStockAlerts({
             )
           })}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={onPageChange}
+              totalItems={sortedProducts.length}
+              itemsPerPage={itemsPerPage}
+            />
+          </div>
+        )}
       </Card>
 
-      {/* Adjustment Dialog */}
-      {selectedProductId && (
-        <AdjustmentFormDialog
-          open={isAdjustmentDialogOpen}
-          onOpenChange={(open) => {
-            setIsAdjustmentDialogOpen(open)
-            if (!open) setSelectedProductId(null)
-          }}
-          userId={userId}
-          products={products}
-          categories={categories}
-        />
-      )}
+      {/* Adjustment Dialog - Restock Mode */}
+      <AdjustmentFormDialog
+        open={isAdjustmentDialogOpen}
+        onOpenChange={(open) => {
+          setIsAdjustmentDialogOpen(open)
+          if (!open) setSelectedProductId(null)
+        }}
+        userId={userId}
+        products={allProducts}
+        categories={categories}
+        initialProductId={selectedProductId || undefined}
+        mode="restock"
+      />
     </>
   )
 }
