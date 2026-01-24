@@ -18,7 +18,6 @@ export function useSettings() {
 
     // Display
     theme: settings.theme,
-    showLowStockAlerts: settings.showLowStockAlerts,
 
     // Inventory
     lowStockThreshold: settings.lowStockThreshold,
