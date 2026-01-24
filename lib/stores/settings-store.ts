@@ -15,7 +15,6 @@ interface SettingsState {
 
   // Display
   theme: Theme
-  showLowStockAlerts: boolean
 
   // Inventory
   lowStockThreshold: number
@@ -36,7 +35,6 @@ const DEFAULT_SETTINGS: Omit<SettingsState, 'updateSettings' | 'resetToDefaults'
   language: 'en',
   timezone: 'Asia/Manila',
   theme: 'system',
-  showLowStockAlerts: true,
   lowStockThreshold: 10,
   enableBarcodeScanner: true,
   defaultPaymentMethod: 'cash',
@@ -65,7 +63,6 @@ export const useSettingsStore = create<SettingsState>()(
         language: state.language,
         timezone: state.timezone,
         theme: state.theme,
-        showLowStockAlerts: state.showLowStockAlerts,
         lowStockThreshold: state.lowStockThreshold,
         enableBarcodeScanner: state.enableBarcodeScanner,
         defaultPaymentMethod: state.defaultPaymentMethod,
