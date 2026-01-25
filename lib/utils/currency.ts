@@ -16,12 +16,16 @@ const CURRENCY_SYMBOLS: Record<Currency, string> = {
 /**
  * Format amount with currency symbol from settings
  * @param amount - The numeric amount to format
- * @returns Formatted currency string (e.g., "₱123.45")
+ * @returns Formatted currency string (e.g., "₱123,456.78")
  */
 export function formatCurrency(amount: number): string {
   const currency = useSettingsStore.getState().currency
   const symbol = CURRENCY_SYMBOLS[currency]
-  return `${symbol}${amount.toFixed(2)}`
+  const formatted = amount.toLocaleString('en-PH', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })
+  return `${symbol}${formatted}`
 }
 
 /**
@@ -33,6 +37,10 @@ export function useFormatCurrency() {
   const symbol = CURRENCY_SYMBOLS[currency]
 
   return (amount: number): string => {
-    return `${symbol}${amount.toFixed(2)}`
+    const formatted = amount.toLocaleString('en-PH', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })
+    return `${symbol}${formatted}`
   }
 }
