@@ -39,7 +39,7 @@ export default function SettingsInterface({ userId }: SettingsInterfaceProps) {
         <DisplaySettingsSection />
         <InventorySettingsSection />
         <SalesSettingsSection />
-        <DataSettingsSection userId={userId} />
+        <DataSettingsSection />
         <AppSettingsSection />
         <AboutSection />
       </motion.div>
