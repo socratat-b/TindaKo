@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -18,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { PRESET_COLORS } from "@/lib/constants/colors";
 import { useProductForm } from "@/lib/hooks/use-product-form";
+import { useFormattedNumberInput } from "@/lib/hooks/use-formatted-input";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import type { ProductFormDialogProps } from "@/lib/types";
@@ -51,6 +53,21 @@ export function ProductFormDialog({
     categories,
     open,
   });
+
+  // Use formatted input for selling price
+  const formattedSellingPrice = useFormattedNumberInput(formData.sellingPrice);
+
+  // Sync formatted input with form store
+  useEffect(() => {
+    setFormData({ sellingPrice: formattedSellingPrice.rawValue });
+  }, [formattedSellingPrice.rawValue, setFormData]);
+
+  // Update formatted input when sellingPrice changes externally (e.g., form reset)
+  useEffect(() => {
+    if (formData.sellingPrice !== formattedSellingPrice.rawValue) {
+      formattedSellingPrice.setValue(formData.sellingPrice);
+    }
+  }, [formData.sellingPrice]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -250,11 +267,11 @@ export function ProductFormDialog({
               </Label>
               <Input
                 id="sellingPrice"
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.sellingPrice}
-                onChange={(e) => setFormData({ sellingPrice: e.target.value })}
+                type="text"
+                inputMode="decimal"
+                value={formattedSellingPrice.displayValue}
+                onChange={formattedSellingPrice.handleChange}
+                onBlur={formattedSellingPrice.handleBlur}
                 required
                 disabled={isLoading}
                 className="h-9 text-xs lg:h-10 lg:text-sm"
