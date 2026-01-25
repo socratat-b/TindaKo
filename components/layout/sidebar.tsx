@@ -134,8 +134,8 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
           {/* Footer info */}
           <div className="border-t border-border p-4">
             <div className="text-xs text-muted-foreground">
-              <p className="font-semibold">TindaKo POS</p>
-              <p>Offline-first Point of Sale</p>
+              <p className="font-semibold">TindaKo</p>
+              <p>Sari-Sari store management</p>
             </div>
           </div>
         </div>

@@ -14,8 +14,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "TindaKo POS",
-  description: "Offline-first POS for Sari-Sari stores",
+  title: "TindaKo",
+  description: "Business management system for Sari-Sari stores",
 };
 
 export default function RootLayout({

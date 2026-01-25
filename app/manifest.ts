@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "TindaKo POS",
+    name: "TindaKo",
     short_name: "TindaKo",
-    description: "Offline-first Point of Sale system for Sari-Sari stores",
+    description: "Business management system for Sari-Sari stores",
     start_url: "/pos",
     display: "standalone",
     background_color: "#ffffff",
