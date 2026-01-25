@@ -2,91 +2,54 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { useLiveQuery } from 'dexie-react-hooks'
-import { db } from '@/lib/db'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Plus, Search, DollarSign, Users, UserPlus } from 'lucide-react'
+import { Plus, Search, DollarSign, Users } from 'lucide-react'
 import { CustomersList } from './customers-list'
-import { UtangTransactionsList } from './utang-transactions-list'
 import { PaymentFormDialog } from './payment-form-dialog'
 import { ChargeFormDialog } from './charge-form-dialog'
 import { CustomerFormDialog } from './customer-form-dialog'
-import { useSyncStore } from '@/lib/stores/sync-store'
+import { UtangActionDialog } from './utang-action-dialog'
 import { useFormatCurrency } from '@/lib/utils/currency'
-
-type UtangInterfaceProps = {
-  userId: string
-}
+import { useUtang } from '@/lib/hooks/use-utang'
+import type { UtangInterfaceProps } from '@/lib/types/utang'
 
 export default function UtangInterface({ userId }: UtangInterfaceProps) {
   const formatCurrency = useFormatCurrency()
-  const [activeTab, setActiveTab] = useState('customers')
-  const [searchQuery, setSearchQuery] = useState('')
-  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false)
-  const [isChargeDialogOpen, setIsChargeDialogOpen] = useState(false)
-  const [isCustomerFormOpen, setIsCustomerFormOpen] = useState(false)
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null)
+  const [isActionDialogOpen, setIsActionDialogOpen] = useState(false)
 
-  const hasPendingChanges = useSyncStore((state) => state.hasPendingChanges)
+  // Use the custom hook for all logic
+  const {
+    customers,
+    outstandingCustomers,
+    totalOutstanding,
+    customersWithDebt,
+    searchQuery,
+    isPaymentDialogOpen,
+    isChargeDialogOpen,
+    isCustomerFormOpen,
+    selectedCustomerId,
+    currentPage,
+    itemsPerPage,
+    setSearchQuery,
+    setIsPaymentDialogOpen,
+    setIsChargeDialogOpen,
+    setIsCustomerFormOpen,
+    setCurrentPage,
+    handleRecordPayment,
+    handleAddCharge,
+    handleOpenCustomerForm,
+  } = useUtang({ userId })
 
-  // Fetch all customers
-  const customers = useLiveQuery(
-    () =>
-      db.customers
-        .where('userId')
-        .equals(userId)
-        .filter((c) => !c.isDeleted)
-        .sortBy('name'),
-    [userId]
-  )
-
-  // Fetch all transactions
-  const transactions = useLiveQuery(
-    () =>
-      db.utangTransactions
-        .where('userId')
-        .equals(userId)
-        .filter((t) => !t.isDeleted)
-        .reverse()
-        .sortBy('createdAt'),
-    [userId]
-  )
-
-  // Filter customers based on search
-  const filteredCustomers = customers?.filter((customer) => {
-    if (!searchQuery) return true
-    const search = searchQuery.toLowerCase()
-    return (
-      customer.name.toLowerCase().includes(search) ||
-      customer.phone?.toLowerCase().includes(search)
-    )
-  })
-
-  // Outstanding customers (balance > 0)
-  const outstandingCustomers = filteredCustomers?.filter((c) => c.totalUtang > 0) || []
-
-  // Calculate stats
-  const totalOutstanding =
-    customers?.reduce((sum, c) => sum + c.totalUtang, 0) || 0
-  const customersWithDebt = customers?.filter((c) => c.totalUtang > 0).length || 0
-
-  // Open payment dialog with selected customer
-  const handleRecordPayment = (customerId?: string) => {
-    if (customerId) {
-      setSelectedCustomerId(customerId)
+  const handleActionSelect = (action: 'customer' | 'payment' | 'charge') => {
+    if (action === 'customer') {
+      handleOpenCustomerForm()
+    } else if (action === 'payment') {
+      handleRecordPayment()
+    } else if (action === 'charge') {
+      handleAddCharge()
     }
-    setIsPaymentDialogOpen(true)
-  }
-
-  // Open charge dialog with selected customer
-  const handleAddCharge = (customerId?: string) => {
-    if (customerId) {
-      setSelectedCustomerId(customerId)
-    }
-    setIsChargeDialogOpen(true)
   }
 
   return (
@@ -105,47 +68,15 @@ export default function UtangInterface({ userId }: UtangInterfaceProps) {
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Button
-            onClick={() => setIsCustomerFormOpen(true)}
-            variant="outline"
-            className="h-9 flex-1 gap-2 text-xs md:h-10 md:flex-none md:text-sm"
-          >
-            <UserPlus className="h-4 w-4" />
-            <span className="hidden sm:inline">Add Customer</span>
-            <span className="sm:hidden">Customer</span>
-          </Button>
-          <Button
-            onClick={() => handleRecordPayment()}
-            variant="outline"
-            className="h-9 flex-1 gap-2 text-xs md:h-10 md:flex-none md:text-sm"
-          >
-            <DollarSign className="h-4 w-4" />
-            <span className="hidden sm:inline">Record Payment</span>
-            <span className="sm:hidden">Payment</span>
-          </Button>
-          <Button
-            onClick={() => handleAddCharge()}
-            className="h-9 flex-1 gap-2 text-xs md:h-10 md:flex-none md:text-sm"
-          >
-            <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">Add Charge</span>
-            <span className="sm:hidden">Charge</span>
-          </Button>
-        </div>
+        <Button
+          onClick={() => setIsActionDialogOpen(true)}
+          className="h-9 gap-2 text-xs md:h-10 md:text-sm"
+        >
+          <Plus className="h-4 w-4" />
+          Manage Utang
+        </Button>
       </div>
 
-      {/* Pending Changes Indicator */}
-      {hasPendingChanges && (
-        <motion.div
-          className="rounded-lg border border-orange-200 bg-orange-50 p-2 text-xs text-orange-800 md:p-3 md:text-sm dark:border-orange-900 dark:bg-orange-950 dark:text-orange-200"
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          transition={{ duration: 0.2 }}
-        >
-          You have unsynced changes. Click &quot;Backup to cloud&quot; to sync.
-        </motion.div>
-      )}
 
       {/* Stats Cards */}
       <div className="grid gap-3 md:grid-cols-2">
@@ -156,7 +87,7 @@ export default function UtangInterface({ userId }: UtangInterfaceProps) {
             </div>
             <div>
               <p className="text-[10px] text-muted-foreground md:text-xs">
-                Total Outstanding
+                Total Utang
               </p>
               <p className="text-lg font-bold text-destructive md:text-xl">
                 {formatCurrency(totalOutstanding)}
@@ -172,7 +103,7 @@ export default function UtangInterface({ userId }: UtangInterfaceProps) {
             </div>
             <div>
               <p className="text-[10px] text-muted-foreground md:text-xs">
-                Customers with Debt
+                Customers with Utang
               </p>
               <p className="text-lg font-bold md:text-xl">{customersWithDebt}</p>
             </div>
@@ -192,107 +123,60 @@ export default function UtangInterface({ userId }: UtangInterfaceProps) {
         />
       </div>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="customers" className="text-xs md:text-sm">
-            All Customers
-          </TabsTrigger>
-          <TabsTrigger value="outstanding" className="relative text-xs md:text-sm">
-            Outstanding
+      {/* Outstanding Customers List */}
+      <Card className="flex-1 p-4">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-semibold md:text-lg">
+                All Customers
+              </h2>
+              <p className="mt-1 text-xs text-muted-foreground md:text-sm">
+                Manage customer accounts and track balances
+              </p>
+            </div>
             {customersWithDebt > 0 && (
-              <span className="ml-1.5 rounded-full bg-destructive px-1.5 py-0.5 text-[9px] font-semibold text-destructive-foreground md:text-[10px]">
-                {customersWithDebt}
-              </span>
+              <div className="rounded-full bg-destructive px-3 py-1">
+                <span className="text-sm font-semibold text-destructive-foreground">
+                  {customersWithDebt}
+                </span>
+              </div>
             )}
-          </TabsTrigger>
-          <TabsTrigger value="transactions" className="text-xs md:text-sm">
-            Transactions
-          </TabsTrigger>
-        </TabsList>
+          </div>
 
-        <TabsContent value="customers" className="mt-3 md:mt-6">
-          <Card className="p-4">
-            <div className="space-y-4">
-              <div>
-                <h2 className="text-base font-semibold md:text-lg">All Customers</h2>
-                <p className="mt-1 text-xs text-muted-foreground md:text-sm">
-                  View and manage all customer credit accounts
-                </p>
-              </div>
+          <CustomersList
+            customers={outstandingCustomers}
+            onRecordPayment={handleRecordPayment}
+            onAddCharge={handleAddCharge}
+            currentPage={currentPage}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
+        </div>
+      </Card>
 
-              <CustomersList
-                customers={filteredCustomers || []}
-                onRecordPayment={handleRecordPayment}
-                onAddCharge={handleAddCharge}
-              />
-            </div>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="outstanding" className="mt-3 md:mt-6">
-          <Card className="p-4">
-            <div className="space-y-4">
-              <div>
-                <h2 className="text-base font-semibold md:text-lg">
-                  Outstanding Balances
-                </h2>
-                <p className="mt-1 text-xs text-muted-foreground md:text-sm">
-                  Customers with unpaid balances
-                </p>
-              </div>
-
-              <CustomersList
-                customers={outstandingCustomers}
-                onRecordPayment={handleRecordPayment}
-                onAddCharge={handleAddCharge}
-              />
-            </div>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="transactions" className="mt-3 md:mt-6">
-          <Card className="p-4">
-            <div className="space-y-4">
-              <div>
-                <h2 className="text-base font-semibold md:text-lg">
-                  Transaction History
-                </h2>
-                <p className="mt-1 text-xs text-muted-foreground md:text-sm">
-                  All charges and payments recorded
-                </p>
-              </div>
-
-              <UtangTransactionsList
-                transactions={transactions || []}
-                customers={customers || []}
-              />
-            </div>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {/* Utang Action Dialog */}
+      <UtangActionDialog
+        open={isActionDialogOpen}
+        onOpenChange={setIsActionDialogOpen}
+        onSelectAction={handleActionSelect}
+      />
 
       {/* Payment Form Dialog */}
       <PaymentFormDialog
         open={isPaymentDialogOpen}
-        onOpenChange={(open) => {
-          setIsPaymentDialogOpen(open)
-          if (!open) setSelectedCustomerId(null)
-        }}
+        onOpenChange={setIsPaymentDialogOpen}
         userId={userId}
-        customers={customers || []}
+        customers={customers}
         selectedCustomerId={selectedCustomerId}
       />
 
       {/* Charge Form Dialog */}
       <ChargeFormDialog
         open={isChargeDialogOpen}
-        onOpenChange={(open) => {
-          setIsChargeDialogOpen(open)
-          if (!open) setSelectedCustomerId(null)
-        }}
+        onOpenChange={setIsChargeDialogOpen}
         userId={userId}
-        customers={customers || []}
+        customers={customers}
         selectedCustomerId={selectedCustomerId}
       />
 
