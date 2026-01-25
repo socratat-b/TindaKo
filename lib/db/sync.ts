@@ -84,7 +84,7 @@ export async function hasUnsyncedChanges(userId: string): Promise<boolean> {
  * Does NOT download any data from cloud
  * Used for manual "Backup to Cloud" button
  */
-export async function pushToCloud(userId?: string): Promise<SyncStats> {
+export async function pushToCloud(userId?: string, onProgress?: (current: string, completed: number, total: number, count: number) => void): Promise<SyncStats> {
   try {
     // Check if online before attempting sync
     const online = await isOnline()
@@ -95,23 +95,30 @@ export async function pushToCloud(userId?: string): Promise<SyncStats> {
 
     const currentUserId = userId || await getCurrentUserId()
     const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
+    const totalTables = 6
 
     // Push in dependency order
+    onProgress?.('Categories', 0, totalTables, 0)
     const categoriesStats = await pushCategories(currentUserId)
     stats.pushedCount += categoriesStats.pushedCount
 
+    onProgress?.('Customers', 1, totalTables, categoriesStats.pushedCount)
     const customersStats = await pushCustomers(currentUserId)
     stats.pushedCount += customersStats.pushedCount
 
+    onProgress?.('Products', 2, totalTables, customersStats.pushedCount)
     const productsStats = await pushProducts(currentUserId)
     stats.pushedCount += productsStats.pushedCount
 
+    onProgress?.('Sales', 3, totalTables, productsStats.pushedCount)
     const salesStats = await pushSales(currentUserId)
     stats.pushedCount += salesStats.pushedCount
 
+    onProgress?.('Utang', 4, totalTables, salesStats.pushedCount)
     const utangStats = await pushUtangTransactions(currentUserId)
     stats.pushedCount += utangStats.pushedCount
 
+    onProgress?.('Inventory', 5, totalTables, utangStats.pushedCount)
     const inventoryStats = await pushInventoryMovements(currentUserId)
     stats.pushedCount += inventoryStats.pushedCount
 

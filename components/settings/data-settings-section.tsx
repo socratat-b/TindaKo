@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { CloudUpload, Trash2, Loader2 } from 'lucide-react'
-import { useSync } from '@/lib/hooks/use-sync'
+import { CloudUpload, Trash2, Loader2, CheckCircle2 } from 'lucide-react'
+import { useSyncStore } from '@/lib/stores/sync-store'
 import { ClearDataDialog } from './clear-data-dialog'
+import { BackupProgressDialog } from './backup-progress-dialog'
 import { formatDistanceToNow } from 'date-fns'
 
 interface DataSettingsSectionProps {
@@ -13,12 +14,43 @@ interface DataSettingsSectionProps {
 }
 
 export function DataSettingsSection({ userId }: DataSettingsSectionProps) {
-  const { sync, isSyncing, lastSyncTime } = useSync()
+  const backup = useSyncStore((state) => state.backup)
+  const status = useSyncStore((state) => state.status)
+  const lastSyncTime = useSyncStore((state) => state.lastSyncTime)
+  const hasPendingChanges = useSyncStore((state) => state.hasPendingChanges)
+  const resetStatus = useSyncStore((state) => state.resetStatus)
+
   const [isClearDialogOpen, setIsClearDialogOpen] = useState(false)
+  const [isBackupDialogOpen, setIsBackupDialogOpen] = useState(false)
+
+  const isSyncing = status === 'syncing'
+  const isSuccess = status === 'success'
+  const isError = status === 'error'
+  const prevSyncingRef = useRef(isSyncing)
+
+  // Control backup dialog: only open when backup is actively triggered
+  useEffect(() => {
+    // Open dialog when backup starts
+    if (isSyncing && !prevSyncingRef.current) {
+      setIsBackupDialogOpen(true)
+    }
+    // Keep dialog open on error or success, close only on idle
+    if (status === 'idle') {
+      setIsBackupDialogOpen(false)
+    }
+    prevSyncingRef.current = isSyncing
+  }, [isSyncing, status])
+
+  const handleCloseDialog = () => {
+    resetStatus()
+    setIsBackupDialogOpen(false)
+  }
 
   const handleBackup = async () => {
-    await sync()
+    await backup()
   }
+
+  const isUpToDate = !hasPendingChanges && lastSyncTime !== null
 
   return (
     <>
@@ -36,13 +68,18 @@ export function DataSettingsSection({ userId }: DataSettingsSectionProps) {
               <Button
                 size="sm"
                 onClick={handleBackup}
-                disabled={isSyncing}
+                disabled={isSyncing || isUpToDate}
                 className="h-8 text-xs lg:h-9 lg:text-sm"
               >
                 {isSyncing ? (
                   <>
                     <Loader2 className="mr-2 h-3 w-3 lg:h-4 lg:w-4 animate-spin" />
                     Backing up...
+                  </>
+                ) : isUpToDate ? (
+                  <>
+                    <CheckCircle2 className="mr-2 h-3 w-3 lg:h-4 lg:w-4" />
+                    Up to date
                   </>
                 ) : (
                   <>
@@ -82,6 +119,8 @@ export function DataSettingsSection({ userId }: DataSettingsSectionProps) {
           </div>
         </div>
       </Card>
+
+      <BackupProgressDialog isOpen={isBackupDialogOpen} onClose={handleCloseDialog} />
 
       <ClearDataDialog
         open={isClearDialogOpen}

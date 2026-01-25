@@ -3,18 +3,28 @@ import { syncAll, pushToCloud, pullFromCloud, SyncStats } from '@/lib/db/sync'
 
 type SyncStatus = 'idle' | 'syncing' | 'error' | 'success'
 
+interface SyncProgress {
+  currentTable: string
+  tablesCompleted: number
+  totalTables: number
+  currentTableCount: number
+}
+
 interface SyncState {
   status: SyncStatus
   lastSyncTime: number | null
   lastSyncStats: SyncStats | null
   error: string | null
   hasPendingChanges: boolean
+  progress: SyncProgress | null
 
   // Actions
   backup: (userId?: string) => Promise<void> // Push-only (manual backup)
   restore: (userId?: string) => Promise<SyncStats> // Pull-only (auto-restore)
   sync: (isInitialSync?: boolean) => Promise<void> // Full sync (both push + pull, for future use)
   setHasPendingChanges: (value: boolean) => void
+  setProgress: (progress: SyncProgress | null) => void
+  resetStatus: () => void // Reset status to idle and clear error
 }
 
 export const useSyncStore = create<SyncState>((set, get) => ({
@@ -23,6 +33,7 @@ export const useSyncStore = create<SyncState>((set, get) => ({
   lastSyncStats: null,
   error: null,
   hasPendingChanges: false,
+  progress: null,
 
   backup: async (userId?: string) => {
     const { status } = get()
@@ -33,16 +44,26 @@ export const useSyncStore = create<SyncState>((set, get) => ({
       return
     }
 
-    set({ status: 'syncing', error: null })
+    set({ status: 'syncing', error: null, progress: null })
 
     try {
-      const stats = await pushToCloud(userId)
+      const stats = await pushToCloud(userId, (currentTable, tablesCompleted, totalTables, currentTableCount) => {
+        set({
+          progress: {
+            currentTable,
+            tablesCompleted,
+            totalTables,
+            currentTableCount
+          }
+        })
+      })
       set({
         status: 'success',
         lastSyncTime: Date.now(),
         lastSyncStats: stats,
         hasPendingChanges: false,
-        error: null
+        error: null,
+        progress: null
       })
       console.log('✅ Backup completed at', new Date().toISOString(), stats)
 
@@ -148,5 +169,13 @@ export const useSyncStore = create<SyncState>((set, get) => ({
 
   setHasPendingChanges: (value) => {
     set({ hasPendingChanges: value })
+  },
+
+  setProgress: (progress) => {
+    set({ progress })
+  },
+
+  resetStatus: () => {
+    set({ status: 'idle', error: null, progress: null })
   }
 }))

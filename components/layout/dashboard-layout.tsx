@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { DashboardHeader } from './dashboard-header'
 import { Sidebar } from './sidebar'
+import { AuthInitializer } from './auth-initializer'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -13,6 +14,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
+      <AuthInitializer />
       <DashboardHeader onMenuClick={() => setIsSidebarOpen(true)} />
 
       <div className="flex">

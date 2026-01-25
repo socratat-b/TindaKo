@@ -1,40 +1,33 @@
 'use client'
 
 import { useCartStore } from '@/lib/stores/cart-store'
-import { useSyncStore } from '@/lib/stores/sync-store'
 import type { Product } from '@/lib/db/schema'
 
 /**
  * Hook for managing shopping cart
- * Automatically marks pending changes when cart is modified
+ * Cart operations are just UI state - hasPendingChanges is only set when database writes happen
  */
 export function useCart() {
   const cart = useCartStore()
-  const { setHasPendingChanges } = useSyncStore()
 
   const addItem = (product: Product, quantity?: number) => {
     cart.addItem(product, quantity)
-    setHasPendingChanges(true)
   }
 
   const removeItem = (productId: string) => {
     cart.removeItem(productId)
-    setHasPendingChanges(true)
   }
 
   const updateQuantity = (productId: string, quantity: number) => {
     cart.updateQuantity(productId, quantity)
-    setHasPendingChanges(true)
   }
 
   const setPaymentMethod = (method: 'cash' | 'gcash' | 'utang') => {
     cart.setPaymentMethod(method)
-    setHasPendingChanges(true)
   }
 
   const clearCart = () => {
     cart.clearCart()
-    setHasPendingChanges(false)
   }
 
   return {

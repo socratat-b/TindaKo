@@ -2,6 +2,14 @@
 
 import { db } from '@/lib/db'
 import { verifySession } from '@/lib/dal'
+import { useSyncStore } from '@/lib/stores/sync-store'
+
+// Helper to mark pending changes (works on client-side only)
+const markPendingChanges = () => {
+  if (typeof window !== 'undefined') {
+    useSyncStore.getState().setHasPendingChanges(true)
+  }
+}
 
 /**
  * Clear all local data from Dexie database
@@ -117,6 +125,8 @@ export async function clearAllLocalData(): Promise<{ success: boolean; error?: s
         }
       }
     )
+
+    markPendingChanges()
 
     return { success: true }
   } catch (error) {

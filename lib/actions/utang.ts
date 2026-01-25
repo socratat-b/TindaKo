@@ -1,6 +1,14 @@
 'use server'
 
 import { db } from '@/lib/db'
+import { useSyncStore } from '@/lib/stores/sync-store'
+
+// Helper to mark pending changes (works on client-side only)
+const markPendingChanges = () => {
+  if (typeof window !== 'undefined') {
+    useSyncStore.getState().setHasPendingChanges(true)
+  }
+}
 
 export type RecordPaymentInput = {
   userId: string
@@ -85,6 +93,8 @@ export async function recordPayment(
       })
     })
 
+    markPendingChanges()
+
     return { success: true, transactionId }
   } catch (error) {
     console.error('Error recording payment:', error)
@@ -153,6 +163,8 @@ export async function recordManualCharge(
         isDeleted: false,
       })
     })
+
+    markPendingChanges()
 
     return { success: true, transactionId }
   } catch (error) {

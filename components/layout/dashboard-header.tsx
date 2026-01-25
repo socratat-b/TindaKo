@@ -1,8 +1,6 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { SyncIndicator } from './sync-indicator'
-import { PendingChangesIndicator } from './pending-changes-indicator'
 import { Menu, Clock } from 'lucide-react'
 import { useClock } from '@/lib/hooks/use-clock'
 import { useSettings } from '@/lib/hooks/use-settings'
@@ -17,29 +15,24 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
-      <div className="flex h-16 items-center justify-between px-4">
-        <div className="flex items-center gap-3">
+      <div className="flex h-16 items-center justify-between px-4 gap-2 overflow-hidden">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className="md:hidden shrink-0"
             onClick={onMenuClick}
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <h1 className="text-base font-bold text-primary sm:text-lg">
+          <h1 className="text-base font-bold text-primary sm:text-lg whitespace-nowrap">
             TindaKo
           </h1>
         </div>
 
-        <div className="flex items-center gap-3 lg:gap-4">
-          <PendingChangesIndicator />
-          <SyncIndicator />
-
-          <div className="flex items-center gap-1.5 text-xs lg:text-sm text-muted-foreground">
-            <Clock className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
-            <span className="font-medium tabular-nums">{currentTime}</span>
-          </div>
+        <div className="flex items-center gap-1.5 text-xs lg:text-sm text-muted-foreground shrink-0">
+          <Clock className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
+          <span className="font-medium tabular-nums whitespace-nowrap">{currentTime}</span>
         </div>
       </div>
     </header>

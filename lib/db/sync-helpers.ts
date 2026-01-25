@@ -15,7 +15,7 @@ export async function pushCategories(userId: string): Promise<SyncStats> {
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   const unsynced = await db.categories
-    .filter(item => item.syncedAt === null && item.userId === userId)
+    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -25,6 +25,8 @@ export async function pushCategories(userId: string): Promise<SyncStats> {
     if (!error) {
       await db.categories.update(item.id, { syncedAt: new Date().toISOString() })
       stats.pushedCount++
+    } else {
+      console.error('[pushCategories] Failed to push category:', item.id, error)
     }
   }
 
@@ -36,7 +38,7 @@ export async function pushCustomers(userId: string): Promise<SyncStats> {
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   const unsynced = await db.customers
-    .filter(item => item.syncedAt === null && item.userId === userId)
+    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -46,6 +48,9 @@ export async function pushCustomers(userId: string): Promise<SyncStats> {
     if (!error) {
       await db.customers.update(item.id, { syncedAt: new Date().toISOString() })
       stats.pushedCount++
+    } else {
+      console.error('[pushCustomers] Failed to push customer:', item.id, error)
+      throw new Error(`Failed to sync customer ${item.name}: ${error.message}`)
     }
   }
 
@@ -57,7 +62,7 @@ export async function pushProducts(userId: string): Promise<SyncStats> {
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   const unsynced = await db.products
-    .filter(item => item.syncedAt === null && item.userId === userId)
+    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -67,6 +72,8 @@ export async function pushProducts(userId: string): Promise<SyncStats> {
     if (!error) {
       await db.products.update(item.id, { syncedAt: new Date().toISOString() })
       stats.pushedCount++
+    } else {
+      console.error('[pushProducts] Failed to push product:', item.id, error)
     }
   }
 
@@ -78,7 +85,7 @@ export async function pushSales(userId: string): Promise<SyncStats> {
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   const unsynced = await db.sales
-    .filter(item => item.syncedAt === null && item.userId === userId)
+    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -88,6 +95,8 @@ export async function pushSales(userId: string): Promise<SyncStats> {
     if (!error) {
       await db.sales.update(item.id, { syncedAt: new Date().toISOString() })
       stats.pushedCount++
+    } else {
+      console.error('[pushSales] Failed to push sale:', item.id, error)
     }
   }
 
@@ -99,7 +108,7 @@ export async function pushUtangTransactions(userId: string): Promise<SyncStats> 
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   const unsynced = await db.utangTransactions
-    .filter(item => item.syncedAt === null && item.userId === userId)
+    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -109,6 +118,9 @@ export async function pushUtangTransactions(userId: string): Promise<SyncStats> 
     if (!error) {
       await db.utangTransactions.update(item.id, { syncedAt: new Date().toISOString() })
       stats.pushedCount++
+    } else {
+      console.error('[pushUtangTransactions] Failed to push utang transaction:', item.id, error)
+      throw new Error(`Failed to sync utang transaction: ${error.message}`)
     }
   }
 
@@ -120,7 +132,7 @@ export async function pushInventoryMovements(userId: string): Promise<SyncStats>
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   const unsynced = await db.inventoryMovements
-    .filter(item => item.syncedAt === null && item.userId === userId)
+    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -130,6 +142,8 @@ export async function pushInventoryMovements(userId: string): Promise<SyncStats>
     if (!error) {
       await db.inventoryMovements.update(item.id, { syncedAt: new Date().toISOString() })
       stats.pushedCount++
+    } else {
+      console.error('[pushInventoryMovements] Failed to push inventory movement:', item.id, error)
     }
   }
 

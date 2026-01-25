@@ -1,11 +1,13 @@
 import { db } from '@/lib/db'
 import type { Sale, SaleItem, InventoryMovement, UtangTransaction } from '@/lib/db/schema'
 import { useProductsStore } from '@/lib/stores/products-store'
+import { useSyncStore } from '@/lib/stores/sync-store'
 
 // Helper to refresh products store (works on client-side only)
 const refreshStore = (userId: string) => {
   if (typeof window !== 'undefined') {
     useProductsStore.getState().refreshProducts(userId)
+    useSyncStore.getState().setHasPendingChanges(true)
   }
 }
 
