@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { toast } from 'sonner'
 import { useCheckoutStore } from '@/lib/stores/checkout-store'
 import { db } from '@/lib/db'
 import type { UseCheckoutParams } from '@/lib/types'
@@ -85,14 +86,21 @@ export function useCheckout({
 
       await onCheckout(finalAmountPaid, selectedCustomerId || null)
 
-      setIsSuccess(true)
+      // Show success toast
+      const formattedTotal = new Intl.NumberFormat('en-PH', {
+        style: 'currency',
+        currency: 'PHP',
+      }).format(total)
 
-      // Clear cart and close dialog after a short delay
-      setTimeout(() => {
-        clearCart()
-        reset()
-        onOpenChange(false)
-      }, 1500)
+      toast.success('Sale completed', {
+        description: `${formattedTotal} ${paymentMethod} payment processed`,
+        duration: 3000,
+      })
+
+      // Clear cart and close dialog immediately
+      clearCart()
+      reset()
+      onOpenChange(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to process sale')
     } finally {

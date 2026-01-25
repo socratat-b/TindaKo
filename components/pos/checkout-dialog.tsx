@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Loader2, CheckCircle2, UserPlus, AlertCircle } from 'lucide-react'
+import { Loader2, UserPlus, AlertCircle } from 'lucide-react'
 import { QuickAddCustomerDialog } from './quick-add-customer-dialog'
 import type { CheckoutDialogProps } from '@/lib/types'
 
@@ -39,7 +39,6 @@ export function CheckoutDialog({
     amountPaid,
     selectedCustomerId,
     isProcessing,
-    isSuccess,
     error,
     isQuickAddOpen,
     customers,
@@ -69,22 +68,11 @@ export function CheckoutDialog({
           <DialogHeader>
             <DialogTitle className="text-lg">Complete Sale</DialogTitle>
             <DialogDescription className="text-sm">
-              {isSuccess
-                ? 'Sale completed successfully!'
-                : 'Review and complete the transaction'}
+              Review and complete the transaction
             </DialogDescription>
           </DialogHeader>
 
-          {isSuccess ? (
-            <div className="flex flex-col items-center justify-center py-6">
-              <CheckCircle2 className="h-14 w-14 text-emerald-600 mb-3" />
-              <p className="text-lg font-semibold">Payment Successful!</p>
-              <p className="text-sm text-muted-foreground">
-                Receipt generated
-              </p>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-3">
+          <form onSubmit={handleSubmit} className="space-y-3">
               {/* Sale Summary */}
               <div className="space-y-2 p-3 rounded-lg bg-muted/50">
                 <div className="flex justify-between text-sm">
@@ -246,7 +234,6 @@ export function CheckoutDialog({
                 </Button>
               </div>
             </form>
-          )}
         </DialogContent>
       </Dialog>
 
