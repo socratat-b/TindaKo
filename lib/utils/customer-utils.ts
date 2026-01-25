@@ -31,14 +31,58 @@ export async function createCustomer(
       return { success: false, error: 'Name is required' }
     }
 
+    const trimmedPhone = phone?.trim() || null
+    const trimmedName = name.trim()
+
+    // Validate Philippine phone number format (if provided)
+    if (trimmedPhone) {
+      const phoneRegex = /^(09\d{9}|\+639\d{9})$/
+      if (!phoneRegex.test(trimmedPhone)) {
+        return {
+          success: false,
+          error: 'Invalid phone number. Use format: 09XXXXXXXXX (11 digits) or +639XXXXXXXXX',
+        }
+      }
+    }
+
+    // Check for duplicate phone number (if provided)
+    if (trimmedPhone) {
+      const existingCustomerWithPhone = await db.customers
+        .where('userId')
+        .equals(userId)
+        .filter((c) => !c.isDeleted && c.phone === trimmedPhone)
+        .first()
+
+      if (existingCustomerWithPhone) {
+        return {
+          success: false,
+          error: `Phone number ${trimmedPhone} is already registered to ${existingCustomerWithPhone.name}`,
+        }
+      }
+    }
+
+    // Check for duplicate name (case-insensitive warning)
+    const existingCustomerWithName = await db.customers
+      .where('userId')
+      .equals(userId)
+      .filter((c) => !c.isDeleted && c.name.toLowerCase() === trimmedName.toLowerCase())
+      .first()
+
+    if (existingCustomerWithName) {
+      return {
+        success: false,
+        error: `A customer named "${existingCustomerWithName.name}" already exists. Use a different name or add details (e.g., "Juan - Barangay 1")`,
+      }
+    }
+
     const now = new Date().toISOString()
     const customerId = crypto.randomUUID()
 
     await db.customers.add({
       id: customerId,
       userId,
-      name: name.trim(),
-      phone: phone?.trim() || null,
+      name: trimmedName,
+      phone: trimmedPhone,
       address: address?.trim() || null,
       totalUtang: 0,
       createdAt: now,
@@ -73,11 +117,57 @@ export async function updateCustomer(
       return { success: false, error: 'Customer not found' }
     }
 
+    const trimmedPhone = phone?.trim() || null
+    const trimmedName = name.trim()
+
+    // Validate Philippine phone number format (if provided)
+    if (trimmedPhone) {
+      const phoneRegex = /^(09\d{9}|\+639\d{9})$/
+      if (!phoneRegex.test(trimmedPhone)) {
+        return {
+          success: false,
+          error: 'Invalid phone number. Use format: 09XXXXXXXXX (11 digits) or +639XXXXXXXXX',
+        }
+      }
+    }
+
+    // Check for duplicate phone number (if provided and changed)
+    if (trimmedPhone && trimmedPhone !== customer.phone) {
+      const existingCustomerWithPhone = await db.customers
+        .where('userId')
+        .equals(customer.userId)
+        .filter((c) => !c.isDeleted && c.phone === trimmedPhone && c.id !== id)
+        .first()
+
+      if (existingCustomerWithPhone) {
+        return {
+          success: false,
+          error: `Phone number ${trimmedPhone} is already registered to ${existingCustomerWithPhone.name}`,
+        }
+      }
+    }
+
+    // Check for duplicate name (if changed)
+    if (trimmedName.toLowerCase() !== customer.name.toLowerCase()) {
+      const existingCustomerWithName = await db.customers
+        .where('userId')
+        .equals(customer.userId)
+        .filter((c) => !c.isDeleted && c.name.toLowerCase() === trimmedName.toLowerCase() && c.id !== id)
+        .first()
+
+      if (existingCustomerWithName) {
+        return {
+          success: false,
+          error: `A customer named "${existingCustomerWithName.name}" already exists. Use a different name or add details (e.g., "Juan - Barangay 1")`,
+        }
+      }
+    }
+
     const now = new Date().toISOString()
 
     await db.customers.update(id, {
-      name: name.trim(),
-      phone: phone?.trim() || null,
+      name: trimmedName,
+      phone: trimmedPhone,
       address: address?.trim() || null,
       updatedAt: now,
       syncedAt: null,
