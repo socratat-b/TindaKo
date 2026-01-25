@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
+import { useFormattedNumberInput } from '@/lib/hooks/use-formatted-input'
 import {
   Dialog,
   DialogContent,
@@ -45,7 +46,7 @@ export function PaymentFormDialog({
   const formatCurrency = useFormatCurrency()
   const [customerId, setCustomerId] = useState(selectedCustomerId || '')
   const [paymentType, setPaymentType] = useState<'partial' | 'full'>('partial')
-  const [amount, setAmount] = useState('')
+  const formattedAmount = useFormattedNumberInput('')
   const [notes, setNotes] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -65,9 +66,9 @@ export function PaymentFormDialog({
   // Auto-fill amount when payment type changes to full
   useEffect(() => {
     if (paymentType === 'full' && currentBalance > 0) {
-      setAmount(currentBalance.toFixed(2))
+      formattedAmount.setValue(currentBalance)
     } else if (paymentType === 'partial') {
-      setAmount('')
+      formattedAmount.reset()
     }
   }, [paymentType, currentBalance])
 
@@ -80,7 +81,7 @@ export function PaymentFormDialog({
       const result = await recordPayment({
         userId,
         customerId,
-        amount: parseFloat(amount),
+        amount: parseFloat(formattedAmount.rawValue),
         notes: notes || undefined,
       })
 
@@ -88,19 +89,19 @@ export function PaymentFormDialog({
         setHasPendingChanges(true)
 
         // Success toast
-        const formattedAmount = new Intl.NumberFormat('en-PH', {
+        const formattedAmountValue = new Intl.NumberFormat('en-PH', {
           style: 'currency',
           currency: 'PHP',
-        }).format(parseFloat(amount))
+        }).format(parseFloat(formattedAmount.rawValue))
 
         toast.success('Payment recorded', {
-          description: `${formattedAmount} payment recorded for ${selectedCustomer?.name}`,
+          description: `${formattedAmountValue} payment recorded for ${selectedCustomer?.name}`,
           duration: 3000,
         })
 
         setCustomerId('')
         setPaymentType('partial')
-        setAmount('')
+        formattedAmount.reset()
         setNotes('')
         onOpenChange(false)
       } else {
@@ -114,7 +115,7 @@ export function PaymentFormDialog({
   }
 
   // Calculate new balance preview
-  const amountNum = parseFloat(amount) || 0
+  const amountNum = parseFloat(formattedAmount.rawValue) || 0
   const newBalance = currentBalance - amountNum
 
   // Validation: check if payment exceeds balance
@@ -295,23 +296,22 @@ export function PaymentFormDialog({
             <div className="relative">
               <DollarSign className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                type="number"
+                type="text"
+                inputMode="decimal"
                 id="amount"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                min="0.01"
-                step="0.01"
-                max={currentBalance}
+                value={formattedAmount.displayValue}
+                onChange={formattedAmount.handleChange}
+                onBlur={formattedAmount.handleBlur}
                 required
                 disabled={!customerId || paymentType === 'full'}
                 readOnly={paymentType === 'full'}
                 className={`h-9 pl-9 text-xs md:h-10 md:text-sm ${
-                  exceedsBalance && amount ? 'border-destructive' : ''
+                  exceedsBalance && formattedAmount.rawValue ? 'border-destructive' : ''
                 } ${paymentType === 'full' ? 'bg-muted cursor-not-allowed' : ''}`}
                 placeholder={paymentType === 'full' ? 'Auto-filled' : '0.00'}
               />
             </div>
-            {exceedsBalance && amount && (
+            {exceedsBalance && formattedAmount.rawValue && (
               <motion.p
                 className="text-[10px] text-destructive"
                 initial={{ opacity: 0 }}

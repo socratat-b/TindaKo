@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -13,6 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useQuickAddProduct } from '@/lib/hooks/use-quick-add-product'
+import { useFormattedNumberInput } from '@/lib/hooks/use-formatted-input'
 import { PRESET_COLORS } from '@/lib/constants/colors'
 import type { QuickAddProductDialogProps } from '@/lib/types'
 import { Zap, Plus } from 'lucide-react'
@@ -44,6 +46,21 @@ export function QuickAddProductDialog({
     categories,
     open,
   })
+
+  // Use formatted input for selling price
+  const formattedSellingPrice = useFormattedNumberInput(formData.sellingPrice)
+
+  // Sync formatted input with form store
+  useEffect(() => {
+    setFormData({ sellingPrice: formattedSellingPrice.rawValue })
+  }, [formattedSellingPrice.rawValue, setFormData])
+
+  // Update formatted input when sellingPrice changes externally (e.g., form reset)
+  useEffect(() => {
+    if (formData.sellingPrice !== formattedSellingPrice.rawValue) {
+      formattedSellingPrice.setValue(formData.sellingPrice)
+    }
+  }, [formData.sellingPrice])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -205,11 +222,11 @@ export function QuickAddProductDialog({
             </Label>
             <Input
               id="price"
-              type="number"
-              step="0.01"
-              min="0"
-              value={formData.sellingPrice}
-              onChange={(e) => setFormData({ sellingPrice: e.target.value })}
+              type="text"
+              inputMode="decimal"
+              value={formattedSellingPrice.displayValue}
+              onChange={formattedSellingPrice.handleChange}
+              onBlur={formattedSellingPrice.handleBlur}
               placeholder="0.00"
               disabled={isLoading}
               className="h-9 text-xs lg:h-10 lg:text-sm"
