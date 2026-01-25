@@ -1,8 +1,10 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useCart } from '@/lib/hooks/use-cart'
 import { useCheckout } from '@/lib/hooks/use-checkout'
 import { useFormatCurrency } from '@/lib/utils/currency'
+import { useFormattedNumberInput } from '@/lib/hooks/use-formatted-input'
 import {
   Dialog,
   DialogContent,
@@ -61,6 +63,21 @@ export function CheckoutDialog({
     clearCart,
   })
 
+  // Use formatted input for amount paid
+  const formattedAmountInput = useFormattedNumberInput(amountPaid)
+
+  // Sync formatted input with checkout store
+  useEffect(() => {
+    setAmountPaid(formattedAmountInput.rawValue)
+  }, [formattedAmountInput.rawValue, setAmountPaid])
+
+  // Update formatted input when amountPaid changes externally (e.g., payment method change)
+  useEffect(() => {
+    if (amountPaid !== formattedAmountInput.rawValue) {
+      formattedAmountInput.setValue(amountPaid)
+    }
+  }, [amountPaid])
+
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -94,12 +111,12 @@ export function CheckoutDialog({
                     <Label htmlFor="amountPaid" className="text-sm">Amount Paid</Label>
                     <Input
                       id="amountPaid"
-                      type="number"
-                      min={total}
-                      step="0.01"
-                      value={amountPaid}
-                      onChange={(e) => setAmountPaid(e.target.value)}
-                      placeholder={total.toFixed(2)}
+                      type="text"
+                      inputMode="decimal"
+                      value={formattedAmountInput.displayValue}
+                      onChange={formattedAmountInput.handleChange}
+                      onBlur={formattedAmountInput.handleBlur}
+                      placeholder={total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       required
                       autoFocus
                       className="h-11 text-base"
