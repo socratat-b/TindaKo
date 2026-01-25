@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { toast } from 'sonner'
 import {
   Dialog,
   DialogContent,
@@ -85,6 +86,18 @@ export function PaymentFormDialog({
 
       if (result.success) {
         setHasPendingChanges(true)
+
+        // Success toast
+        const formattedAmount = new Intl.NumberFormat('en-PH', {
+          style: 'currency',
+          currency: 'PHP',
+        }).format(parseFloat(amount))
+
+        toast.success('Payment recorded', {
+          description: `${formattedAmount} payment recorded for ${selectedCustomer?.name}`,
+          duration: 3000,
+        })
+
         setCustomerId('')
         setPaymentType('partial')
         setAmount('')
@@ -123,72 +136,120 @@ export function PaymentFormDialog({
 
         <form onSubmit={handleSubmit} className="space-y-4">
 
-          {/* Customer Selection */}
+          {/* Customer Selection - Read-only if pre-selected, dropdown if not */}
           <div className="space-y-2">
             <Label htmlFor="customerId" className="text-xs md:text-sm">
               Customer *
             </Label>
-            <Select value={customerId} onValueChange={setCustomerId} required>
-              <SelectTrigger className="h-9 text-xs md:h-10 md:text-sm">
-                <SelectValue placeholder="Select a customer" />
-              </SelectTrigger>
-              <SelectContent className="w-[calc(100vw-2rem)] md:w-full">
-                {customersWithDebt.length === 0 ? (
-                  <div className="p-2 text-center text-xs text-muted-foreground">
-                    No customers with outstanding balances
-                  </div>
-                ) : (
-                  customersWithDebt.map((customer) => (
-                    <SelectItem
-                      key={customer.id}
-                      value={customer.id}
-                      className="text-xs md:text-sm"
-                    >
-                      <div className="flex items-center justify-between gap-4">
-                        <div>
-                          <span className="font-medium">{customer.name}</span>
-                          {customer.phone && (
-                            <span className="ml-2 text-[10px] text-muted-foreground">
-                              {customer.phone}
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-xs font-semibold text-destructive">
-                          {formatCurrency(customer.totalUtang)}
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-            {selectedCustomer && (
+
+            {selectedCustomerId ? (
+              // Read-only customer display when pre-selected
               <motion.div
-                className="rounded-md bg-muted p-2 text-[10px] md:text-xs"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
+                className="w-full rounded-lg border-2 border-primary/20 bg-primary/5 p-5 md:p-6"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.2 }}
               >
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Customer:</span>
-                  <span className="font-medium">{selectedCustomer.name}</span>
-                </div>
-                {selectedCustomer.phone && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Phone:</span>
-                    <span className="flex items-center gap-1">
-                      <Phone className="h-3 w-3" />
-                      {selectedCustomer.phone}
-                    </span>
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 space-y-2">
+                      <div>
+                        <p className="text-xs text-muted-foreground md:text-sm mb-1">
+                          Customer
+                        </p>
+                        <p className="font-bold text-lg md:text-xl">{selectedCustomer?.name}</p>
+                      </div>
+                      {selectedCustomer?.phone && (
+                        <div>
+                          <p className="text-xs text-muted-foreground md:text-sm mb-1">
+                            Phone
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-4 w-4 text-muted-foreground" />
+                            <p className="font-medium text-base md:text-lg">
+                              {selectedCustomer.phone}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-muted-foreground md:text-sm mb-1">
+                        Current Balance
+                      </p>
+                      <p className="text-2xl font-bold text-destructive md:text-3xl">
+                        {formatCurrency(currentBalance)}
+                      </p>
+                    </div>
                   </div>
-                )}
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Current Balance:</span>
-                  <span className="font-semibold text-destructive">
-                    {formatCurrency(currentBalance)}
-                  </span>
                 </div>
               </motion.div>
+            ) : (
+              // Dropdown selector when no customer pre-selected
+              <>
+                <Select value={customerId} onValueChange={setCustomerId} required>
+                  <SelectTrigger className="h-9 w-full text-xs md:h-10 md:text-sm">
+                    <SelectValue placeholder="Select a customer" />
+                  </SelectTrigger>
+                  <SelectContent className="w-[calc(100vw-2rem)] md:w-full">
+                    {customersWithDebt.length === 0 ? (
+                      <div className="p-2 text-center text-xs text-muted-foreground">
+                        No customers with outstanding balances
+                      </div>
+                    ) : (
+                      customersWithDebt.map((customer) => (
+                        <SelectItem
+                          key={customer.id}
+                          value={customer.id}
+                          className="text-xs md:text-sm"
+                        >
+                          <div className="flex items-center justify-between gap-4">
+                            <div>
+                              <span className="font-medium">{customer.name}</span>
+                              {customer.phone && (
+                                <span className="ml-2 text-[10px] text-muted-foreground">
+                                  {customer.phone}
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-xs font-semibold text-destructive">
+                              {formatCurrency(customer.totalUtang)}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+                {selectedCustomer && (
+                  <motion.div
+                    className="rounded-md bg-muted p-2 text-[10px] md:text-xs"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Customer:</span>
+                      <span className="font-medium">{selectedCustomer.name}</span>
+                    </div>
+                    {selectedCustomer.phone && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Phone:</span>
+                        <span className="flex items-center gap-1">
+                          <Phone className="h-3 w-3" />
+                          {selectedCustomer.phone}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Current Balance:</span>
+                      <span className="font-semibold text-destructive">
+                        {formatCurrency(currentBalance)}
+                      </span>
+                    </div>
+                  </motion.div>
+                )}
+              </>
             )}
           </div>
 
