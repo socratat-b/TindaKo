@@ -50,12 +50,12 @@ export function CustomerDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh]">
-        <DialogHeader>
+      <DialogContent className="max-w-[95vw] md:max-w-4xl lg:max-w-5xl max-h-[95vh] flex flex-col gap-4 p-4 md:p-6">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="text-lg md:text-xl">Customer Details</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="flex-1 overflow-y-auto space-y-4 min-h-0">
           {/* Customer Info Card */}
           <div className="rounded-lg border bg-muted/50 p-3 md:p-4">
             <div className="flex items-start justify-between gap-4">
@@ -98,14 +98,14 @@ export function CustomerDetailsDialog({
                     variant="outline"
                     className="mt-1 bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200 text-[9px] md:text-[10px]"
                   >
-                    Outstanding
+                    May Utang
                   </Badge>
                 ) : (
                   <Badge
                     variant="outline"
-                    className="mt-1 text-[9px] md:text-[10px]"
+                    className="mt-1 bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200 text-[9px] md:text-[10px]"
                   >
-                    Paid
+                    Walang Utang
                   </Badge>
                 )}
               </div>
@@ -113,12 +113,12 @@ export function CustomerDetailsDialog({
           </div>
 
           {/* Transaction History */}
-          <div>
+          <div className="flex-1 flex flex-col min-h-[300px]">
             <h4 className="mb-3 text-sm font-semibold md:text-base">
               Transaction History
             </h4>
-            <div className="max-h-[400px] overflow-y-auto rounded-lg border">
-              <div className="p-3 md:p-4">
+            <div className="flex-1 rounded-lg border bg-background overflow-hidden">
+              <div className="h-full overflow-y-auto p-3 md:p-4">
                 <UtangTransactionsList
                   transactions={transactions || []}
                   customers={[customer]}
