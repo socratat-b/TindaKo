@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { DollarSign, Receipt, TrendingUp, Tag } from 'lucide-react';
+import { DollarSign, Receipt, TrendingUp } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useFormatCurrency } from '@/lib/utils/currency';
 import type { SalesStats } from '@/lib/utils/reports-utils';
@@ -35,17 +35,10 @@ export function SalesStatsCards({ stats }: SalesStatsCardsProps) {
       bgColor: 'bg-purple-500/10',
       iconColor: 'text-purple-600',
     },
-    {
-      title: 'Total Discount',
-      value: formatCurrency(stats.totalDiscount),
-      icon: Tag,
-      bgColor: 'bg-orange-500/10',
-      iconColor: 'text-orange-600',
-    },
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
       {cards.map((card, index) => {
         const Icon = card.icon;
         return (
