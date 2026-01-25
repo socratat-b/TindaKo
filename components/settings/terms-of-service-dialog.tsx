@@ -37,7 +37,7 @@ export function TermsOfServiceDialog({ open, onOpenChange }: TermsOfServiceDialo
             <section>
               <h3 className="font-semibold text-base mb-2">2. Description of Service</h3>
               <p className="text-muted-foreground">
-                TindaKo is an offline-first Point of Sale (POS) application designed for small retail businesses in the Philippines, particularly Sari-Sari stores. The Application allows you to manage inventory, process sales, track customer credit (utang), and generate reports.
+                TindaKo is a business management application designed for small retail businesses in the Philippines, particularly Sari-Sari stores. The Application allows you to manage inventory, process sales, track customer credit (utang), and generate reports.
               </p>
             </section>
 

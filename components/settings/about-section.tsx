@@ -17,9 +17,9 @@ export function AboutSection() {
         <h2 className="text-base lg:text-lg font-semibold mb-3 lg:mb-4">About</h2>
         <div className="space-y-3 lg:space-y-4">
           <div className="space-y-1">
-            <p className="text-xs lg:text-sm font-medium">TindaKo POS</p>
+            <p className="text-xs lg:text-sm font-medium">TindaKo</p>
             <p className="text-[10px] lg:text-xs text-muted-foreground">
-              Offline-first Point of Sale for Philippine Sari-Sari stores
+              Business management system for Philippine Sari-Sari stores
             </p>
             <p className="text-[10px] lg:text-xs text-muted-foreground">
               Version {version}

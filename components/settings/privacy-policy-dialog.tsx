@@ -30,7 +30,7 @@ export function PrivacyPolicyDialog({ open, onOpenChange }: PrivacyPolicyDialogP
             <section>
               <h3 className="font-semibold text-base mb-2">1. Introduction</h3>
               <p className="text-muted-foreground">
-                TindaKo ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use our offline-first Point of Sale application.
+                TindaKo ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use our business management application.
               </p>
             </section>
 
