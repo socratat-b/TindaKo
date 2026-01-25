@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { SyncIndicator } from './sync-indicator'
+import { PendingChangesIndicator } from './pending-changes-indicator'
 import { Menu, Clock } from 'lucide-react'
 import { useClock } from '@/lib/hooks/use-clock'
 import { useSettings } from '@/lib/hooks/use-settings'
@@ -32,6 +33,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
         </div>
 
         <div className="flex items-center gap-3 lg:gap-4">
+          <PendingChangesIndicator />
           <SyncIndicator />
 
           <div className="flex items-center gap-1.5 text-xs lg:text-sm text-muted-foreground">
