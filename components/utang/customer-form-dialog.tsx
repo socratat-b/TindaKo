@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { toast } from 'sonner'
 import {
   Dialog,
   DialogContent,
@@ -67,6 +68,15 @@ export function CustomerFormDialog({
 
       if (result.success) {
         setHasPendingChanges(true)
+
+        // Success toast
+        toast.success(isEditing ? 'Customer updated' : 'Customer added', {
+          description: isEditing
+            ? `${name} has been updated successfully`
+            : `${name} has been added to your customers`,
+          duration: 3000,
+        })
+
         setName('')
         setPhone('')
         setAddress('')
@@ -136,8 +146,14 @@ export function CustomerFormDialog({
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               className="h-9 text-xs md:h-10 md:text-sm"
-              placeholder="e.g., 09171234567"
+              placeholder="e.g., 09171234567 or +639171234567"
+              maxLength={13}
+              pattern="^(09\d{9}|\+639\d{9})$"
+              title="Enter valid Philippine mobile number (11 digits starting with 09 or 13 characters starting with +63)"
             />
+            <p className="text-[10px] text-muted-foreground md:text-xs">
+              Format: 09XXXXXXXXX (11 digits) or +639XXXXXXXXX (13 chars)
+            </p>
           </div>
 
           {/* Address */}
