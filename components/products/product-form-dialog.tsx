@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -18,11 +17,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PRESET_COLORS } from "@/lib/constants/colors";
-import { useProductForm } from "@/lib/hooks/use-product-form";
 import { useFormattedNumberInput } from "@/lib/hooks/use-formatted-input";
+import { useProductForm } from "@/lib/hooks/use-product-form";
+import type { ProductFormDialogProps } from "@/lib/types";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus } from "lucide-react";
-import type { ProductFormDialogProps } from "@/lib/types";
+import { useEffect } from "react";
 
 export function ProductFormDialog({
   open,
@@ -111,7 +111,7 @@ export function ProductFormDialog({
             {/* Product Name */}
             <div className="space-y-1.5">
               <Label htmlFor="name" className="text-xs lg:text-sm">
-                Product Name HAHAH tt
+                Product Name
               </Label>
               <Input
                 id="name"

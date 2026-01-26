@@ -55,6 +55,17 @@ All tables: `id`, `userId`, `syncedAt`, `updatedAt`, `createdAt`, `isDeleted`
 
 ### Phase 4: Future Enhancements
 
+**Centralized Product Database (Open Food Facts)**
+- [ ] Store Open Food Facts products in IndexedDB as centralized product catalog
+- [ ] Remove auth system - use `store_id` as primary identifier for data access
+- [ ] Barcode scanning workflow:
+  - **POS**: Scan barcode → auto-add to sale list → set quantity → select payment method
+  - **Products**: Scan physical product → search indexed DB by barcode → if match, auto-create product (user only adds selling price)
+  - Keep manual product creation option
+- [ ] Apply barcode-to-catalog lookup for inventory management
+- [ ] Backup/restore uses `store_id` for data isolation
+
+**Other Enhancements**
 - [ ] CSV import (papaparse)
 - [ ] Advanced barcode scanner (html5-qrcode)
 - [ ] Profit calculations
