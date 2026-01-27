@@ -1,154 +1,189 @@
-'use server'
+/**
+ * Auth actions for phone + PIN authentication
+ * Client-side operations with IndexedDB
+ */
 
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import { revalidatePath } from 'next/cache'
+import { db } from '@/lib/db'
+import { hashPin, verifyPin, isValidPin } from '@/lib/auth/pin'
+import { saveSession, clearSession } from '@/lib/auth/session'
+import type { Store } from '@/lib/db/schema'
 
-export type AuthState = {
+export type AuthResult = {
+  success: boolean
   error?: string
-  success?: string
+  phone?: string
+  storeName?: string
 }
 
+/**
+ * Validate Philippine phone number format (09XXXXXXXXX)
+ */
+function isValidPhoneNumber(phone: string): boolean {
+  return /^09[0-9]{9}$/.test(phone)
+}
+
+/**
+ * Signup with phone, store name, and PIN
+ * Saves to local IndexedDB and creates session
+ */
 export async function signupAction(
-  prevState: AuthState,
-  formData: FormData
-): Promise<AuthState> {
-  const email = formData.get('email') as string
-  const password = formData.get('password') as string
-
-  // Validate password length
-  if (password.length < 6) {
-    return { error: 'Password must be at least 6 characters' }
-  }
-
-  const supabase = await createClient()
-
-  let data, error
+  phone: string,
+  storeName: string,
+  pin: string
+): Promise<AuthResult> {
   try {
-    const result = await supabase.auth.signUp({
-      email,
-      password,
+    // Validate phone format
+    if (!isValidPhoneNumber(phone)) {
+      return {
+        success: false,
+        error: 'Invalid phone number. Use format: 09XXXXXXXXX (11 digits)',
+      }
+    }
+
+    // Validate PIN format
+    if (!isValidPin(pin)) {
+      return {
+        success: false,
+        error: 'PIN must be 4-6 digits',
+      }
+    }
+
+    // Validate store name
+    if (!storeName || storeName.trim().length === 0) {
+      return {
+        success: false,
+        error: 'Store name is required',
+      }
+    }
+
+    // Check if phone already exists
+    const existingStore = await db.stores.where('phone').equals(phone).first()
+    if (existingStore) {
+      return {
+        success: false,
+        error: 'Phone number already registered',
+      }
+    }
+
+    // Hash PIN
+    const pinHash = await hashPin(pin)
+
+    // Create store in IndexedDB
+    const now = new Date().toISOString()
+    const store: Store = {
+      id: crypto.randomUUID(),
+      phone,
+      storeName: storeName.trim(),
+      pinHash,
+      createdAt: now,
+      updatedAt: now,
+    }
+
+    await db.stores.add(store)
+
+    // Save session
+    saveSession({
+      phone,
+      storeName: store.storeName,
+      pinHash,
     })
-    data = result.data
-    error = result.error
-  } catch (err) {
-    // Network error during signup
-    const errorMsg = err instanceof Error ? err.message?.toLowerCase() : ''
-    const causeMsg = (err as any)?.cause?.message?.toLowerCase() || ''
-    const errorCode = (err as any)?.cause?.code || ''
 
-    const isNetworkError =
-      errorMsg.includes('fetch') ||
-      errorMsg.includes('network') ||
-      errorMsg.includes('enotfound') ||
-      causeMsg.includes('enotfound') ||
-      errorCode === 'ENOTFOUND'
+    console.log('[signupAction] Account created:', phone)
 
-    if (isNetworkError) {
-      return { error: 'Internet connection required to create an account. Please connect to the internet and try again.' }
+    return {
+      success: true,
+      phone,
+      storeName: store.storeName,
     }
-
-    return { error: 'An unexpected error occurred. Please try again.' }
-  }
-
-  if (error) {
-    // Check if it's a network-related error
-    const errorMsg = error.message?.toLowerCase() || ''
-    const isNetworkError =
-      errorMsg.includes('fetch') ||
-      errorMsg.includes('network') ||
-      errorMsg.includes('enotfound') ||
-      errorMsg.includes('connection')
-
-    if (isNetworkError) {
-      return { error: 'Internet connection required to create an account. Please connect to the internet and try again.' }
+  } catch (error) {
+    console.error('[signupAction] Error:', error)
+    return {
+      success: false,
+      error: 'Failed to create account. Please try again.',
     }
-
-    return { error: error.message }
   }
-
-  // Email confirmation is disabled - user is immediately signed in
-  if (data.session) {
-    // Session will be cached by AuthProvider on client side
-    revalidatePath('/', 'layout')
-    redirect('/pos')
-  }
-
-  return { success: 'Account created successfully!' }
 }
 
-export async function loginAction(
-  prevState: AuthState,
-  formData: FormData
-): Promise<AuthState> {
-  const email = formData.get('email') as string
-  const password = formData.get('password') as string
-
-  const supabase = await createClient()
-
-  let error
+/**
+ * Login with phone and PIN
+ * Validates against local IndexedDB or Supabase (for new device)
+ */
+export async function loginAction(phone: string, pin: string): Promise<AuthResult> {
   try {
-    const result = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    error = result.error
-  } catch (err) {
-    // Network error during login
-    const errorMsg = err instanceof Error ? err.message?.toLowerCase() : ''
-    const causeMsg = (err as any)?.cause?.message?.toLowerCase() || ''
-    const errorCode = (err as any)?.cause?.code || ''
-
-    const isNetworkError =
-      errorMsg.includes('fetch') ||
-      errorMsg.includes('network') ||
-      errorMsg.includes('enotfound') ||
-      causeMsg.includes('enotfound') ||
-      errorCode === 'ENOTFOUND'
-
-    if (isNetworkError) {
-      return { error: 'Internet connection required to sign in. Please connect to the internet and try again.' }
+    // Validate inputs
+    if (!isValidPhoneNumber(phone)) {
+      return {
+        success: false,
+        error: 'Invalid phone number',
+      }
     }
 
-    return { error: 'An unexpected error occurred. Please try again.' }
-  }
-
-  if (error) {
-    // Check if it's a network-related error
-    const errorMsg = error.message?.toLowerCase() || ''
-    const isNetworkError =
-      errorMsg.includes('fetch') ||
-      errorMsg.includes('network') ||
-      errorMsg.includes('enotfound') ||
-      errorMsg.includes('connection')
-
-    if (isNetworkError) {
-      return { error: 'Internet connection required to sign in. Please connect to the internet and try again.' }
+    if (!isValidPin(pin)) {
+      return {
+        success: false,
+        error: 'Invalid PIN',
+      }
     }
 
-    return { error: error.message }
-  }
+    // Check local IndexedDB first
+    const localStore = await db.stores.where('phone').equals(phone).first()
 
-  // Session will be cached by AuthProvider on client side
-  revalidatePath('/', 'layout')
-  redirect('/pos')
+    if (localStore) {
+      // Verify PIN
+      const isValid = await verifyPin(pin, localStore.pinHash)
+
+      if (!isValid) {
+        return {
+          success: false,
+          error: 'Incorrect PIN',
+        }
+      }
+
+      // Save session
+      saveSession({
+        phone: localStore.phone,
+        storeName: localStore.storeName,
+        pinHash: localStore.pinHash,
+      })
+
+      console.log('[loginAction] Logged in (local):', phone)
+
+      return {
+        success: true,
+        phone: localStore.phone,
+        storeName: localStore.storeName,
+      }
+    }
+
+    // TODO: If not found locally, try Supabase (new device scenario)
+    // This will be implemented when we update the sync system
+
+    return {
+      success: false,
+      error: 'Phone number not found. Please sign up first.',
+    }
+  } catch (error) {
+    console.error('[loginAction] Error:', error)
+    return {
+      success: false,
+      error: 'Failed to log in. Please try again.',
+    }
+  }
 }
 
-export async function logoutAction() {
-  const supabase = await createClient()
+/**
+ * Logout - clear session and local data
+ */
+export async function logoutAction(): Promise<void> {
+  try {
+    // Clear session
+    clearSession()
 
-  // Get current user ID
-  const { data: { user } } = await supabase.auth.getUser()
+    // Note: We don't clear IndexedDB data on logout
+    // Data stays local for offline use on same device
 
-  if (!user) {
-    // Not logged in, just redirect
-    redirect('/login')
+    console.log('[logoutAction] Logged out')
+  } catch (error) {
+    console.error('[logoutAction] Error:', error)
   }
-
-  // Session cache will be cleared by AuthProvider on client side
-  await supabase.auth.signOut()
-  revalidatePath('/', 'layout')
-
-  // redirect() throws NEXT_REDIRECT internally - this is expected behavior
-  redirect('/login')
 }

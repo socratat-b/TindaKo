@@ -15,7 +15,7 @@ import { ShoppingCart, Package } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import type { POSInterfaceProps } from '@/lib/types'
 
-export default function POSInterface({ userId }: POSInterfaceProps) {
+export default function POSInterface({ storePhone }: POSInterfaceProps) {
   const [checkoutOpen, setCheckoutOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('products')
   const { enableBarcodeScanner } = useSettings()
@@ -32,7 +32,7 @@ export default function POSInterface({ userId }: POSInterfaceProps) {
         amountPaid,
         paymentMethod: cart.paymentMethod,
         customerId,
-        userId,
+        storePhone,
       })
 
       // Mark that we have pending changes to sync
@@ -59,7 +59,7 @@ export default function POSInterface({ userId }: POSInterfaceProps) {
             transition={{ duration: 0.4, delay: 0.1, ease: 'easeOut' }}
             className="col-span-2 overflow-hidden"
           >
-            <ProductGrid userId={userId} />
+            <ProductGrid storePhone={storePhone} />
           </motion.div>
 
           {/* Cart - Takes 1 column on large screens */}
@@ -108,7 +108,7 @@ export default function POSInterface({ userId }: POSInterfaceProps) {
           </motion.div>
 
           <TabsContent value="products" className="flex-1 overflow-hidden m-0">
-            <ProductGrid userId={userId} />
+            <ProductGrid storePhone={storePhone} />
           </TabsContent>
 
           <TabsContent value="cart" className="flex-1 overflow-hidden m-0">
@@ -126,7 +126,7 @@ export default function POSInterface({ userId }: POSInterfaceProps) {
         open={checkoutOpen}
         onOpenChange={setCheckoutOpen}
         onCheckout={handleCheckout}
-        userId={userId}
+        storePhone={storePhone}
       />
     </>
   )

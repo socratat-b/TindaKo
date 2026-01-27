@@ -55,11 +55,11 @@ const DEFAULT_CATEGORIES = [
  * Seeds default categories for new users
  * Only runs if user has no categories yet
  */
-export async function seedDefaultCategories(userId: string): Promise<void> {
+export async function seedDefaultCategories(storePhone: string): Promise<void> {
   try {
     // Check if user already has categories
     const existingCategories = await db.categories
-      .filter((c) => c.userId === userId && !c.isDeleted)
+      .filter((c) => c.storePhone === storePhone && !c.isDeleted)
       .count()
 
     if (existingCategories > 0) {
@@ -71,7 +71,7 @@ export async function seedDefaultCategories(userId: string): Promise<void> {
     // Create default categories
     const categories: Category[] = DEFAULT_CATEGORIES.map((cat) => ({
       id: crypto.randomUUID(),
-      userId,
+      storePhone,
       name: cat.name,
       color: cat.color,
       sortOrder: cat.sortOrder,
@@ -91,10 +91,10 @@ export async function seedDefaultCategories(userId: string): Promise<void> {
 /**
  * Check if user needs onboarding (no categories and no products)
  */
-export async function needsOnboarding(userId: string): Promise<boolean> {
+export async function needsOnboarding(storePhone: string): Promise<boolean> {
   const [categoryCount, productCount] = await Promise.all([
-    db.categories.filter((c) => c.userId === userId && !c.isDeleted).count(),
-    db.products.filter((p) => p.userId === userId && !p.isDeleted).count(),
+    db.categories.filter((c) => c.storePhone === storePhone && !c.isDeleted).count(),
+    db.products.filter((p) => p.storePhone === storePhone && !p.isDeleted).count(),
   ])
 
   return categoryCount === 0 && productCount === 0

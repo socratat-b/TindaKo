@@ -7,18 +7,18 @@ import { seedDefaultCategories } from '@/lib/db/seeders'
 import { ProductsList } from './products-list'
 import type { ProductsInterfaceProps } from '@/lib/types'
 
-export default function ProductsInterface({ userId }: ProductsInterfaceProps) {
+export default function ProductsInterface({ storePhone }: ProductsInterfaceProps) {
   const [refreshKey, setRefreshKey] = useState(0)
   const [isSeeding, setIsSeeding] = useState(false)
 
   const products = useLiveQuery(
-    () => db.products.where('userId').equals(userId).filter((p) => !p.isDeleted).toArray(),
-    [userId, refreshKey]
+    () => db.products.where('storePhone').equals(storePhone).filter((p) => !p.isDeleted).toArray(),
+    [storePhone, refreshKey]
   )
 
   const categories = useLiveQuery(
-    () => db.categories.where('userId').equals(userId).filter((c) => !c.isDeleted).toArray(),
-    [userId, refreshKey]
+    () => db.categories.where('storePhone').equals(storePhone).filter((c) => !c.isDeleted).toArray(),
+    [storePhone, refreshKey]
   )
 
   const handleRefresh = useCallback(() => {
@@ -31,7 +31,7 @@ export default function ProductsInterface({ userId }: ProductsInterfaceProps) {
       const seedCategories = async () => {
         setIsSeeding(true)
         try {
-          await seedDefaultCategories(userId)
+          await seedDefaultCategories(storePhone)
           handleRefresh()
         } catch (err) {
           console.error('Failed to seed categories:', err)
@@ -41,7 +41,7 @@ export default function ProductsInterface({ userId }: ProductsInterfaceProps) {
       }
       seedCategories()
     }
-  }, [categories, userId, isSeeding, handleRefresh])
+  }, [categories, storePhone, isSeeding, handleRefresh])
 
   if (!products || !categories) {
     return (
@@ -63,7 +63,7 @@ export default function ProductsInterface({ userId }: ProductsInterfaceProps) {
       <ProductsList
         products={products}
         categories={categories}
-        userId={userId}
+        storePhone={storePhone}
         onRefresh={handleRefresh}
       />
     </div>

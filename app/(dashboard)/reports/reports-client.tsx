@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 
 interface ReportsClientProps {
-  userId: string;
+  storePhone: string;
 }
 
 const ReportsInterface = dynamic(
@@ -11,6 +11,6 @@ const ReportsInterface = dynamic(
   { ssr: false }
 );
 
-export default function ReportsClient({ userId }: ReportsClientProps) {
-  return <ReportsInterface userId={userId} />;
+export default function ReportsClient({ storePhone }: ReportsClientProps) {
+  return <ReportsInterface storePhone={storePhone} />;
 }

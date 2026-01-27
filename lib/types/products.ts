@@ -5,7 +5,7 @@ import type { Product, Category } from '@/lib/db/schema'
 // ============================================================================
 
 export interface ProductsInterfaceProps {
-  userId: string
+  storePhone: string
 }
 
 export interface ProductFormDialogProps {
@@ -13,7 +13,7 @@ export interface ProductFormDialogProps {
   onOpenChange: (open: boolean) => void
   product?: Product | null
   categories: Category[]
-  userId: string
+  storePhone: string
   onSuccess: () => void
 }
 
@@ -21,14 +21,14 @@ export interface QuickAddProductDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   categories: Category[]
-  userId: string
+  storePhone: string
   onSuccess: () => void
 }
 
 export interface ProductsListProps {
   products: Product[]
   categories: Category[]
-  userId: string
+  storePhone: string
   onRefresh: () => void
 }
 
@@ -37,7 +37,7 @@ export interface ProductsListProps {
 // ============================================================================
 
 export interface UseProductFormParams {
-  userId: string
+  storePhone: string
   onSuccess: () => void
   onOpenChange: (open: boolean) => void
   product?: Product | null
@@ -46,7 +46,7 @@ export interface UseProductFormParams {
 }
 
 export interface UseQuickAddProductParams {
-  userId: string
+  storePhone: string
   onSuccess: () => void
   onOpenChange: (open: boolean) => void
   categories: Category[]

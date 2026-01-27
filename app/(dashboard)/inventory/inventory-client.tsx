@@ -18,9 +18,9 @@ const InventoryInterface = dynamic(
 )
 
 type InventoryClientProps = {
-  userId: string
+  storePhone: string
 }
 
-export default function InventoryClient({ userId }: InventoryClientProps) {
-  return <InventoryInterface userId={userId} />
+export default function InventoryClient({ storePhone }: InventoryClientProps) {
+  return <InventoryInterface storePhone={storePhone} />
 }

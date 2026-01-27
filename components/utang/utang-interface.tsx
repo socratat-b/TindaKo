@@ -15,7 +15,7 @@ import { useFormatCurrency } from '@/lib/utils/currency'
 import { useUtang } from '@/lib/hooks/use-utang'
 import type { UtangInterfaceProps } from '@/lib/types/utang'
 
-export default function UtangInterface({ userId }: UtangInterfaceProps) {
+export default function UtangInterface({ storePhone }: UtangInterfaceProps) {
   const formatCurrency = useFormatCurrency()
   const [isActionDialogOpen, setIsActionDialogOpen] = useState(false)
 
@@ -40,7 +40,7 @@ export default function UtangInterface({ userId }: UtangInterfaceProps) {
     handleRecordPayment,
     handleAddCharge,
     handleOpenCustomerForm,
-  } = useUtang({ userId })
+  } = useUtang({ storePhone })
 
   const handleActionSelect = (action: 'customer' | 'payment' | 'charge') => {
     if (action === 'customer') {
@@ -166,7 +166,7 @@ export default function UtangInterface({ userId }: UtangInterfaceProps) {
       <PaymentFormDialog
         open={isPaymentDialogOpen}
         onOpenChange={setIsPaymentDialogOpen}
-        userId={userId}
+        storePhone={storePhone}
         customers={customers}
         selectedCustomerId={selectedCustomerId}
       />
@@ -175,7 +175,7 @@ export default function UtangInterface({ userId }: UtangInterfaceProps) {
       <ChargeFormDialog
         open={isChargeDialogOpen}
         onOpenChange={setIsChargeDialogOpen}
-        userId={userId}
+        storePhone={storePhone}
         customers={customers}
         selectedCustomerId={selectedCustomerId}
       />
@@ -184,7 +184,7 @@ export default function UtangInterface({ userId }: UtangInterfaceProps) {
       <CustomerFormDialog
         open={isCustomerFormOpen}
         onOpenChange={setIsCustomerFormOpen}
-        userId={userId}
+        storePhone={storePhone}
       />
     </motion.div>
   )

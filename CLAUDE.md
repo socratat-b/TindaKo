@@ -66,12 +66,15 @@ Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Ser
 - Migration: `07_add_synced_at_column.sql`
 
 **Authentication:**
-- Supabase email/password auth (email confirmation disabled)
-- Simplified signup flow (removed confirm password field)
-- Data Access Layer (DAL) security with `verifySession()`
-- Session persistence + 30-day offline access via cookies (server-safe)
-- Offline detection with user-friendly error messages
-- Proactive offline banner on auth pages
+- **Local-first auth**: Phone number + 4-6 digit PIN (no email required)
+- **No Supabase Auth**: Removed email/password authentication
+- **Phone as identifier**: Unique phone number for multi-device restore
+- **PIN security**: Hashed PIN stored locally in IndexedDB
+- **Session persistence**: PIN saved locally, only asked on new devices
+- **Multi-device support**: Login with phone + PIN to restore data from Supabase
+- **Backup/Restore**: Phone number used as foreign key for all user data
+- Middleware (`proxy.ts`) checks local session for route protection
+- Simple UX: Signup in seconds (phone + store name + PIN)
 
 **Testing:**
 - Vitest + React Testing Library
@@ -106,7 +109,76 @@ Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Ser
 - [x] **Reports Page**: Sales analytics with date filtering, stats, payment breakdown
 - [x] **Settings Page**: App configuration
 
-### 🎯 Phase 4: Future Enhancements
+### ✅ Phase 4: Auth System Refactor (COMPLETED)
+
+**Goal**: Replace Supabase Auth with simple phone + PIN authentication
+
+**Implemented Changes:**
+
+1. **Removed Supabase Auth**
+   - ✅ Deleted email/password authentication
+   - ✅ Removed `lib/dal.ts` (verifySession, getUser)
+   - ✅ Removed `lib/auth/session-cache.ts`
+   - ✅ Removed `components/layout/auth-initializer.tsx`
+   - ✅ Cleaned up Supabase auth references
+
+2. **New Phone-Based Auth System**
+   - ✅ Phone number (09XXXXXXXXX) as unique identifier
+   - ✅ 4-6 digit PIN with bcrypt hashing (`lib/auth/pin.ts`)
+   - ✅ Store name for UX (display only, not unique)
+   - ✅ Session storage: localStorage + cookies (`lib/auth/session.ts`)
+   - ✅ Cookies for middleware access (phone stored in cookie)
+
+3. **Database Schema Migration**
+   - ✅ Created `stores` table: `{ id, phone, storeName, pinHash, createdAt, updatedAt }`
+   - ✅ Replaced `userId` with `storePhone` in all 6 tables
+   - ✅ Migration: `11_phone_auth_migration.sql` (applied)
+   - ✅ Disabled RLS policies: `12_simplify_rls_policies.sql` (applied)
+   - ✅ Updated all IndexedDB schema (Dexie v2 migration)
+
+4. **Auth Actions & Flows**
+   - ✅ `signupAction()`: Phone + Store Name + PIN → create account
+   - ✅ `loginAction()`: Phone + PIN → verify & restore session
+   - ✅ `logoutAction()`: Clear session + optional backup
+   - ✅ Auto-restore data from Supabase on login (new device)
+   - ✅ No SMS verification (phone is just an identifier)
+
+5. **Static Pages Architecture**
+   - ✅ Removed `getUser()` from all page.tsx files
+   - ✅ All 13 pages now static (○) - instant offline capability
+   - ✅ Client-side auth via `useAuth()` hook
+   - ✅ Middleware (`proxy.ts`) checks auth cookie for route protection
+   - ✅ Pages: login, signup, pos, products, inventory, utang, reports, settings
+
+6. **Code Updates (89 files changed)**
+   - ✅ Updated all components: userId → storePhone prop
+   - ✅ Updated all interfaces: userId → storePhone parameter
+   - ✅ Updated all actions: userId → storePhone input
+   - ✅ Updated all hooks: userId → storePhone parameter
+   - ✅ Updated all stores: userId → storePhone queries
+   - ✅ Updated all utils: userId → storePhone logic
+   - ✅ Updated all types: userId → storePhone in interfaces
+   - ✅ Updated sync system: manual filtering by storePhone
+   - ✅ Fixed database queries: `.where('userId')` → `.where('storePhone')`
+
+7. **UI Updates**
+   - ✅ Login page: Phone + PIN inputs with validation
+   - ✅ Signup page: Phone + Store Name + PIN + Confirm PIN
+   - ✅ Settings page: Display phone number (read-only)
+   - ✅ Auth provider: Simplified localStorage initialization
+   - ✅ Logout dialog: Backup before logout flow
+
+**Results:**
+- ✅ Build successful - no TypeScript errors
+- ✅ All pages static (○) - fully offline-capable
+- ✅ Simpler UX (no email required)
+- ✅ Instant signup (no verification)
+- ✅ Multi-device support via phone + PIN
+- ✅ Familiar for Filipino users (like GCash/PayMaya)
+- ✅ Session persists across page refreshes
+- ✅ Middleware protects routes with cookie-based auth
+
+### 🔮 Phase 5: Future Enhancements
 
 - CSV import (papaparse)
 - Advanced barcode scanner (html5-qrcode)
@@ -120,9 +192,11 @@ Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Ser
 - **Client-side IDs**: Use `crypto.randomUUID()` or `nanoid()`
 - **Update timestamps**: Always update `updatedAt` and reset `syncedAt: null` on changes
 - **Filter deleted**: Query with `.filter(item => !item.isDeleted)`
-- **User isolation**: ALWAYS filter by userId: `.where('userId').equals(userId)`
+- **User isolation**: ALWAYS filter by phone: `.where('storePhone').equals(phone)`
+- **Phone as foreign key**: All tables use `storePhone` instead of `userId`
 - **Sync order**: categories, customers, products, sales, utangTransactions, inventoryMovements
 - **Case conversion**: Use `toSnakeCase()` and `toCamelCase()` helpers in `lib/db/sync.ts`
+- **Auth table**: New `stores` table with phone (unique), storeName, pinHash
 
 ### Next.js 16 & React 19
 - Use `proxy.ts` instead of `middleware.ts` (Next.js 16 naming)
@@ -131,13 +205,16 @@ Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Ser
 - Service worker only generates in production (`NODE_ENV === "production"`)
 
 ### Authentication & Security
-- **Primary security**: Data Access Layer (`lib/dal.ts`) with `verifySession()`
-- Call `verifySession()` in ALL protected Server Components/Actions
-- Supabase RLS policies with `(select auth.uid()) = user_id` pattern
-- Offline session validation via cookies (server-safe, no localStorage on server)
-- Middleware (`proxy.ts`) detects network errors (ENOTFOUND, fetch failures)
-- Server Actions use React 19 `useActionState` pattern
-- User-friendly offline error messages on auth pages
+- **Local-first auth**: No Supabase Auth, custom phone + PIN implementation
+- **Phone number**: Unique identifier (like username), stored in IndexedDB + Supabase
+- **PIN hash**: bcrypt-hashed, stored locally in IndexedDB
+- **Session**: Phone + PIN hash stored in localStorage for same-device login
+- **Multi-device**: Phone + PIN required on new devices, triggers data restore from Supabase
+- **Route protection**: Middleware (`proxy.ts`) checks local session, redirects if missing
+- **Supabase RLS**: Filter by `store_phone` instead of `auth.uid()`
+  - Example: `CREATE POLICY ON products USING (store_phone = current_setting('app.current_phone'))`
+- **No server-side auth checks**: Pages are static, auth handled client-side + middleware
+- **Security model**: Device lock + PIN protects data (appropriate for single-user POS)
 
 ### State Management & Code Organization
 

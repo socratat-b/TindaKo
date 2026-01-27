@@ -14,9 +14,9 @@ const SettingsInterface = dynamic(() => import('@/components/settings/settings-i
 })
 
 interface SettingsClientProps {
-  userId: string
+  storePhone: string
 }
 
-export default function SettingsClient({ userId }: SettingsClientProps) {
-  return <SettingsInterface userId={userId} />
+export default function SettingsClient({ storePhone }: SettingsClientProps) {
+  return <SettingsInterface storePhone={storePhone} />
 }

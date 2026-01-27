@@ -1,7 +1,7 @@
 import { db } from '@/lib/db'
 
 export type CreateCustomerInput = {
-  userId: string
+  storePhone: string
   name: string
   phone?: string
   address?: string
@@ -24,10 +24,10 @@ export async function createCustomer(
   input: CreateCustomerInput
 ): Promise<CustomerOperationResult> {
   try {
-    const { userId, name, phone, address } = input
+    const { storePhone, name, phone, address } = input
 
     // Validate inputs
-    if (!userId || !name || name.trim().length === 0) {
+    if (!storePhone || !name || name.trim().length === 0) {
       return { success: false, error: 'Name is required' }
     }
 
@@ -48,8 +48,8 @@ export async function createCustomer(
     // Check for duplicate phone number (if provided)
     if (trimmedPhone) {
       const existingCustomerWithPhone = await db.customers
-        .where('userId')
-        .equals(userId)
+        .where('storePhone')
+        .equals(storePhone)
         .filter((c) => !c.isDeleted && c.phone === trimmedPhone)
         .first()
 
@@ -63,8 +63,8 @@ export async function createCustomer(
 
     // Check for duplicate name (case-insensitive warning)
     const existingCustomerWithName = await db.customers
-      .where('userId')
-      .equals(userId)
+      .where('storePhone')
+      .equals(storePhone)
       .filter((c) => !c.isDeleted && c.name.toLowerCase() === trimmedName.toLowerCase())
       .first()
 
@@ -80,7 +80,7 @@ export async function createCustomer(
 
     await db.customers.add({
       id: customerId,
-      userId,
+      storePhone,
       name: trimmedName,
       phone: trimmedPhone,
       address: address?.trim() || null,
@@ -134,8 +134,8 @@ export async function updateCustomer(
     // Check for duplicate phone number (if provided and changed)
     if (trimmedPhone && trimmedPhone !== customer.phone) {
       const existingCustomerWithPhone = await db.customers
-        .where('userId')
-        .equals(customer.userId)
+        .where('storePhone')
+        .equals(customer.storePhone)
         .filter((c) => !c.isDeleted && c.phone === trimmedPhone && c.id !== id)
         .first()
 
@@ -150,8 +150,8 @@ export async function updateCustomer(
     // Check for duplicate name (if changed)
     if (trimmedName.toLowerCase() !== customer.name.toLowerCase()) {
       const existingCustomerWithName = await db.customers
-        .where('userId')
-        .equals(customer.userId)
+        .where('storePhone')
+        .equals(customer.storePhone)
         .filter((c) => !c.isDeleted && c.name.toLowerCase() === trimmedName.toLowerCase() && c.id !== id)
         .first()
 

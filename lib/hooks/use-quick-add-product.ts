@@ -5,7 +5,7 @@ import { createProduct, createCategory } from '@/lib/actions/products'
 import type { UseQuickAddProductParams } from '@/lib/types'
 
 export function useQuickAddProduct({
-  userId,
+  storePhone,
   onSuccess,
   onOpenChange,
   categories,
@@ -63,7 +63,7 @@ export function useQuickAddProduct({
         name: categoryFormData.name,
         color: categoryFormData.color,
         sortOrder,
-        userId,
+        storePhone,
       })
 
       // Auto-select the new category
@@ -121,7 +121,7 @@ export function useQuickAddProduct({
         sellingPrice,
         stockQty,
         lowStockThreshold: 10, // Default threshold
-        userId,
+        storePhone,
       })
 
       // Success feedback

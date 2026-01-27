@@ -1,16 +1,17 @@
 import { useAuthStore } from "@/lib/stores/auth-store";
+import { getCurrentPhone } from "@/lib/auth/session";
 
 /**
- * Simplified auth hook that returns user state.
- * For auth actions (login, signup, logout), use Server Actions directly with useActionState.
+ * Auth hook for phone-based authentication
+ * Returns current user phone and store info
  */
 export function useAuth() {
-  const { user, isLoading, isOffline, lastSyncTime } = useAuthStore();
+  const { phone, storeName, isAuthenticated, isLoading } = useAuthStore();
 
   return {
-    user,
+    phone: phone || getCurrentPhone(), // Fallback to session if store not hydrated
+    storeName,
+    isAuthenticated,
     isLoading,
-    isOffline,
-    lastSyncTime,
   };
 }

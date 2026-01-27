@@ -1,16 +1,28 @@
-import { getUser } from '@/lib/dal'
+'use client'
+
+import { useAuth } from '@/lib/hooks/use-auth'
 import POSClient from './pos-client'
 
-export default async function POSPage() {
-  const user = await getUser()
+export default function POSPage() {
+  const { phone, isAuthenticated, isLoading } = useAuth()
 
-  if (!user) {
+  // Show loading state while checking auth
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-12rem)]">
-        <p className="text-destructive">Unable to load user session</p>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     )
   }
 
-  return <POSClient userId={user.id} />
+  // If not authenticated, show error message
+  if (!isAuthenticated) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-12rem)]">
+        <p className="text-destructive">Please log in to access the POS</p>
+      </div>
+    )
+  }
+
+  return <POSClient storePhone={phone || ''} />
 }

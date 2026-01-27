@@ -12,9 +12,9 @@ const ProductsInterface = dynamic(() => import('@/components/products/products-i
 })
 
 interface ProductsClientProps {
-  userId: string
+  storePhone: string
 }
 
-export default function ProductsClient({ userId }: ProductsClientProps) {
-  return <ProductsInterface userId={userId} />
+export default function ProductsClient({ storePhone }: ProductsClientProps) {
+  return <ProductsInterface storePhone={storePhone} />
 }

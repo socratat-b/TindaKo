@@ -1,16 +1,28 @@
-import { getUser } from '@/lib/dal'
+'use client'
+
+import { useAuth } from '@/lib/hooks/use-auth'
 import ProductsClient from './products-client'
 
-export default async function ProductsPage() {
-  const user = await getUser()
+export default function ProductsPage() {
+  const { phone, isAuthenticated, isLoading } = useAuth()
 
-  if (!user) {
+  // Show loading state while checking auth
+  if (isLoading) {
     return (
       <div className="flex h-[calc(100vh-12rem)] items-center justify-center">
-        <p className="text-destructive">Unable to load user session</p>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     )
   }
 
-  return <ProductsClient userId={user.id} />
+  // If not authenticated, show error message
+  if (!isAuthenticated) {
+    return (
+      <div className="flex h-[calc(100vh-12rem)] items-center justify-center">
+        <p className="text-destructive">Please log in to access products</p>
+      </div>
+    )
+  }
+
+  return <ProductsClient storePhone={phone || ''} />
 }

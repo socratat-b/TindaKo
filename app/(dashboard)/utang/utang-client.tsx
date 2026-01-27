@@ -24,9 +24,9 @@ const UtangInterface = dynamic(
 )
 
 interface UtangClientProps {
-  userId: string
+  storePhone: string
 }
 
-export default function UtangClient({ userId }: UtangClientProps) {
-  return <UtangInterface userId={userId} />
+export default function UtangClient({ storePhone }: UtangClientProps) {
+  return <UtangInterface storePhone={storePhone} />
 }

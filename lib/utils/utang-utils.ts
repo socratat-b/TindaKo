@@ -1,14 +1,14 @@
 import { db } from '@/lib/db'
 
 export type RecordPaymentInput = {
-  userId: string
+  storePhone: string
   customerId: string
   amount: number
   notes?: string
 }
 
 export type RecordChargeInput = {
-  userId: string
+  storePhone: string
   customerId: string
   amount: number
   notes?: string
@@ -24,10 +24,10 @@ export async function recordPayment(
   input: RecordPaymentInput
 ): Promise<UtangOperationResult> {
   try {
-    const { userId, customerId, amount, notes } = input
+    const { storePhone, customerId, amount, notes } = input
 
     // 1. Validate inputs
-    if (!userId || !customerId) {
+    if (!storePhone || !customerId) {
       return { success: false, error: 'Missing required fields' }
     }
 
@@ -37,7 +37,7 @@ export async function recordPayment(
 
     // 2. Get customer
     const customer = await db.customers.get(customerId)
-    if (!customer || customer.isDeleted || customer.userId !== userId) {
+    if (!customer || customer.isDeleted || customer.storePhone !== storePhone) {
       return { success: false, error: 'Customer not found' }
     }
 
@@ -65,7 +65,7 @@ export async function recordPayment(
       // Create transaction
       await db.utangTransactions.add({
         id: transactionId,
-        userId,
+        storePhone,
         customerId,
         saleId: null,
         type: 'payment',
@@ -93,10 +93,10 @@ export async function recordManualCharge(
   input: RecordChargeInput
 ): Promise<UtangOperationResult> {
   try {
-    const { userId, customerId, amount, notes } = input
+    const { storePhone, customerId, amount, notes } = input
 
     // 1. Validate inputs
-    if (!userId || !customerId) {
+    if (!storePhone || !customerId) {
       return { success: false, error: 'Missing required fields' }
     }
 
@@ -106,7 +106,7 @@ export async function recordManualCharge(
 
     // 2. Get customer
     const customer = await db.customers.get(customerId)
-    if (!customer || customer.isDeleted || customer.userId !== userId) {
+    if (!customer || customer.isDeleted || customer.storePhone !== storePhone) {
       return { success: false, error: 'Customer not found' }
     }
 
@@ -126,7 +126,7 @@ export async function recordManualCharge(
       // Create transaction
       await db.utangTransactions.add({
         id: transactionId,
-        userId,
+        storePhone,
         customerId,
         saleId: null,
         type: 'charge',

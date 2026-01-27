@@ -5,7 +5,7 @@ import { createInventoryMovement } from '@/lib/actions/inventory'
 import type { UseAdjustmentFormParams } from '@/lib/types'
 
 export function useAdjustmentForm({
-  userId,
+  storePhone,
   onOpenChange,
   open,
   initialProductId,
@@ -36,7 +36,7 @@ export function useAdjustmentForm({
     const qty = parseInt(formData.quantity, 10)
 
     const result = await createInventoryMovement({
-      userId,
+      storePhone,
       productId: formData.productId,
       type: formData.type,
       qty,

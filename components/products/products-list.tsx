@@ -40,7 +40,7 @@ import type { ProductsListProps } from '@/lib/types'
 export function ProductsList({
   products,
   categories,
-  userId,
+  storePhone,
   onRefresh,
 }: ProductsListProps) {
   const formatCurrency = useFormatCurrency()
@@ -306,7 +306,7 @@ export function ProductsList({
         open={isQuickAddOpen}
         onOpenChange={setIsQuickAddOpen}
         categories={categories}
-        userId={userId}
+        storePhone={storePhone}
         onSuccess={onRefresh}
       />
 
@@ -315,7 +315,7 @@ export function ProductsList({
         onOpenChange={handleFormClose}
         product={editingProduct}
         categories={categories}
-        userId={userId}
+        storePhone={storePhone}
         onSuccess={onRefresh}
       />
 

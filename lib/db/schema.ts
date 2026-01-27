@@ -1,8 +1,19 @@
 // TypeScript interfaces for all database tables
-// Universal fields included in all tables
+
+// Store/Auth table (does not extend BaseEntity)
+export interface Store {
+  id: string
+  phone: string // Unique phone number (09XXXXXXXXX)
+  storeName: string
+  pinHash: string // bcrypt hash
+  createdAt: string
+  updatedAt: string
+}
+
+// Universal fields included in all data tables
 export interface BaseEntity {
   id: string
-  userId: string
+  storePhone: string // Replaces userId - phone number for user isolation
   createdAt: string
   updatedAt: string
   syncedAt: string | null

@@ -5,13 +5,6 @@ import { createClient } from '@/lib/supabase/client'
 
 // Mock dependencies
 vi.mock('@/lib/supabase/client')
-vi.mock('@/lib/auth/session-cache', () => ({
-  isSessionValidOffline: vi.fn().mockResolvedValue({
-    isValid: true,
-    session: { userId: 'test-user-id' },
-  }),
-  isOnline: vi.fn().mockResolvedValue(true),
-}))
 
 describe('Sync Store Integration Tests', () => {
   let mockSupabase: any

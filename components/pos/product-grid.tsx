@@ -21,10 +21,10 @@ import {
 } from '@/components/ui/select'
 
 interface ProductGridProps {
-  userId: string
+  storePhone: string
 }
 
-export function ProductGrid({ userId }: ProductGridProps) {
+export function ProductGrid({ storePhone }: ProductGridProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const { addItem, items: cartItems } = useCart()
@@ -36,16 +36,16 @@ export function ProductGrid({ userId }: ProductGridProps) {
 
   // Load products on mount and when data is restored
   useEffect(() => {
-    loadProducts(userId)
+    loadProducts(storePhone)
 
     // Listen for data restore event (from cloud sync)
     const handleDataRestored = () => {
-      refreshProducts(userId)
+      refreshProducts(storePhone)
     }
 
     window.addEventListener('data-restored', handleDataRestored)
     return () => window.removeEventListener('data-restored', handleDataRestored)
-  }, [userId, loadProducts, refreshProducts])
+  }, [storePhone, loadProducts, refreshProducts])
 
   // Filter products based on search and category
   const filteredProducts = useMemo(() => {

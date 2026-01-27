@@ -1,21 +1,28 @@
-import { getUser } from '@/lib/dal'
+'use client'
+
+import { useAuth } from '@/lib/hooks/use-auth'
 import SettingsClient from './settings-client'
 
-export const metadata = {
-  title: 'Settings | TindaKo',
-  description: 'Configure app settings and preferences',
-}
+export default function SettingsPage() {
+  const { phone, isAuthenticated, isLoading } = useAuth()
 
-export default async function SettingsPage() {
-  const user = await getUser()
-
-  if (!user) {
+  // Show loading state while checking auth
+  if (isLoading) {
     return (
       <div className="flex h-[calc(100vh-12rem)] items-center justify-center">
-        <p className="text-destructive">Unable to load user session</p>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     )
   }
 
-  return <SettingsClient userId={user.id} />
+  // If not authenticated, show error message
+  if (!isAuthenticated) {
+    return (
+      <div className="flex h-[calc(100vh-12rem)] items-center justify-center">
+        <p className="text-destructive">Please log in to access settings</p>
+      </div>
+    )
+  }
+
+  return <SettingsClient storePhone={phone || ''} />
 }

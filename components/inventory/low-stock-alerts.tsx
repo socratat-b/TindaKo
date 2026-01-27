@@ -22,7 +22,7 @@ export function LowStockAlerts({
   lowStockProducts,
   allProducts,
   categories,
-  userId,
+  storePhone,
   currentPage,
   itemsPerPage,
   onPageChange,
@@ -266,7 +266,7 @@ export function LowStockAlerts({
           setIsAdjustmentDialogOpen(open)
           if (!open) setSelectedProductId(null)
         }}
-        userId={userId}
+        storePhone={storePhone}
         products={allProducts}
         categories={categories}
         initialProductId={selectedProductId || undefined}

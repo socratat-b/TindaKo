@@ -19,7 +19,7 @@ import type { QuickAddCustomerDialogProps } from '@/lib/types'
 export function QuickAddCustomerDialog({
   open,
   onOpenChange,
-  userId,
+  storePhone,
   onCustomerCreated,
 }: QuickAddCustomerDialogProps) {
   const {
@@ -31,7 +31,7 @@ export function QuickAddCustomerDialog({
   } = useQuickAddCustomer({
     open,
     onOpenChange,
-    userId,
+    storePhone,
     onCustomerCreated,
   })
 

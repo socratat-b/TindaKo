@@ -3,10 +3,14 @@
 import { useState } from 'react'
 import { logoutAction } from '@/lib/actions/auth'
 import { clearAllLocalData } from '@/lib/db'
-import { isOnline } from '@/lib/auth/session-cache'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { useCartStore } from '@/lib/stores/cart-store'
 import { useSyncStore } from '@/lib/stores/sync-store'
+
+// Check if browser is online
+function isOnline(): boolean {
+  return typeof navigator !== 'undefined' && navigator.onLine
+}
 import {
   Dialog,
   DialogContent,
@@ -24,7 +28,7 @@ interface LogoutDialogProps {
 }
 
 export function LogoutDialog({ open, onOpenChange }: LogoutDialogProps) {
-  const { user } = useAuth()
+  const { phone } = useAuth()
   const clearCart = useCartStore((state) => state.clearCart)
   const hasPendingChanges = useSyncStore((state) => state.hasPendingChanges)
   const backup = useSyncStore((state) => state.backup)
@@ -33,31 +37,25 @@ export function LogoutDialog({ open, onOpenChange }: LogoutDialogProps) {
   const [isOffline, setIsOffline] = useState(false)
 
   // Check online status when dialog opens
-  const handleOpenChange = async (isOpen: boolean) => {
+  const handleOpenChange = (isOpen: boolean) => {
     if (isOpen) {
       setError(null)
-
-      try {
-        // Check online status
-        const online = await isOnline()
-        setIsOffline(!online)
-      } catch (err) {
-        console.error('Failed to check online status:', err)
-      }
+      // Check online status
+      setIsOffline(!isOnline())
     }
 
     onOpenChange(isOpen)
   }
 
   const handleLogout = async () => {
-    if (!user) return
+    if (!phone) return
 
     setIsLoading(true)
     setError(null)
 
     try {
       // Check if online first - logout requires internet if there are pending changes
-      const online = await isOnline()
+      const online = isOnline()
 
       if (!online && hasPendingChanges) {
         setError('Internet connection required to backup your changes. Please connect to the internet.')
@@ -67,7 +65,7 @@ export function LogoutDialog({ open, onOpenChange }: LogoutDialogProps) {
 
       // Only backup if there are pending changes (reuse Backup Now logic)
       if (hasPendingChanges) {
-        await backup(user.id)
+        await backup(phone)
       }
 
       // Clear cart before logout

@@ -17,21 +17,22 @@ UI (React) → Zustand → Dexie (local) ↔ Manual Sync → Supabase (backup)
 
 ## Database Schema
 
-All tables: `id`, `userId`, `syncedAt`, `updatedAt`, `createdAt`, `isDeleted`
+All tables: `id`, `storePhone`, `syncedAt`, `updatedAt`, `createdAt`, `isDeleted`
 
-- **products**: name, barcode, categoryId, costPrice, sellingPrice, stockQty, lowStockThreshold
-- **categories**: name, color, sortOrder
-- **sales**: items[], subtotal, discount, total, amountPaid, change, paymentMethod, customerId
-- **customers**: name, phone, address, totalUtang
-- **utangTransactions**: customerId, saleId, type, amount, balanceAfter
-- **inventoryMovements**: productId, type, qty, notes
+- **stores**: phone (unique), storeName, pinHash, createdAt, updatedAt
+- **products**: name, barcode, categoryId, sellingPrice, stockQty, lowStockThreshold, storePhone
+- **categories**: name, color, sortOrder, storePhone
+- **sales**: items[], subtotal, discount, total, amountPaid, change, paymentMethod, customerId, storePhone
+- **customers**: name, phone, address, totalUtang, storePhone
+- **utangTransactions**: customerId, saleId, type, amount, balanceAfter, storePhone
+- **inventoryMovements**: productId, type, qty, notes, storePhone
 
 ## ✅ Completed Features
 
 ### Phase 1-3: Core Foundation
 
-- [x] **Database**: Dexie (local) + Supabase (cloud) with RLS policies
-- [x] **Authentication**: Supabase email/password, session persistence, DAL security
+- [x] **Database**: Dexie (local) + Supabase (cloud) with manual sync
+- [x] **Authentication**: Phone + PIN authentication (replaced Supabase Auth)
 - [x] **Sync**: Manual backup with last-write-wins conflict resolution, sync stats tracking
 - [x] **Testing**: Vitest + React Testing Library (14/14 tests passing)
 - [x] **PWA**: Service worker, installable, offline-capable, manifest
@@ -42,18 +43,28 @@ All tables: `id`, `userId`, `syncedAt`, `updatedAt`, `createdAt`, `isDeleted`
 - [x] **POS Page**: Product grid, cart, checkout, barcode scanner, atomic transactions, framer-motion animations
 - [x] **Products Page**: CRUD products & categories, search/filter, stock status, auto-seed default categories, framer-motion animations
 - [x] **Inventory Page**: Manual adjustments (in/out/adjust), low stock alerts, movement history, framer-motion animations
+- [x] **Utang Page**: Customer credit tracking, payment recording, balance history, framer-motion animations
+- [x] **Reports Page**: Daily/weekly/monthly sales reports, date filtering, stats, framer-motion animations
+- [x] **Settings Page**: Theme switching, data backup/restore, account management, framer-motion animations
 - [x] **Layout**: Responsive header, sidebar (desktop), drawer (mobile), sync indicator
 - [x] **Design System**: Mobile-first font sizing, shadcn/ui components
 
+### Phase 4: Auth System Refactor ✅ COMPLETED
+
+- [x] **Phone-based Authentication**: Phone number (09XXXXXXXXX) + 4-6 digit PIN
+- [x] **Removed Supabase Auth**: Deleted email/password authentication
+- [x] **Database Migration**: userId → storePhone across all tables
+- [x] **New stores table**: phone (unique), storeName, pinHash
+- [x] **Static Pages**: All 13 pages now static (○) - instant offline capability
+- [x] **Session Management**: localStorage + cookies for middleware access
+- [x] **PIN Security**: bcrypt hashing with `lib/auth/pin.ts`
+- [x] **Multi-device Support**: Login with phone + PIN to restore data from cloud
+- [x] **Code Updates**: 89 files changed (components, actions, hooks, stores, types)
+- [x] **Simplified UX**: No email required, instant signup, familiar for Filipino users
+
 ## 📋 Todo
 
-### Phase 3: All Pages Complete
-
-- [x] **Utang Page**: Customer credit tracking, payment recording, balance history
-- [x] **Reports Page**: Daily/weekly/monthly sales reports, date filtering, stats
-- [x] **Settings Page**: Theme switching, currency format, data backup/restore
-
-### Phase 4: Future Enhancements
+### Phase 5: Future Enhancements
 
 **Centralized Product Database (Open Food Facts)**
 - [ ] Store Open Food Facts products in IndexedDB as centralized product catalog

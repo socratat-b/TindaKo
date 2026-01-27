@@ -29,7 +29,7 @@ export function ProductFormDialog({
   onOpenChange,
   product,
   categories,
-  userId,
+  storePhone,
   onSuccess,
 }: ProductFormDialogProps) {
   const {
@@ -46,7 +46,7 @@ export function ProductFormDialog({
     handleCancelCategoryForm,
     handleSubmit,
   } = useProductForm({
-    userId,
+    storePhone,
     onSuccess,
     onOpenChange,
     product,

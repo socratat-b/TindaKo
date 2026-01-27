@@ -3,7 +3,7 @@ import { db } from '@/lib/db'
 import { useInventoryListStore } from '@/lib/stores/inventory-list-store'
 import type { UseInventoryListParams } from '@/lib/types'
 
-export function useInventoryList({ userId }: UseInventoryListParams) {
+export function useInventoryList({ storePhone }: UseInventoryListParams) {
   const {
     activeTab,
     searchQuery,
@@ -22,45 +22,45 @@ export function useInventoryList({ userId }: UseInventoryListParams) {
   const movements = useLiveQuery(
     () =>
       db.inventoryMovements
-        .where('userId')
-        .equals(userId)
+        .where('storePhone')
+        .equals(storePhone)
         .filter((m) => !m.isDeleted)
         .reverse()
         .sortBy('createdAt'),
-    [userId]
+    [storePhone]
   )
 
   // Fetch products
   const products = useLiveQuery(
     () =>
       db.products
-        .where('userId')
-        .equals(userId)
+        .where('storePhone')
+        .equals(storePhone)
         .filter((p) => !p.isDeleted)
         .sortBy('name'),
-    [userId]
+    [storePhone]
   )
 
   // Fetch low stock products
   const lowStockProducts = useLiveQuery(
     () =>
       db.products
-        .where('userId')
-        .equals(userId)
+        .where('storePhone')
+        .equals(storePhone)
         .filter((p) => !p.isDeleted && p.stockQty <= p.lowStockThreshold)
         .sortBy('stockQty'),
-    [userId]
+    [storePhone]
   )
 
   // Fetch categories
   const categories = useLiveQuery(
     () =>
       db.categories
-        .where('userId')
-        .equals(userId)
+        .where('storePhone')
+        .equals(storePhone)
         .filter((c) => !c.isDeleted)
         .toArray(),
-    [userId]
+    [storePhone]
   )
 
   // Filter movements based on search

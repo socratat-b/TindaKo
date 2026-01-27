@@ -8,8 +8,8 @@ interface ProductsState {
   isLoading: boolean
   
   // Actions
-  loadProducts: (userId: string) => Promise<void>
-  refreshProducts: (userId: string) => Promise<void>
+  loadProducts: (storePhone: string) => Promise<void>
+  refreshProducts: (storePhone: string) => Promise<void>
 }
 
 export const useProductsStore = create<ProductsState>((set) => ({
@@ -17,13 +17,13 @@ export const useProductsStore = create<ProductsState>((set) => ({
   categories: [],
   isLoading: true,
   
-  loadProducts: async (userId: string) => {
+  loadProducts: async (storePhone: string) => {
     set({ isLoading: true })
-    
+
     try {
       const [allProducts, allCategories] = await Promise.all([
-        db.products.where('userId').equals(userId).toArray(),
-        db.categories.where('userId').equals(userId).toArray(),
+        db.products.where('storePhone').equals(storePhone).toArray(),
+        db.categories.where('storePhone').equals(storePhone).toArray(),
       ])
 
       const products = allProducts.filter((p) => !p.isDeleted)
@@ -38,12 +38,12 @@ export const useProductsStore = create<ProductsState>((set) => ({
     }
   },
   
-  refreshProducts: async (userId: string) => {
+  refreshProducts: async (storePhone: string) => {
     // Reload without setting isLoading (smoother UX)
     try {
       const [allProducts, allCategories] = await Promise.all([
-        db.products.where('userId').equals(userId).toArray(),
-        db.categories.where('userId').equals(userId).toArray(),
+        db.products.where('storePhone').equals(storePhone).toArray(),
+        db.categories.where('storePhone').equals(storePhone).toArray(),
       ])
 
       const products = allProducts.filter((p) => !p.isDeleted)

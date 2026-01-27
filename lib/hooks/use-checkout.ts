@@ -9,7 +9,7 @@ export function useCheckout({
   open,
   onOpenChange,
   onCheckout,
-  userId,
+  storePhone,
   total,
   paymentMethod,
   clearCart,
@@ -35,12 +35,12 @@ export function useCheckout({
     () => {
       if (typeof window === 'undefined') return []
       return db.customers
-        .where('userId')
-        .equals(userId)
+        .where('storePhone')
+        .equals(storePhone)
         .filter((c) => !c.isDeleted)
         .sortBy('name')
     },
-    [userId]
+    [storePhone]
   )
 
   const amountPaidNum = parseFloat(amountPaid) || 0

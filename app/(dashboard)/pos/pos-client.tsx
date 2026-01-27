@@ -13,9 +13,9 @@ const POSInterface = dynamic(() => import('@/components/pos/pos-interface'), {
 })
 
 interface POSClientProps {
-  userId: string
+  storePhone: string
 }
 
-export default function POSClient({ userId }: POSClientProps) {
-  return <POSInterface userId={userId} />
+export default function POSClient({ storePhone }: POSClientProps) {
+  return <POSInterface storePhone={storePhone} />
 }

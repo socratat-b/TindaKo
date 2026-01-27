@@ -10,10 +10,10 @@ import { AppSettingsSection } from './app-settings-section'
 import { AboutSection } from './about-section'
 
 interface SettingsInterfaceProps {
-  userId: string
+  storePhone: string
 }
 
-export default function SettingsInterface({ userId }: SettingsInterfaceProps) {
+export default function SettingsInterface({ storePhone }: SettingsInterfaceProps) {
   return (
     <div className="space-y-4 lg:space-y-6">
       {/* Header */}

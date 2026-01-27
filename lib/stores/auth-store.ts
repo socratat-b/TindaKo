@@ -1,37 +1,32 @@
 import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
-import type { User } from '@supabase/supabase-js'
 
+/**
+ * Auth state for phone-based authentication
+ * Note: Actual session (phone, pinHash) is stored separately in localStorage
+ * This store is for reactive UI state only
+ */
 interface AuthState {
-  user: User | null
+  phone: string | null
+  storeName: string | null
+  isAuthenticated: boolean
   isLoading: boolean
-  isOffline: boolean
-  lastSyncTime: number | null
-  setUser: (user: User | null) => void
+
+  setAuth: (phone: string, storeName: string) => void
   setLoading: (isLoading: boolean) => void
-  setOffline: (isOffline: boolean) => void
-  setLastSyncTime: (time: number | null) => void
-  clear: () => void
+  clearAuth: () => void
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
-      user: null,
-      isLoading: true,
-      isOffline: false,
-      lastSyncTime: null,
+export const useAuthStore = create<AuthState>((set) => ({
+  phone: null,
+  storeName: null,
+  isAuthenticated: false,
+  isLoading: true,
 
-      setUser: (user) => set({ user }),
-      setLoading: (isLoading) => set({ isLoading }),
-      setOffline: (isOffline) => set({ isOffline }),
-      setLastSyncTime: (time) => set({ lastSyncTime: time }),
-      clear: () => set({ user: null, isLoading: false, isOffline: false, lastSyncTime: null }),
-    }),
-    {
-      name: 'tindako-auth-storage',
-      storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ user: state.user, lastSyncTime: state.lastSyncTime }),
-    }
-  )
-)
+  setAuth: (phone, storeName) =>
+    set({ phone, storeName, isAuthenticated: true, isLoading: false }),
+
+  setLoading: (isLoading) => set({ isLoading }),
+
+  clearAuth: () =>
+    set({ phone: null, storeName: null, isAuthenticated: false, isLoading: false }),
+}))

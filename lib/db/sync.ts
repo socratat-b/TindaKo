@@ -1,6 +1,6 @@
 import { db } from './index'
 import { createClient } from '@/lib/supabase/client'
-import { isSessionValidOffline, isOnline } from '@/lib/auth/session-cache'
+import { getCurrentPhone } from '@/lib/auth/session'
 import {
   pushCategories,
   pushCustomers,
@@ -19,32 +19,22 @@ import {
 let lastSyncTime: Record<string, string> = {}
 
 /**
- * Get current user ID from Supabase auth
- * Tries online first, falls back to cached session for offline access
+ * Check if browser is online
+ */
+function isOnline(): boolean {
+  return typeof navigator !== 'undefined' && navigator.onLine
+}
+
+/**
+ * Get current phone from local session
  * @throws Error if user is not authenticated
  */
-async function getCurrentUserId(): Promise<string> {
-  const supabase = createClient()
-
-  // Try online verification first
-  try {
-    const { data: { user }, error } = await supabase.auth.getUser()
-
-    if (user && !error) {
-      return user.id
-    }
-  } catch {
-    // Network error: fall through to offline check
-  }
-
-  // Offline fallback: Check cached session
-  const validation = await isSessionValidOffline()
-
-  if (!validation.isValid || !validation.session) {
+function getCurrentPhoneOrThrow(): string {
+  const phone = getCurrentPhone()
+  if (!phone) {
     throw new Error('User must be authenticated to sync')
   }
-
-  return validation.session.userId
+  return phone
 }
 
 /**
@@ -60,15 +50,15 @@ export interface SyncStats {
  * Check if there are any unsynced changes in local database
  * Returns true if any table has items with syncedAt === null
  */
-export async function hasUnsyncedChanges(userId: string): Promise<boolean> {
+export async function hasUnsyncedChanges(storePhone: string): Promise<boolean> {
   try {
     const [categories, customers, products, sales, utangTxns, inventoryMvmts] = await Promise.all([
-      db.categories.filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted).count(),
-      db.customers.filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted).count(),
-      db.products.filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted).count(),
-      db.sales.filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted).count(),
-      db.utangTransactions.filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted).count(),
-      db.inventoryMovements.filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted).count(),
+      db.categories.filter(item => item.syncedAt === null && item.storePhone === storePhone && !item.isDeleted).count(),
+      db.customers.filter(item => item.syncedAt === null && item.storePhone === storePhone && !item.isDeleted).count(),
+      db.products.filter(item => item.syncedAt === null && item.storePhone === storePhone && !item.isDeleted).count(),
+      db.sales.filter(item => item.syncedAt === null && item.storePhone === storePhone && !item.isDeleted).count(),
+      db.utangTransactions.filter(item => item.syncedAt === null && item.storePhone === storePhone && !item.isDeleted).count(),
+      db.inventoryMovements.filter(item => item.syncedAt === null && item.storePhone === storePhone && !item.isDeleted).count(),
     ])
 
     const total = categories + customers + products + sales + utangTxns + inventoryMvmts
@@ -84,42 +74,41 @@ export async function hasUnsyncedChanges(userId: string): Promise<boolean> {
  * Does NOT download any data from cloud
  * Used for manual "Backup to Cloud" button
  */
-export async function pushToCloud(userId?: string, onProgress?: (current: string, completed: number, total: number, count: number) => void): Promise<SyncStats> {
+export async function pushToCloud(storePhone?: string, onProgress?: (current: string, completed: number, total: number, count: number) => void): Promise<SyncStats> {
   try {
     // Check if online before attempting sync
-    const online = await isOnline()
-    if (!online) {
+    if (!isOnline()) {
       console.log('Offline - skipping push')
       return { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
     }
 
-    const currentUserId = userId || await getCurrentUserId()
+    const currentPhone = storePhone || getCurrentPhoneOrThrow()
     const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
     const totalTables = 6
 
     // Push in dependency order
     onProgress?.('Categories', 0, totalTables, 0)
-    const categoriesStats = await pushCategories(currentUserId)
+    const categoriesStats = await pushCategories(currentPhone)
     stats.pushedCount += categoriesStats.pushedCount
 
     onProgress?.('Customers', 1, totalTables, categoriesStats.pushedCount)
-    const customersStats = await pushCustomers(currentUserId)
+    const customersStats = await pushCustomers(currentPhone)
     stats.pushedCount += customersStats.pushedCount
 
     onProgress?.('Products', 2, totalTables, customersStats.pushedCount)
-    const productsStats = await pushProducts(currentUserId)
+    const productsStats = await pushProducts(currentPhone)
     stats.pushedCount += productsStats.pushedCount
 
     onProgress?.('Sales', 3, totalTables, productsStats.pushedCount)
-    const salesStats = await pushSales(currentUserId)
+    const salesStats = await pushSales(currentPhone)
     stats.pushedCount += salesStats.pushedCount
 
     onProgress?.('Utang', 4, totalTables, salesStats.pushedCount)
-    const utangStats = await pushUtangTransactions(currentUserId)
+    const utangStats = await pushUtangTransactions(currentPhone)
     stats.pushedCount += utangStats.pushedCount
 
     onProgress?.('Inventory', 5, totalTables, utangStats.pushedCount)
-    const inventoryStats = await pushInventoryMovements(currentUserId)
+    const inventoryStats = await pushInventoryMovements(currentPhone)
     stats.pushedCount += inventoryStats.pushedCount
 
     console.log('Push to cloud completed successfully', stats)
@@ -135,59 +124,49 @@ export async function pushToCloud(userId?: string, onProgress?: (current: string
  * Does NOT upload any data to cloud
  * Used for auto-restore on first login or new device
  */
-export async function pullFromCloud(userId?: string): Promise<SyncStats> {
+export async function pullFromCloud(storePhone?: string): Promise<SyncStats> {
   try {
-    console.log('[pullFromCloud] Starting pull for userId:', userId)
+    console.log('[pullFromCloud] Starting pull for phone:', storePhone)
 
     // Check if online before attempting sync
-    const online = await isOnline()
-    if (!online) {
+    if (!isOnline()) {
       console.log('[pullFromCloud] Offline - skipping pull')
       return { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
     }
 
-    const currentUserId = userId || await getCurrentUserId()
-    console.log('[pullFromCloud] Using userId:', currentUserId)
-
-    // Verify auth session exists before pulling (RLS requires it)
-    const supabase = createClient()
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session?.user) {
-      console.error('[pullFromCloud] No auth session - cannot pull from cloud')
-      return { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
-    }
-    console.log('[pullFromCloud] Auth session verified:', session.user.id)
+    const currentPhone = storePhone || getCurrentPhoneOrThrow()
+    console.log('[pullFromCloud] Using phone:', currentPhone)
 
     const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
     // Pull in dependency order
     console.log('[pullFromCloud] Pulling categories...')
-    const categoriesStats = await pullCategories(currentUserId)
+    const categoriesStats = await pullCategories(currentPhone)
     stats.pulledCount += categoriesStats.pulledCount
     console.log('[pullFromCloud] Categories pulled:', categoriesStats.pulledCount)
 
     console.log('[pullFromCloud] Pulling customers...')
-    const customersStats = await pullCustomers(currentUserId)
+    const customersStats = await pullCustomers(currentPhone)
     stats.pulledCount += customersStats.pulledCount
     console.log('[pullFromCloud] Customers pulled:', customersStats.pulledCount)
 
     console.log('[pullFromCloud] Pulling products...')
-    const productsStats = await pullProducts(currentUserId)
+    const productsStats = await pullProducts(currentPhone)
     stats.pulledCount += productsStats.pulledCount
     console.log('[pullFromCloud] Products pulled:', productsStats.pulledCount)
 
     console.log('[pullFromCloud] Pulling sales...')
-    const salesStats = await pullSales(currentUserId)
+    const salesStats = await pullSales(currentPhone)
     stats.pulledCount += salesStats.pulledCount
     console.log('[pullFromCloud] Sales pulled:', salesStats.pulledCount)
 
     console.log('[pullFromCloud] Pulling utang transactions...')
-    const utangStats = await pullUtangTransactions(currentUserId)
+    const utangStats = await pullUtangTransactions(currentPhone)
     stats.pulledCount += utangStats.pulledCount
     console.log('[pullFromCloud] Utang transactions pulled:', utangStats.pulledCount)
 
     console.log('[pullFromCloud] Pulling inventory movements...')
-    const inventoryStats = await pullInventoryMovements(currentUserId)
+    const inventoryStats = await pullInventoryMovements(currentPhone)
     stats.pulledCount += inventoryStats.pulledCount
     console.log('[pullFromCloud] Inventory movements pulled:', inventoryStats.pulledCount)
 
@@ -208,43 +187,42 @@ export async function pullFromCloud(userId?: string): Promise<SyncStats> {
 export async function syncAll(isInitialSync = false): Promise<SyncStats> {
   try {
     // Check if online before attempting sync
-    const online = await isOnline()
-    if (!online) {
+    if (!isOnline()) {
       console.log('Offline - skipping sync')
       return { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
     }
 
-    const userId = await getCurrentUserId()
+    const storePhone = getCurrentPhoneOrThrow()
 
     // Sync in dependency order and collect stats
     const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
-    const categoriesStats = await syncCategories(userId, isInitialSync)
+    const categoriesStats = await syncCategories(storePhone, isInitialSync)
     stats.pushedCount += categoriesStats.pushedCount
     stats.pulledCount += categoriesStats.pulledCount
     stats.skippedCount += categoriesStats.skippedCount
 
-    const customersStats = await syncCustomers(userId, isInitialSync)
+    const customersStats = await syncCustomers(storePhone, isInitialSync)
     stats.pushedCount += customersStats.pushedCount
     stats.pulledCount += customersStats.pulledCount
     stats.skippedCount += customersStats.skippedCount
 
-    const productsStats = await syncProducts(userId, isInitialSync)
+    const productsStats = await syncProducts(storePhone, isInitialSync)
     stats.pushedCount += productsStats.pushedCount
     stats.pulledCount += productsStats.pulledCount
     stats.skippedCount += productsStats.skippedCount
 
-    const salesStats = await syncSales(userId, isInitialSync)
+    const salesStats = await syncSales(storePhone, isInitialSync)
     stats.pushedCount += salesStats.pushedCount
     stats.pulledCount += salesStats.pulledCount
     stats.skippedCount += salesStats.skippedCount
 
-    const utangStats = await syncUtangTransactions(userId, isInitialSync)
+    const utangStats = await syncUtangTransactions(storePhone, isInitialSync)
     stats.pushedCount += utangStats.pushedCount
     stats.pulledCount += utangStats.pulledCount
     stats.skippedCount += utangStats.skippedCount
 
-    const inventoryStats = await syncInventoryMovements(userId, isInitialSync)
+    const inventoryStats = await syncInventoryMovements(storePhone, isInitialSync)
     stats.pushedCount += inventoryStats.pushedCount
     stats.pulledCount += inventoryStats.pulledCount
     stats.skippedCount += inventoryStats.skippedCount
@@ -278,14 +256,14 @@ export function toCamelCase(obj: Record<string, any>): Record<string, any> {
 }
 
 // Sync functions will be implemented by /add-table skill
-async function syncCategories(userId: string, isInitialSync = false): Promise<SyncStats> {
+async function syncCategories(storePhone: string, isInitialSync = false): Promise<SyncStats> {
   const supabase = createClient()
   const lastSync = isInitialSync ? new Date(0).toISOString() : (lastSyncTime['categories'] || new Date(0).toISOString())
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
-  // PUSH: Local unsynced changes to Supabase (filter by userId)
+  // PUSH: Local unsynced changes to Supabase (filter by storePhone)
   const unsynced = await db.categories
-    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
+    .filter(item => item.syncedAt === null && item.storePhone === storePhone && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -334,14 +312,14 @@ async function syncCategories(userId: string, isInitialSync = false): Promise<Sy
   return stats
 }
 
-async function syncCustomers(userId: string, isInitialSync = false): Promise<SyncStats> {
+async function syncCustomers(storePhone: string, isInitialSync = false): Promise<SyncStats> {
   const supabase = createClient()
   const lastSync = isInitialSync ? new Date(0).toISOString() : (lastSyncTime['customers'] || new Date(0).toISOString())
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
-  // PUSH: Local unsynced changes to Supabase (filter by userId)
+  // PUSH: Local unsynced changes to Supabase (filter by storePhone)
   const unsynced = await db.customers
-    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
+    .filter(item => item.syncedAt === null && item.storePhone === storePhone && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -387,14 +365,14 @@ async function syncCustomers(userId: string, isInitialSync = false): Promise<Syn
   return stats
 }
 
-async function syncProducts(userId: string, isInitialSync = false): Promise<SyncStats> {
+async function syncProducts(storePhone: string, isInitialSync = false): Promise<SyncStats> {
   const supabase = createClient()
   const lastSync = isInitialSync ? new Date(0).toISOString() : (lastSyncTime['products'] || new Date(0).toISOString())
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
-  // PUSH: Local unsynced changes to Supabase (filter by userId)
+  // PUSH: Local unsynced changes to Supabase (filter by storePhone)
   const unsynced = await db.products
-    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
+    .filter(item => item.syncedAt === null && item.storePhone === storePhone && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -440,14 +418,14 @@ async function syncProducts(userId: string, isInitialSync = false): Promise<Sync
   return stats
 }
 
-async function syncSales(userId: string, isInitialSync = false): Promise<SyncStats> {
+async function syncSales(storePhone: string, isInitialSync = false): Promise<SyncStats> {
   const supabase = createClient()
   const lastSync = isInitialSync ? new Date(0).toISOString() : (lastSyncTime['sales'] || new Date(0).toISOString())
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
-  // PUSH: Local unsynced changes to Supabase (filter by userId)
+  // PUSH: Local unsynced changes to Supabase (filter by storePhone)
   const unsynced = await db.sales
-    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
+    .filter(item => item.syncedAt === null && item.storePhone === storePhone && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -495,14 +473,14 @@ async function syncSales(userId: string, isInitialSync = false): Promise<SyncSta
   return stats
 }
 
-async function syncUtangTransactions(userId: string, isInitialSync = false): Promise<SyncStats> {
+async function syncUtangTransactions(storePhone: string, isInitialSync = false): Promise<SyncStats> {
   const supabase = createClient()
   const lastSync = isInitialSync ? new Date(0).toISOString() : (lastSyncTime['utangTransactions'] || new Date(0).toISOString())
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
-  // PUSH: Local unsynced changes to Supabase (filter by userId)
+  // PUSH: Local unsynced changes to Supabase (filter by storePhone)
   const unsynced = await db.utangTransactions
-    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
+    .filter(item => item.syncedAt === null && item.storePhone === storePhone && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -548,14 +526,14 @@ async function syncUtangTransactions(userId: string, isInitialSync = false): Pro
   return stats
 }
 
-async function syncInventoryMovements(userId: string, isInitialSync = false): Promise<SyncStats> {
+async function syncInventoryMovements(storePhone: string, isInitialSync = false): Promise<SyncStats> {
   const supabase = createClient()
   const lastSync = isInitialSync ? new Date(0).toISOString() : (lastSyncTime['inventoryMovements'] || new Date(0).toISOString())
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
-  // PUSH: Local unsynced changes to Supabase (filter by userId)
+  // PUSH: Local unsynced changes to Supabase (filter by storePhone)
   const unsynced = await db.inventoryMovements
-    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
+    .filter(item => item.syncedAt === null && item.storePhone === storePhone && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {

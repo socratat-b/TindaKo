@@ -1,14 +1,57 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { loginAction } from '@/lib/actions/auth'
+import { useAuthStore } from '@/lib/stores/auth-store'
+import { getSession } from '@/lib/auth/session'
 import Link from 'next/link'
-import { SubmitButton } from '@/components/auth/submit-button'
-import { OfflineBanner } from '@/components/auth/offline-banner'
+import { Loader2 } from 'lucide-react'
 
 export default function LoginPage() {
-  const [state, formAction, isPending] = useActionState(loginAction, {})
+  const router = useRouter()
+  const setAuth = useAuthStore((state) => state.setAuth)
+
+  const [phone, setPhone] = useState('')
+  const [pin, setPin] = useState('')
+  const [error, setError] = useState('')
+  const [isPending, setIsPending] = useState(false)
+
+  // Check if already logged in
+  useEffect(() => {
+    const session = getSession()
+    if (session) {
+      router.push('/pos')
+    }
+  }, [router])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setIsPending(true)
+
+    try {
+      // Call login action
+      const result = await loginAction(phone, pin)
+
+      if (!result.success) {
+        setError(result.error || 'Login failed')
+        setIsPending(false)
+        return
+      }
+
+      // Update auth store
+      setAuth(result.phone!, result.storeName!)
+
+      // Redirect to POS
+      router.push('/pos')
+    } catch (err) {
+      console.error('[LoginPage] Error:', err)
+      setError('An unexpected error occurred')
+      setIsPending(false)
+    }
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-teal-50 to-white px-4">
@@ -44,48 +87,64 @@ export default function LoginPage() {
           transition={{ duration: 0.5, delay: 0.4, ease: 'easeOut' }}
           className="bg-white rounded-xl shadow-sm border border-gray-100 p-8"
         >
-          <form action={formAction} className="space-y-6">
-            <OfflineBanner />
-
-            {state.error && (
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
               <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-600">
-                {state.error}
+                {error}
               </div>
             )}
 
             <div className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-900">
-                  Email
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-900">
+                  Phone Number
                 </label>
                 <input
-                  id="email"
-                  name="email"
-                  type="email"
+                  id="phone"
+                  type="tel"
                   required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  pattern="09[0-9]{9}"
+                  maxLength={11}
                   className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  placeholder="you@example.com"
+                  placeholder="09171234567"
                 />
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-900">
-                  Password
+                <label htmlFor="pin" className="block text-sm font-medium text-gray-900">
+                  PIN
                 </label>
                 <input
-                  id="password"
-                  name="password"
+                  id="pin"
                   type="password"
                   required
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value)}
+                  pattern="[0-9]{4,6}"
+                  maxLength={6}
+                  inputMode="numeric"
                   className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  placeholder="••••••••"
+                  placeholder="••••"
                 />
               </div>
             </div>
 
-            <SubmitButton isPending={isPending}>
-              Sign in
-            </SubmitButton>
+            <button
+              type="submit"
+              disabled={isPending}
+              className="w-full flex justify-center items-center rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                'Sign In'
+              )}
+            </button>
 
             <p className="text-center text-sm text-gray-600">
               Don&apos;t have an account?{' '}

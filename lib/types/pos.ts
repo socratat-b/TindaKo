@@ -5,20 +5,20 @@ import type { Customer } from '@/lib/db/schema'
 // ============================================================================
 
 export interface POSInterfaceProps {
-  userId: string
+  storePhone: string
 }
 
 export interface CheckoutDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onCheckout: (amountPaid: number, customerId: string | null) => Promise<void>
-  userId: string
+  storePhone: string
 }
 
 export interface QuickAddCustomerDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  userId: string
+  storePhone: string
   onCustomerCreated?: (customerId: string) => void
 }
 
@@ -30,7 +30,7 @@ export interface UseCheckoutParams {
   open: boolean
   onOpenChange: (open: boolean) => void
   onCheckout: (amountPaid: number, customerId: string | null) => Promise<void>
-  userId: string
+  storePhone: string
   total: number
   paymentMethod: 'cash' | 'gcash' | 'utang'
   clearCart: () => void
@@ -39,7 +39,7 @@ export interface UseCheckoutParams {
 export interface UseQuickAddCustomerParams {
   open: boolean
   onOpenChange: (open: boolean) => void
-  userId: string
+  storePhone: string
   onCustomerCreated?: (customerId: string) => void
 }
 

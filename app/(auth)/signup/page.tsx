@@ -1,14 +1,57 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { signupAction } from '@/lib/actions/auth'
+import { useAuthStore } from '@/lib/stores/auth-store'
 import Link from 'next/link'
-import { SubmitButton } from '@/components/auth/submit-button'
-import { OfflineBanner } from '@/components/auth/offline-banner'
+import { Loader2 } from 'lucide-react'
 
 export default function SignupPage() {
-  const [state, formAction, isPending] = useActionState(signupAction, {})
+  const router = useRouter()
+  const setAuth = useAuthStore((state) => state.setAuth)
+
+  const [phone, setPhone] = useState('')
+  const [storeName, setStoreName] = useState('')
+  const [pin, setPin] = useState('')
+  const [confirmPin, setConfirmPin] = useState('')
+  const [error, setError] = useState('')
+  const [isPending, setIsPending] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setIsPending(true)
+
+    try {
+      // Validate PIN match
+      if (pin !== confirmPin) {
+        setError('PINs do not match')
+        setIsPending(false)
+        return
+      }
+
+      // Call signup action
+      const result = await signupAction(phone, storeName, pin)
+
+      if (!result.success) {
+        setError(result.error || 'Signup failed')
+        setIsPending(false)
+        return
+      }
+
+      // Update auth store
+      setAuth(result.phone!, result.storeName!)
+
+      // Redirect to POS
+      router.push('/pos')
+    } catch (err) {
+      console.error('[SignupPage] Error:', err)
+      setError('An unexpected error occurred')
+      setIsPending(false)
+    }
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-teal-50 to-white px-4">
@@ -44,55 +87,99 @@ export default function SignupPage() {
           transition={{ duration: 0.5, delay: 0.4, ease: 'easeOut' }}
           className="bg-white rounded-xl shadow-sm border border-gray-100 p-8"
         >
-          <form action={formAction} className="space-y-6">
-            <OfflineBanner />
-
-            {state.error && (
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
               <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-600">
-                {state.error}
-              </div>
-            )}
-
-            {state.success && (
-              <div className="rounded-lg bg-teal-50 border border-teal-200 p-4 text-sm text-teal-600">
-                {state.success}
+                {error}
               </div>
             )}
 
             <div className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-900">
-                  Email
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-900">
+                  Phone Number
                 </label>
                 <input
-                  id="email"
-                  name="email"
-                  type="email"
+                  id="phone"
+                  type="tel"
                   required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  pattern="09[0-9]{9}"
+                  maxLength={11}
                   className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  placeholder="you@example.com"
+                  placeholder="09171234567"
+                />
+                <p className="mt-1 text-xs text-gray-500">Format: 09XXXXXXXXX (11 digits)</p>
+              </div>
+
+              <div>
+                <label htmlFor="storeName" className="block text-sm font-medium text-gray-900">
+                  Store Name
+                </label>
+                <input
+                  id="storeName"
+                  type="text"
+                  required
+                  value={storeName}
+                  onChange={(e) => setStoreName(e.target.value)}
+                  className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="Aling Maria's Sari-Sari"
                 />
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-900">
-                  Password
+                <label htmlFor="pin" className="block text-sm font-medium text-gray-900">
+                  Create PIN
                 </label>
                 <input
-                  id="password"
-                  name="password"
+                  id="pin"
                   type="password"
                   required
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value)}
+                  pattern="[0-9]{4,6}"
+                  maxLength={6}
+                  inputMode="numeric"
                   className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  placeholder="••••••••"
+                  placeholder="••••"
                 />
-                <p className="mt-1 text-xs text-gray-500">Minimum 6 characters</p>
+                <p className="mt-1 text-xs text-gray-500">4-6 digits</p>
+              </div>
+
+              <div>
+                <label htmlFor="confirmPin" className="block text-sm font-medium text-gray-900">
+                  Confirm PIN
+                </label>
+                <input
+                  id="confirmPin"
+                  type="password"
+                  required
+                  value={confirmPin}
+                  onChange={(e) => setConfirmPin(e.target.value)}
+                  pattern="[0-9]{4,6}"
+                  maxLength={6}
+                  inputMode="numeric"
+                  className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="••••"
+                />
               </div>
             </div>
 
-            <SubmitButton isPending={isPending}>
-              Sign up
-            </SubmitButton>
+            <button
+              type="submit"
+              disabled={isPending}
+              className="w-full flex justify-center items-center rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating account...
+                </>
+              ) : (
+                'Create Account'
+              )}
+            </button>
 
             <p className="text-center text-sm text-gray-600">
               Already have an account?{' '}

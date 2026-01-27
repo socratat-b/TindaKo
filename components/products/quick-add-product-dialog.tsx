@@ -23,7 +23,7 @@ export function QuickAddProductDialog({
   open,
   onOpenChange,
   categories,
-  userId,
+  storePhone,
   onSuccess,
 }: QuickAddProductDialogProps) {
   const {
@@ -40,7 +40,7 @@ export function QuickAddProductDialog({
     handleCancelCategoryForm,
     handleSubmit,
   } = useQuickAddProduct({
-    userId,
+    storePhone,
     onSuccess,
     onOpenChange,
     categories,

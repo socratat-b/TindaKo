@@ -9,13 +9,6 @@ vi.mock('@/lib/supabase/client', () => ({
 }))
 
 // Mock session cache
-vi.mock('@/lib/auth/session-cache', () => ({
-  isSessionValidOffline: vi.fn().mockResolvedValue({
-    isValid: true,
-    session: { userId: 'test-user-id' },
-  }),
-  isOnline: vi.fn().mockResolvedValue(true),
-}))
 
 describe('Sync Utilities', () => {
   describe('toSnakeCase', () => {

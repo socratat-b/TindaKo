@@ -3,7 +3,7 @@ import type { Customer, UtangTransaction } from '@/lib/db/schema'
 
 // Component Props
 export interface UtangInterfaceProps {
-  userId: string
+  storePhone: string
 }
 
 export interface CustomersListProps {
@@ -17,7 +17,7 @@ export interface CustomersListProps {
 
 // Hook Parameters
 export interface UseUtangParams {
-  userId: string
+  storePhone: string
 }
 
 // Store State

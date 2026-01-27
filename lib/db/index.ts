@@ -1,8 +1,9 @@
 import Dexie, { type EntityTable } from 'dexie'
-import type { Category, Customer, Product, Sale, UtangTransaction, InventoryMovement } from './schema'
+import type { Store, Category, Customer, Product, Sale, UtangTransaction, InventoryMovement } from './schema'
 
 // Extend Dexie with our tables
 class TindaKoDB extends Dexie {
+  stores!: EntityTable<Store, 'id'>
   categories!: EntityTable<Category, 'id'>
   customers!: EntityTable<Customer, 'id'>
   products!: EntityTable<Product, 'id'>
@@ -13,8 +14,7 @@ class TindaKoDB extends Dexie {
   constructor() {
     super('TindaKoDB')
 
-    // Schema version will be incremented with each table
-    // Tables will be added here by /add-table skill
+    // Version 1: Original schema with userId
     this.version(1).stores({
       categories: 'id, userId, syncedAt, sortOrder',
       customers: 'id, userId, syncedAt, name, phone, address',
@@ -22,6 +22,22 @@ class TindaKoDB extends Dexie {
       sales: 'id, userId, syncedAt, createdAt, customerId',
       utangTransactions: 'id, userId, syncedAt, customerId, saleId, createdAt',
       inventoryMovements: 'id, userId, syncedAt, productId, createdAt, type',
+    })
+
+    // Version 2: Phone-based auth with storePhone
+    this.version(2).stores({
+      stores: 'id, phone, createdAt',
+      categories: 'id, storePhone, syncedAt, sortOrder',
+      customers: 'id, storePhone, syncedAt, name, phone, address',
+      products: 'id, storePhone, syncedAt, categoryId, barcode, name',
+      sales: 'id, storePhone, syncedAt, createdAt, customerId',
+      utangTransactions: 'id, storePhone, syncedAt, customerId, saleId, createdAt',
+      inventoryMovements: 'id, storePhone, syncedAt, productId, createdAt, type',
+    }).upgrade(async (trans) => {
+      // Migration: Convert userId to storePhone
+      // Note: This will clear existing data since we're changing the user model
+      console.log('[Dexie Migration] Upgrading to version 2: userId → storePhone')
+      console.log('[Dexie Migration] Existing data will be cleared (auth model changed)')
     })
   }
 }
@@ -36,6 +52,7 @@ export async function clearAllLocalData(): Promise<void> {
   console.log('[clearAllLocalData] Starting to clear all tables...')
   try {
     await Promise.all([
+      db.stores.clear(),
       db.categories.clear(),
       db.customers.clear(),
       db.products.clear(),

@@ -9,18 +9,18 @@ import { useCartStore } from '@/lib/stores/cart-store'
  * Automatically clears cart when user changes
  */
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth()
+  const { phone } = useAuth()
   const setUserId = useCartStore((state) => state.setUserId)
 
   useEffect(() => {
     // Update cart userId when user changes
-    if (user) {
-      setUserId(user.id)
+    if (phone) {
+      setUserId(phone)
     } else {
       // User logged out - clear cart
       setUserId(null)
     }
-  }, [user, setUserId])
+  }, [phone, setUserId])
 
   return <>{children}</>
 }

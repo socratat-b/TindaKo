@@ -15,7 +15,7 @@ import { useSyncStore } from '@/lib/stores/sync-store'
 import { useInventoryList } from '@/lib/hooks/use-inventory-list'
 import type { InventoryInterfaceProps } from '@/lib/types'
 
-export default function InventoryInterface({ userId }: InventoryInterfaceProps) {
+export default function InventoryInterface({ storePhone }: InventoryInterfaceProps) {
   const [isAdjustmentDialogOpen, setIsAdjustmentDialogOpen] = useState(false)
 
   const hasPendingChanges = useSyncStore((state) => state.hasPendingChanges)
@@ -37,7 +37,7 @@ export default function InventoryInterface({ userId }: InventoryInterfaceProps) 
     setAllProductsPage,
     setLowStockPage,
     setHistoryPage,
-  } = useInventoryList({ userId })
+  } = useInventoryList({ storePhone })
 
   return (
     <motion.div
@@ -116,7 +116,7 @@ export default function InventoryInterface({ userId }: InventoryInterfaceProps) 
                 lowStockProducts={lowStockProducts}
                 allProducts={products || []}
                 categories={categories || []}
-                userId={userId}
+                storePhone={storePhone}
                 currentPage={lowStockPage}
                 itemsPerPage={itemsPerPage}
                 onPageChange={setLowStockPage}
@@ -186,7 +186,7 @@ export default function InventoryInterface({ userId }: InventoryInterfaceProps) 
       <AdjustmentFormDialog
         open={isAdjustmentDialogOpen}
         onOpenChange={setIsAdjustmentDialogOpen}
-        userId={userId}
+        storePhone={storePhone}
         products={products || []}
         categories={categories || []}
       />

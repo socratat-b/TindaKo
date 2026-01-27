@@ -7,13 +7,13 @@ import { useAuth } from '@/lib/hooks/use-auth'
 import { db } from '@/lib/db'
 
 export function SyncProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth()
+  const { phone } = useAuth()
   const { restore } = useSyncStore()
   const pathname = usePathname()
   const lastSyncedUserIdRef = useRef<string | null>(null)
 
   useEffect(() => {
-    if (!user) {
+    if (!phone) {
       // User logged out - reset everything
       lastSyncedUserIdRef.current = null
       return
@@ -36,7 +36,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
         if (productsCount === 0) {
           // Check if already pulling (ref set + store status is 'syncing')
           const { status } = useSyncStore.getState()
-          if (lastSyncedUserIdRef.current === user.id && status === 'syncing') {
+          if (lastSyncedUserIdRef.current === phone && status === 'syncing') {
             return
           }
 
@@ -46,16 +46,16 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
           }
 
           // DB is empty - pull data from cloud
-          lastSyncedUserIdRef.current = user.id // Mark as pulling
+          lastSyncedUserIdRef.current = phone // Mark as pulling
 
-          await restore(user.id)
+          await restore(phone)
 
           window.dispatchEvent(new CustomEvent('data-restored'))
 
-          localStorage.setItem('lastLoggedInUserId', user.id)
+          localStorage.setItem('lastLoggedInUserId', phone)
         } else {
           // DB has data - mark as synced to prevent unnecessary pulls on navigation
-          lastSyncedUserIdRef.current = user.id
+          lastSyncedUserIdRef.current = phone
         }
       } catch (error) {
         console.error('[SyncProvider] Failed to pull data:', error)
@@ -64,7 +64,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     }
 
     pullDataIfNeeded()
-  }, [user, pathname, restore])
+  }, [phone, pathname, restore])
 
   return <>{children}</>
 }

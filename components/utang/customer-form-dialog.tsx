@@ -23,14 +23,14 @@ import { useFormatCurrency } from '@/lib/utils/currency'
 type CustomerFormDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  userId: string
+  storePhone: string
   customer?: Customer | null // If provided, we're editing
 }
 
 export function CustomerFormDialog({
   open,
   onOpenChange,
-  userId,
+  storePhone,
   customer,
 }: CustomerFormDialogProps) {
   const isEditing = !!customer
@@ -64,7 +64,7 @@ export function CustomerFormDialog({
     try {
       const result = isEditing
         ? await updateCustomer({ id: customer.id, name, phone, address })
-        : await createCustomer({ userId, name, phone, address })
+        : await createCustomer({ storePhone, name, phone, address })
 
       if (result.success) {
         setHasPendingChanges(true)
