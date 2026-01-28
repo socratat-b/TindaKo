@@ -7,6 +7,7 @@ import type { ProductCatalog } from '@/lib/db/schema'
 import { useCart } from '@/lib/hooks/use-cart'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { useProductsStore } from '@/lib/stores/products-store'
+import { getBarcodeVariants } from '@/lib/utils/barcode'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -92,11 +93,21 @@ export function BarcodeScanner() {
         return
       }
 
-      // Step 2: Check centralized catalog
-      const catalogProduct = await db.productCatalog
-        .where('barcode')
-        .equals(scannedBarcode)
-        .first()
+      // Step 2: Check centralized catalog (try multiple barcode formats)
+      const barcodeVariants = getBarcodeVariants(scannedBarcode)
+      let catalogProduct = null
+
+      for (const variant of barcodeVariants) {
+        catalogProduct = await db.productCatalog
+          .where('barcode')
+          .equals(variant)
+          .first()
+
+        if (catalogProduct) {
+          console.log(`✓ Found catalog match with variant: ${variant} (original: ${scannedBarcode})`)
+          break
+        }
+      }
 
       if (catalogProduct) {
         // Found in catalog - show quick add dialog
