@@ -1,5 +1,5 @@
 const fs = require('fs');
-const data = JSON.parse(fs.readFileSync('VERIFIED_PRODUCTS_PUREGOLD.json', 'utf8'));
+const data = JSON.parse(fs.readFileSync('FILIPINO_PRODUCTS_CATALOG.json', 'utf8'));
 
 let ts = `// Verified Filipino products from Puregold.com.ph
 // Total: ${data.total} products with validated barcodes
