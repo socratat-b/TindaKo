@@ -298,11 +298,7 @@
       "name": "Datu Puti Vinegar 1.893L",
       "categoryName": "Condiments"
     },
-    {
-      "barcode": "4800344001000",
-      "name": "Silver Swan Soy Sauce 19L",
-      "categoryName": "Condiments"
-    },
+
     {
       "barcode": "4800344004124",
       "name": "Silver Swan Vinegar 3785ml",
@@ -457,6 +453,121 @@
       "barcode": "4806504613311",
       "name": "Marlboro Flip Top Lights Gold Ream",
       "categoryName": "Cigarettes"
+    },
+    {
+      "barcode": "4800249006612",
+      "name": "San Marino Corned Tuna Original 155g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800249006650",
+      "name": "San Marino Corned Tuna 180g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800249032604",
+      "name": "Highlands Corned Beef Gold 150g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800249032895",
+      "name": "Highlands Corned Beef Regular 175g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800163000048",
+      "name": "Ligo Sardines Tomato Sauce w/ Chili 155g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800163000031",
+      "name": "Ligo Sardines Tomato Sauce Green 155g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4806504710119",
+      "name": "Mega Sardines Tomato Sauce 155g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4808887010077",
+      "name": "Purefoods Star Corned Beef 150g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800399041280",
+      "name": "Liberty Premium Beef Luncheon Meat 340g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800249006674",
+      "name": "San Marino Corned Tuna Chili 180g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800249032611",
+      "name": "Highlands Corned Beef Gold 175g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4806504710126",
+      "name": "Mega Sardines Tomato Sauce w/ Chili 155g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800527629083",
+      "name": "Young's Town Sardines Tomato Sauce 155g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800399039508",
+      "name": "Liberty Beef Luncheon Meat 375g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800344001628",
+      "name": "Silver Swan Soy Sauce 1L",
+      "categoryName": "Condiments"
+    },
+    {
+      "barcode": "4800344003943",
+      "name": "Silver Swan Cane Vinegar 200ml",
+      "categoryName": "Condiments"
+    },
+    {
+      "barcode": "4800344001420",
+      "name": "Silver Swan Soy Sauce 385ml",
+      "categoryName": "Condiments"
+    },
+    {
+      "barcode": "4801668505038",
+      "name": "Datu Puti Patis 350ml",
+      "categoryName": "Condiments"
+    },
+    {
+      "barcode": "4801668505045",
+      "name": "Datu Puti Patis 1L",
+      "categoryName": "Condiments"
+    },
+    {
+      "barcode": "4801668600542",
+      "name": "Datu Puti Patis 150ml",
+      "categoryName": "Condiments"
+    },
+    {
+      "barcode": "4801668100288",
+      "name": "Mang Tomas Lechon Sauce Siga 325g",
+      "categoryName": "Condiments"
+    },
+    {
+      "barcode": "4801668100264",
+      "name": "Mang Tomas Lechon Sauce Regular 325g",
+      "categoryName": "Condiments"
+    },
+    {
+      "barcode": "4806515630000",
+      "name": "Suka Pinakurat Spiced Vinegar 250ml",
+      "categoryName": "Condiments"
     }
   ]
 }
