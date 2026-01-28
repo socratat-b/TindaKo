@@ -1,7 +1,7 @@
 {
   "source": "Puregold.com.ph - Verified Barcodes",
   "date": "2026-01-28",
-  "total": 94,
+  "total": 91,
   "products": [
     {
       "barcode": "4801981110001",
@@ -204,6 +204,11 @@
       "categoryName": "Canned Goods"
     },
     {
+      "barcode": "748485100081",
+      "name": "Century Tuna Flakes in Vegetable Oil 180g",
+      "categoryName": "Canned Goods"
+    },
+    {
       "barcode": "748485200040",
       "name": "555 Sardines Spanish Style 155g",
       "categoryName": "Canned Goods"
@@ -216,6 +221,11 @@
     {
       "barcode": "748485200019",
       "name": "555 Sardines in Tomato Sauce 155g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "748485700090",
+      "name": "555 Tuna Bicol Express Spicy 155g",
       "categoryName": "Canned Goods"
     },
     {

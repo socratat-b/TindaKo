@@ -1,5 +1,5 @@
 // Verified Filipino products from Puregold.com.ph
-// Total: 94 products with validated barcodes
+// Total: 91 products with validated barcodes
 // Last updated: 2026-01-28
 // Source: Puregold.com.ph - Verified Barcodes
 
@@ -46,9 +46,11 @@ export const FILIPINO_PRODUCTS: Omit<ProductCatalog, 'id' | 'createdAt' | 'updat
   { barcode: '748485103693', name: 'Century Tuna Flakes in Oil 125g', categoryName: 'Canned Goods' },
   { barcode: '748485100098', name: 'Century Tuna Flakes Hot & Spicy 180g', categoryName: 'Canned Goods' },
   { barcode: '748485100418', name: 'Century Tuna Flakes Hot & Spicy 155g', categoryName: 'Canned Goods' },
+  { barcode: '748485100081', name: 'Century Tuna Flakes in Vegetable Oil 180g', categoryName: 'Canned Goods' },
   { barcode: '748485200040', name: '555 Sardines Spanish Style 155g', categoryName: 'Canned Goods' },
   { barcode: '748485200033', name: '555 Sardines in Natural Oil 155g', categoryName: 'Canned Goods' },
   { barcode: '748485200019', name: '555 Sardines in Tomato Sauce 155g', categoryName: 'Canned Goods' },
+  { barcode: '748485700090', name: '555 Tuna Bicol Express Spicy 155g', categoryName: 'Canned Goods' },
   { barcode: '748485801803', name: 'Argentina Corned Beef 100g', categoryName: 'Canned Goods' },
   { barcode: '748485800431', name: 'Argentina Corned Beef 150g', categoryName: 'Canned Goods' },
   { barcode: '748485800011', name: 'Argentina Corned Beef 175g', categoryName: 'Canned Goods' },
