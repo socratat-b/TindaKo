@@ -21,8 +21,9 @@ import { useFormattedNumberInput } from "@/lib/hooks/use-formatted-input";
 import { useProductForm } from "@/lib/hooks/use-product-form";
 import type { ProductFormDialogProps } from "@/lib/types";
 import { AnimatePresence, motion } from "framer-motion";
-import { Plus } from "lucide-react";
-import { useEffect } from "react";
+import { Plus, Scan, Search, Camera } from "lucide-react";
+import { useEffect, useState } from "react";
+import { CameraBarcodeScanner } from "@/components/ui/camera-barcode-scanner";
 
 export function ProductFormDialog({
   open,
@@ -31,6 +32,7 @@ export function ProductFormDialog({
   categories,
   storePhone,
   onSuccess,
+  catalogData,
 }: ProductFormDialogProps) {
   const {
     formData,
@@ -39,12 +41,17 @@ export function ProductFormDialog({
     isLoading,
     error,
     sortedCategories,
+    barcodeInput,
+    isSearchingCatalog,
     setFormData,
     setCategoryFormData,
+    setBarcodeInput,
     handleCategoryChange,
     handleCreateCategory,
     handleCancelCategoryForm,
     handleSubmit,
+    handleSearchCatalog,
+    handleBarcodeKeyDown,
   } = useProductForm({
     storePhone,
     onSuccess,
@@ -52,7 +59,20 @@ export function ProductFormDialog({
     product,
     categories,
     open,
+    catalogData,
   });
+
+  // Camera scanner state
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+
+  const handleCameraScan = (scannedBarcode: string) => {
+    setIsCameraOpen(false);
+    setBarcodeInput(scannedBarcode);
+    // Auto-trigger search after camera scan
+    setTimeout(() => {
+      handleSearchCatalog();
+    }, 100);
+  };
 
   // Use formatted input for selling price
   const formattedSellingPrice = useFormattedNumberInput(formData.sellingPrice);
@@ -108,10 +128,64 @@ export function ProductFormDialog({
               </motion.div>
             )}
 
+            {/* Barcode Catalog Search - Only show when adding new product */}
+            {!product && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-2 rounded-lg border border-blue-200 bg-blue-50/50 p-3 lg:p-4"
+              >
+                <div className="flex items-center gap-2">
+                  <Scan className="h-4 w-4 text-blue-600" />
+                  <Label className="text-xs font-semibold text-blue-900 lg:text-sm">
+                    Search Product Catalog
+                  </Label>
+                </div>
+                <p className="text-[10px] text-blue-700 lg:text-xs">
+                  Scan or enter a barcode to find products in our catalog of 150+ Filipino items
+                </p>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Scan className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      type="text"
+                      placeholder="Enter barcode..."
+                      value={barcodeInput}
+                      onChange={(e) => setBarcodeInput(e.target.value)}
+                      onKeyDown={handleBarcodeKeyDown}
+                      disabled={isLoading || isSearchingCatalog}
+                      className="h-9 pl-9 text-xs lg:h-10 lg:text-sm"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setIsCameraOpen(true)}
+                    disabled={isLoading || isSearchingCatalog}
+                    className="h-9 w-9 shrink-0 lg:h-10 lg:w-10"
+                    title="Scan with camera"
+                  >
+                    <Camera className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleSearchCatalog}
+                    disabled={isLoading || isSearchingCatalog || !barcodeInput.trim()}
+                    className="h-9 px-3 text-xs lg:h-10 lg:px-4 lg:text-sm"
+                  >
+                    <Search className="h-4 w-4 lg:mr-2" />
+                    <span className="hidden lg:inline">Search</span>
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+
             {/* Product Name */}
             <div className="space-y-1.5">
               <Label htmlFor="name" className="text-xs lg:text-sm">
-                Product Name
+                Product Name *
               </Label>
               <Input
                 id="name"
@@ -120,20 +194,20 @@ export function ProductFormDialog({
                 required
                 disabled={isLoading}
                 className="h-9 text-xs lg:h-10 lg:text-sm"
-                autoFocus
+                placeholder="e.g., Coke 1L, Lucky Me Pancit Canton"
               />
             </div>
 
             {/* Barcode */}
             <div className="space-y-1.5">
               <Label htmlFor="barcode" className="text-xs lg:text-sm">
-                Barcode
+                Barcode <span className="text-muted-foreground">(Optional)</span>
               </Label>
               <Input
                 id="barcode"
                 value={formData.barcode}
                 onChange={(e) => setFormData({ barcode: e.target.value })}
-                placeholder="Optional"
+                placeholder="Scan or enter barcode"
                 disabled={isLoading}
                 className="h-9 text-xs lg:h-10 lg:text-sm"
               />
@@ -340,6 +414,13 @@ export function ProductFormDialog({
           </form>
         )}
       </DialogContent>
+
+      {/* Camera Barcode Scanner */}
+      <CameraBarcodeScanner
+        isOpen={isCameraOpen}
+        onScan={handleCameraScan}
+        onClose={() => setIsCameraOpen(false)}
+      />
     </Dialog>
   );
 }

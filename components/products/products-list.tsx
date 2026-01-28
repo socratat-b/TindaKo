@@ -1,6 +1,8 @@
 'use client'
 
+import { useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -42,8 +44,10 @@ export function ProductsList({
   categories,
   storePhone,
   onRefresh,
+  catalogData,
 }: ProductsListProps) {
   const formatCurrency = useFormatCurrency()
+  const router = useRouter()
 
   const {
     search,
@@ -58,6 +62,7 @@ export function ProductsList({
     setCategoryFilter,
     setIsQuickAddOpen,
     setIsDeleteDialogOpen,
+    setIsFormOpen,
     handleEdit,
     handleDelete,
     handleConfirmDelete,
@@ -66,6 +71,17 @@ export function ProductsList({
     getCategoryColor,
     getStockStatus,
   } = useProductsList({ products, categories, onRefresh })
+
+  // Handle catalog data from URL (auto-open form dialog)
+  useEffect(() => {
+    if (catalogData && catalogData.fromCatalog) {
+      // Open form dialog with catalog data
+      setIsFormOpen(true)
+
+      // Clear URL parameters after opening
+      router.replace('/products')
+    }
+  }, [catalogData, setIsFormOpen, router])
 
   return (
     <div className="space-y-3 lg:space-y-4">
@@ -317,6 +333,7 @@ export function ProductsList({
         categories={categories}
         storePhone={storePhone}
         onSuccess={onRefresh}
+        catalogData={catalogData}
       />
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

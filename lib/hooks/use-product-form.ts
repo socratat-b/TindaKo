@@ -1,5 +1,6 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { db } from '@/lib/db'
 import { useProductFormStore } from '@/lib/stores/product-form-store'
 import { createProduct, updateProduct, createCategory } from '@/lib/actions/products'
 import type { UseProductFormParams } from '@/lib/types'
@@ -11,6 +12,7 @@ export function useProductForm({
   product,
   categories,
   open,
+  catalogData,
 }: UseProductFormParams) {
   const {
     formData,
@@ -28,6 +30,9 @@ export function useProductForm({
     resetCategoryForm,
   } = useProductFormStore()
 
+  const [barcodeInput, setBarcodeInput] = useState('')
+  const [isSearchingCatalog, setIsSearchingCatalog] = useState(false)
+
   // Sort categories: custom categories (sortOrder=0) first, then by sortOrder
   const sortedCategories = [...categories].sort((a, b) => a.sortOrder - b.sortOrder)
 
@@ -36,13 +41,32 @@ export function useProductForm({
     if (open) {
       if (product) {
         initializeForm(product)
+      } else if (catalogData && catalogData.fromCatalog) {
+        // Pre-fill from catalog
+        const matchingCategory = categories.find(
+          (c) => c.name.toLowerCase() === catalogData.categoryName?.toLowerCase()
+        )
+        const categoryId = matchingCategory?.id || sortedCategories[0]?.id || ''
+
+        resetForm(categoryId)
+        setFormData({
+          name: catalogData.name || '',
+          barcode: catalogData.barcode || '',
+          categoryId,
+        })
+
+        // Show toast to inform user
+        toast.info('Product found in catalog', {
+          description: 'Please set the price and stock quantity',
+          duration: 4000,
+        })
       } else {
         const firstCategoryId = sortedCategories[0]?.id || ''
         resetForm(firstCategoryId)
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [product, categories, open])
+  }, [product, categories, open, catalogData])
 
   const handleCategoryChange = (value: string) => {
     if (value === 'create-new') {
@@ -92,6 +116,64 @@ export function useProductForm({
 
   const handleCancelCategoryForm = () => {
     resetCategoryForm()
+  }
+
+  const handleSearchCatalog = async () => {
+    if (!barcodeInput.trim()) {
+      setError('Please enter a barcode')
+      return
+    }
+
+    setIsSearchingCatalog(true)
+    setError(null)
+
+    try {
+      // Search catalog by barcode
+      const catalogItem = await db.productCatalog
+        .where('barcode')
+        .equals(barcodeInput.trim())
+        .first()
+
+      if (catalogItem) {
+        // Find matching category or use first category
+        const matchingCategory = categories.find(
+          (c) => c.name.toLowerCase() === catalogItem.categoryName?.toLowerCase()
+        )
+        const categoryId = matchingCategory?.id || sortedCategories[0]?.id || ''
+
+        // Pre-fill form with catalog data
+        setFormData({
+          name: catalogItem.name,
+          barcode: catalogItem.barcode,
+          categoryId,
+        })
+
+        toast.success('Product found in catalog!', {
+          description: `${catalogItem.name} - Now set your price and stock`,
+          duration: 4000,
+        })
+
+        // Clear barcode input
+        setBarcodeInput('')
+      } else {
+        toast.error('Product not found in catalog', {
+          description: 'You can still add it manually',
+          duration: 3000,
+        })
+      }
+    } catch (err) {
+      setError('Failed to search catalog')
+      console.error('[handleSearchCatalog] Error:', err)
+    } finally {
+      setIsSearchingCatalog(false)
+    }
+  }
+
+  const handleBarcodeKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleSearchCatalog()
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -153,15 +235,20 @@ export function useProductForm({
     isLoading,
     error,
     sortedCategories,
+    barcodeInput,
+    isSearchingCatalog,
 
     // Actions from store
     setFormData,
     setCategoryFormData,
+    setBarcodeInput,
 
     // Handlers
     handleCategoryChange,
     handleCreateCategory,
     handleCancelCategoryForm,
     handleSubmit,
+    handleSearchCatalog,
+    handleBarcodeKeyDown,
   }
 }

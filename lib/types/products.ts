@@ -15,6 +15,7 @@ export interface ProductFormDialogProps {
   categories: Category[]
   storePhone: string
   onSuccess: () => void
+  catalogData?: CatalogData
 }
 
 export interface QuickAddProductDialogProps {
@@ -25,11 +26,19 @@ export interface QuickAddProductDialogProps {
   onSuccess: () => void
 }
 
+export interface CatalogData {
+  barcode: string | null
+  name: string | null
+  categoryName: string | null
+  fromCatalog: boolean
+}
+
 export interface ProductsListProps {
   products: Product[]
   categories: Category[]
   storePhone: string
   onRefresh: () => void
+  catalogData?: CatalogData
 }
 
 // ============================================================================
@@ -43,6 +52,7 @@ export interface UseProductFormParams {
   product?: Product | null
   categories: Category[]
   open: boolean
+  catalogData?: CatalogData
 }
 
 export interface UseQuickAddProductParams {

@@ -99,6 +99,7 @@ export function useProductsList({ products, categories, onRefresh }: UseProducts
     setCategoryFilter,
     setIsQuickAddOpen,
     setIsDeleteDialogOpen,
+    setIsFormOpen,
 
     // Handlers
     handleEdit,

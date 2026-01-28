@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { useSearchParams } from 'next/navigation'
 import { db } from '@/lib/db'
 import { seedDefaultCategories } from '@/lib/db/seeders'
 import { ProductsList } from './products-list'
@@ -10,6 +11,15 @@ import type { ProductsInterfaceProps } from '@/lib/types'
 export default function ProductsInterface({ storePhone }: ProductsInterfaceProps) {
   const [refreshKey, setRefreshKey] = useState(0)
   const [isSeeding, setIsSeeding] = useState(false)
+  const searchParams = useSearchParams()
+
+  // Check for catalog pre-fill data from URL
+  const catalogData = {
+    barcode: searchParams.get('barcode'),
+    name: searchParams.get('name'),
+    categoryName: searchParams.get('categoryName'),
+    fromCatalog: searchParams.get('fromCatalog') === 'true',
+  }
 
   const products = useLiveQuery(
     () => db.products.where('storePhone').equals(storePhone).filter((p) => !p.isDeleted).toArray(),
@@ -65,6 +75,7 @@ export default function ProductsInterface({ storePhone }: ProductsInterfaceProps
         categories={categories}
         storePhone={storePhone}
         onRefresh={handleRefresh}
+        catalogData={catalogData.fromCatalog ? catalogData : undefined}
       />
     </div>
   )
