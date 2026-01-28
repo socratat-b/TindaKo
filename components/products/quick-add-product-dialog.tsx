@@ -19,7 +19,6 @@ import { useFormattedNumberInput } from '@/lib/hooks/use-formatted-input'
 import { PRESET_COLORS } from '@/lib/constants/colors'
 import type { QuickAddProductDialogProps } from '@/lib/types'
 import { db } from '@/lib/db'
-import { getBarcodeVariants } from '@/lib/utils/barcode'
 import { toast } from 'sonner'
 import { Zap, Plus } from 'lucide-react'
 
@@ -67,22 +66,11 @@ export function QuickAddProductDialog({
     setIsCameraOpen(false)
 
     try {
-      // Try multiple barcode formats to handle different scanner types
-      const variants = getBarcodeVariants(barcode)
-      let catalogItem = null
-
-      // Try each variant until we find a match
-      for (const variant of variants) {
-        catalogItem = await db.productCatalog
-          .where('barcode')
-          .equals(variant)
-          .first()
-
-        if (catalogItem) {
-          console.log(`✓ Found match with variant: ${variant} (original: ${barcode})`)
-          break
-        }
-      }
+      // Look up product in catalog (direct lookup - barcodes are verified)
+      const catalogItem = await db.productCatalog
+        .where('barcode')
+        .equals(barcode)
+        .first()
 
       if (catalogItem) {
         // Find or use first category that matches

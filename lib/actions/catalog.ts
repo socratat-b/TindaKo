@@ -7,7 +7,7 @@ import { seedProductCatalog } from '@/lib/db/seeders'
 
 /**
  * Force re-seed the product catalog
- * Clears old data and seeds with the latest 397 Filipino products
+ * Clears old data and seeds with the latest 89 verified Filipino products
  */
 export async function reseedCatalog() {
   try {
@@ -69,31 +69,19 @@ export async function getCatalogStats() {
 
 /**
  * Search catalog for a specific barcode (for debugging)
+ * Direct lookup - all barcodes are verified and standardized
  */
 export async function searchCatalogByBarcode(barcode: string) {
   try {
-    const exact = await db.productCatalog.where('barcode').equals(barcode).first()
-
-    // Also try without leading zeros
-    const variants = [
-      barcode,
-      barcode.replace(/^0+/, ''), // Remove leading zeros
-      '0' + barcode, // Add leading zero
-    ]
-
-    const matches = await Promise.all(
-      variants.map(async (v) => {
-        const match = await db.productCatalog.where('barcode').equals(v).first()
-        return match ? { variant: v, product: match } : null
-      })
-    )
+    const product = await db.productCatalog.where('barcode').equals(barcode).first()
 
     return {
-      exact,
-      variants: matches.filter(Boolean),
+      found: !!product,
+      product,
+      barcode
     }
   } catch (error) {
     console.error('[searchCatalogByBarcode] Error:', error)
-    return { exact: null, variants: [] }
+    return { found: false, product: null, barcode }
   }
 }
