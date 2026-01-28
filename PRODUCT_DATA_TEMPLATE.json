@@ -1,0 +1,36 @@
+{
+  "products": [
+    {
+      "barcode": "4800194107723",
+      "name": "Century Tuna Flakes in Oil 180g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800016644290",
+      "name": "Lucky Me Pancit Canton Original 60g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4800024960015",
+      "name": "Cobra Energy Drink Original 350ml",
+      "categoryName": "Beverages"
+    }
+  ]
+}
+
+// CATEGORIES TO USE (Pick one for each product):
+// 1. Beverages
+// 2. Instant Noodles
+// 3. Canned Goods
+// 4. Coffee & Chocolate Drinks
+// 5. Condiments
+// 6. Cooking Essentials
+// 7. Rice
+// 8. Snacks
+// 9. Bread
+// 10. Dairy
+// 11. Personal Care
+// 12. Household
+// 13. Frozen
+// 14. Cigarettes
+// 15. Load Cards
