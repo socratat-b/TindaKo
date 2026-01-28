@@ -19,6 +19,7 @@ import { useFormattedNumberInput } from '@/lib/hooks/use-formatted-input'
 import { PRESET_COLORS } from '@/lib/constants/colors'
 import type { QuickAddProductDialogProps } from '@/lib/types'
 import { db } from '@/lib/db'
+import { getBarcodeVariants } from '@/lib/utils/barcode'
 import { toast } from 'sonner'
 import { Zap, Plus } from 'lucide-react'
 
@@ -66,11 +67,22 @@ export function QuickAddProductDialog({
     setIsCameraOpen(false)
 
     try {
-      // Look up in catalog
-      const catalogItem = await db.productCatalog
-        .where('barcode')
-        .equals(barcode)
-        .first()
+      // Try multiple barcode formats to handle different scanner types
+      const variants = getBarcodeVariants(barcode)
+      let catalogItem = null
+
+      // Try each variant until we find a match
+      for (const variant of variants) {
+        catalogItem = await db.productCatalog
+          .where('barcode')
+          .equals(variant)
+          .first()
+
+        if (catalogItem) {
+          console.log(`✓ Found match with variant: ${variant} (original: ${barcode})`)
+          break
+        }
+      }
 
       if (catalogItem) {
         // Find or use first category that matches
@@ -79,10 +91,10 @@ export function QuickAddProductDialog({
         )
         const categoryId = matchingCategory?.id || categories[0]?.id || ''
 
-        // Pre-fill form with catalog data
+        // Pre-fill form with catalog data (use original barcode, not variant)
         setFormData({
           name: catalogItem.name,
-          barcode: catalogItem.barcode,
+          barcode: barcode, // Use scanned barcode
           categoryId,
           sellingPrice: '',
           stockQty: '',
@@ -102,7 +114,7 @@ export function QuickAddProductDialog({
         })
 
         toast.info('Product not in catalog', {
-          description: 'Fill in the details manually',
+          description: `Barcode: ${barcode}\nFill in the details manually`,
         })
       }
 
@@ -176,6 +188,21 @@ export function QuickAddProductDialog({
               disabled={isLoading}
               className="h-9 text-xs lg:h-10 lg:text-sm"
               autoFocus
+            />
+          </div>
+
+          {/* Barcode */}
+          <div className="space-y-1.5">
+            <Label htmlFor="barcode" className="text-xs lg:text-sm">
+              Barcode <span className="text-muted-foreground">(Optional - adjust if needed)</span>
+            </Label>
+            <Input
+              id="barcode"
+              value={formData.barcode || ''}
+              onChange={(e) => setFormData({ barcode: e.target.value })}
+              placeholder="Scanned barcode..."
+              disabled={isLoading}
+              className="h-9 text-xs font-mono lg:h-10 lg:text-sm"
             />
           </div>
 
