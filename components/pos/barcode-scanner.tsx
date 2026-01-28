@@ -20,6 +20,9 @@ import {
 } from '@/components/ui/dialog'
 import { Scan, CheckCircle2, AlertCircle, Info, Camera } from 'lucide-react'
 import { CameraBarcodeScanner } from '@/components/ui/camera-barcode-scanner'
+import { Label } from '@/components/ui/label'
+import { createProduct } from '@/lib/actions/products'
+import { toast } from 'sonner'
 
 type ScanResult = {
   type: 'success' | 'error' | 'catalog'
@@ -33,6 +36,9 @@ export function BarcodeScanner() {
   const [showCatalogDialog, setShowCatalogDialog] = useState(false)
   const [catalogItem, setCatalogItem] = useState<ProductCatalog | null>(null)
   const [isCameraOpen, setIsCameraOpen] = useState(false)
+  const [sellingPrice, setSellingPrice] = useState('')
+  const [stockQty, setStockQty] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const { addItem } = useCart()
   const { phone: storePhone } = useAuth()
@@ -93,6 +99,8 @@ export function BarcodeScanner() {
       if (catalogProduct) {
         // Found in catalog - show quick add dialog
         setCatalogItem(catalogProduct)
+        setSellingPrice('') // Reset form
+        setStockQty('') // Reset form
         setShowCatalogDialog(true)
         setScanResult({
           type: 'catalog',
@@ -131,6 +139,94 @@ export function BarcodeScanner() {
     handleScan(scannedBarcode)
   }
 
+  const handleQuickAddFromCatalog = async () => {
+    if (!catalogItem || !storePhone) return
+
+    // Validate inputs
+    const price = parseFloat(sellingPrice)
+    const stock = parseInt(stockQty, 10)
+
+    if (isNaN(price) || price <= 0) {
+      toast.error('Please enter a valid price')
+      return
+    }
+
+    if (isNaN(stock) || stock < 0) {
+      toast.error('Please enter a valid stock quantity')
+      return
+    }
+
+    setIsSaving(true)
+
+    try {
+      // Find or create matching category
+      let category = await db.categories
+        .where('name')
+        .equals(catalogItem.categoryName || 'Uncategorized')
+        .and((c) => c.storePhone === storePhone && !c.isDeleted)
+        .first()
+
+      // If category doesn't exist, create it
+      let categoryId = category?.id
+      if (!category) {
+        const newCategory = {
+          id: crypto.randomUUID(),
+          storePhone,
+          name: catalogItem.categoryName || 'Uncategorized',
+          color: '#6b7280',
+          sortOrder: 0,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          syncedAt: null,
+          isDeleted: false,
+        }
+        await db.categories.add(newCategory)
+        categoryId = newCategory.id
+      }
+
+      // Create the product
+      const newProduct = {
+        id: crypto.randomUUID(),
+        storePhone,
+        name: catalogItem.name,
+        barcode: catalogItem.barcode,
+        categoryId: categoryId!,
+        sellingPrice: price,
+        stockQty: stock,
+        lowStockThreshold: 10,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        syncedAt: null,
+        isDeleted: false,
+      }
+
+      await db.products.add(newProduct)
+
+      // Add to cart
+      addItem(newProduct)
+
+      // Show success
+      toast.success('Product added!', {
+        description: `${catalogItem.name} added to cart`,
+      })
+
+      // Reset and close
+      setShowCatalogDialog(false)
+      setCatalogItem(null)
+      setSellingPrice('')
+      setStockQty('')
+      setScanResult({
+        type: 'success',
+        message: `Added ${catalogItem.name} to cart`,
+      })
+    } catch (error) {
+      console.error('[QuickAdd] Error:', error)
+      toast.error('Failed to add product')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: -10 }}
@@ -147,16 +243,17 @@ export function BarcodeScanner() {
             value={barcode}
             onChange={(e) => setBarcode(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Scan or enter barcode..."
+            placeholder="Paste or scan barcode..."
             className="pl-9 h-10 text-sm"
           />
         </div>
+        {/* Camera button - only show on mobile */}
         <Button
           type="button"
           variant="outline"
           size="icon"
           onClick={() => setIsCameraOpen(true)}
-          className="h-10 w-10 shrink-0"
+          className="h-10 w-10 shrink-0 md:hidden"
           title="Scan with camera"
         >
           <Camera className="h-4 w-4" />
@@ -202,35 +299,64 @@ export function BarcodeScanner() {
       <Dialog open={showCatalogDialog} onOpenChange={setShowCatalogDialog}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Product Found in Catalog</DialogTitle>
+            <DialogTitle>Add Product from Catalog</DialogTitle>
             <DialogDescription>
-              This product is not in your inventory yet. Would you like to add it from the catalog?
+              Set the price and stock, then add to cart
             </DialogDescription>
           </DialogHeader>
 
           {catalogItem && (
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <div className="text-sm font-medium text-muted-foreground">Product Name</div>
-                <div className="text-base font-semibold">{catalogItem.name}</div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="text-sm font-medium text-muted-foreground">Barcode</div>
-                <div className="text-sm font-mono">{catalogItem.barcode}</div>
-              </div>
-
-              {catalogItem.categoryName && (
-                <div className="space-y-2">
-                  <div className="text-sm font-medium text-muted-foreground">Category</div>
-                  <Badge variant="secondary">{catalogItem.categoryName}</Badge>
+            <div className="space-y-4 py-2">
+              {/* Product Info */}
+              <div className="space-y-2 rounded-lg bg-blue-50 p-3 border border-blue-200">
+                <div className="text-sm font-semibold text-blue-900">{catalogItem.name}</div>
+                <div className="flex items-center gap-2 text-xs text-blue-700">
+                  <span className="font-mono">{catalogItem.barcode}</span>
+                  {catalogItem.categoryName && (
+                    <>
+                      <span>•</span>
+                      <Badge variant="secondary" className="text-[10px] h-5">
+                        {catalogItem.categoryName}
+                      </Badge>
+                    </>
+                  )}
                 </div>
-              )}
+              </div>
 
-              <div className="rounded-md bg-blue-50 p-3 border border-blue-200">
-                <p className="text-xs text-blue-900">
-                  You&apos;ll be able to set the price and stock quantity in the product form.
-                </p>
+              {/* Selling Price Input */}
+              <div className="space-y-2">
+                <Label htmlFor="sellingPrice" className="text-sm">
+                  Selling Price *
+                </Label>
+                <Input
+                  id="sellingPrice"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="0.00"
+                  value={sellingPrice}
+                  onChange={(e) => setSellingPrice(e.target.value)}
+                  disabled={isSaving}
+                  className="h-10"
+                  autoFocus
+                />
+              </div>
+
+              {/* Stock Quantity Input */}
+              <div className="space-y-2">
+                <Label htmlFor="stockQty" className="text-sm">
+                  Stock Quantity *
+                </Label>
+                <Input
+                  id="stockQty"
+                  type="number"
+                  min="0"
+                  placeholder="0"
+                  value={stockQty}
+                  onChange={(e) => setStockQty(e.target.value)}
+                  disabled={isSaving}
+                  className="h-10"
+                />
               </div>
             </div>
           )}
@@ -242,26 +368,19 @@ export function BarcodeScanner() {
               onClick={() => {
                 setShowCatalogDialog(false)
                 setCatalogItem(null)
+                setSellingPrice('')
+                setStockQty('')
               }}
+              disabled={isSaving}
             >
               Cancel
             </Button>
             <Button
               type="button"
-              onClick={() => {
-                // Navigate to products page with pre-filled data
-                if (catalogItem) {
-                  const params = new URLSearchParams({
-                    barcode: catalogItem.barcode,
-                    name: catalogItem.name,
-                    categoryName: catalogItem.categoryName || '',
-                    fromCatalog: 'true',
-                  })
-                  window.location.href = `/products?${params.toString()}`
-                }
-              }}
+              onClick={handleQuickAddFromCatalog}
+              disabled={isSaving || !sellingPrice || !stockQty}
             >
-              Add to Inventory
+              {isSaving ? 'Adding...' : 'Save & Add to Cart'}
             </Button>
           </DialogFooter>
         </DialogContent>
