@@ -71,3 +71,4 @@ logs/
 # Sensitive project configs
 .mcp.json
 .claude/
+lib/db/seeds/imported-products.ts
