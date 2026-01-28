@@ -159,11 +159,26 @@ export function BarcodeScanner() {
     setIsSaving(true)
 
     try {
+      // Check if product with this barcode already exists
+      const existingProduct = await db.products
+        .where('barcode')
+        .equals(catalogItem.barcode)
+        .and((p) => p.storePhone === storePhone && !p.isDeleted)
+        .first()
+
+      if (existingProduct) {
+        toast.error('Product already exists', {
+          description: 'This barcode is already in your inventory',
+        })
+        setIsSaving(false)
+        return
+      }
+
       // Find or create matching category
       let category = await db.categories
-        .where('name')
-        .equals(catalogItem.categoryName || 'Uncategorized')
-        .and((c) => c.storePhone === storePhone && !c.isDeleted)
+        .where('storePhone')
+        .equals(storePhone)
+        .filter((c) => !c.isDeleted && c.name === (catalogItem.categoryName || 'Uncategorized'))
         .first()
 
       // If category doesn't exist, create it
@@ -221,7 +236,10 @@ export function BarcodeScanner() {
       })
     } catch (error) {
       console.error('[QuickAdd] Error:', error)
-      toast.error('Failed to add product')
+      const errorMessage = error instanceof Error ? error.message : 'Failed to add product'
+      toast.error('Failed to add product', {
+        description: errorMessage,
+      })
     } finally {
       setIsSaving(false)
     }
