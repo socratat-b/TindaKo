@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { getSession } from '@/lib/auth/session'
+import { seedProductCatalog } from '@/lib/db/seeders'
 
 /**
  * AuthProvider - Initialize auth state from localStorage
@@ -22,6 +23,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     setLoading(false)
+
+    // Seed product catalog on first app launch (runs once)
+    seedProductCatalog().catch((error) => {
+      console.error('[AuthProvider] Failed to seed product catalog:', error)
+    })
   }, [setAuth, setLoading])
 
   return <>{children}</>

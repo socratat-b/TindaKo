@@ -1,5 +1,6 @@
 import { db } from '@/lib/db'
-import type { Category } from './schema'
+import type { Category, ProductCatalog } from './schema'
+import { FILIPINO_PRODUCTS } from './seeds/filipino-products'
 
 /**
  * Default categories for Filipino sari-sari stores (30 comprehensive categories)
@@ -98,4 +99,41 @@ export async function needsOnboarding(storePhone: string): Promise<boolean> {
   ])
 
   return categoryCount === 0 && productCount === 0
+}
+
+/**
+ * Seeds the centralized product catalog with common Filipino products
+ * Only runs if catalog is empty (first app launch)
+ * This catalog is shared across all users as a reference
+ */
+export async function seedProductCatalog(): Promise<void> {
+  try {
+    // Check if catalog already has products
+    const existingCount = await db.productCatalog.count()
+
+    if (existingCount > 0) {
+      return // Catalog already seeded
+    }
+
+    console.log('[seedProductCatalog] Seeding product catalog with Filipino products...')
+
+    const now = new Date().toISOString()
+
+    // Create catalog entries
+    const catalogItems: ProductCatalog[] = FILIPINO_PRODUCTS.map((product) => ({
+      id: crypto.randomUUID(),
+      barcode: product.barcode,
+      name: product.name,
+      categoryName: product.categoryName,
+      createdAt: now,
+      updatedAt: now,
+    }))
+
+    await db.productCatalog.bulkAdd(catalogItems)
+
+    console.log(`[seedProductCatalog] Successfully seeded ${catalogItems.length} products`)
+  } catch (error) {
+    console.error('[seedProductCatalog] Failed to seed product catalog:', error)
+    throw error
+  }
 }
