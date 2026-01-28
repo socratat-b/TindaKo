@@ -84,6 +84,7 @@ export interface ProductFormData {
 
 export interface QuickAddProductFormData {
   name: string
+  barcode?: string
   categoryId: string
   sellingPrice: string
   stockQty: string

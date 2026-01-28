@@ -116,7 +116,7 @@ export function useQuickAddProduct({
       // Create product with minimal fields
       await createProduct({
         name: formData.name,
-        barcode: null,
+        barcode: formData.barcode || null,
         categoryId: formData.categoryId,
         sellingPrice,
         stockQty,
