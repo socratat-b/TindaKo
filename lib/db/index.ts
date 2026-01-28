@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie'
-import type { Store, Category, Customer, Product, Sale, UtangTransaction, InventoryMovement } from './schema'
+import type { Store, Category, Customer, Product, Sale, UtangTransaction, InventoryMovement, ProductCatalog } from './schema'
 
 // Extend Dexie with our tables
 class TindaKoDB extends Dexie {
@@ -10,6 +10,7 @@ class TindaKoDB extends Dexie {
   sales!: EntityTable<Sale, 'id'>
   utangTransactions!: EntityTable<UtangTransaction, 'id'>
   inventoryMovements!: EntityTable<InventoryMovement, 'id'>
+  productCatalog!: EntityTable<ProductCatalog, 'id'>
 
   constructor() {
     super('TindaKoDB')
@@ -39,6 +40,20 @@ class TindaKoDB extends Dexie {
       console.log('[Dexie Migration] Upgrading to version 2: userId → storePhone')
       console.log('[Dexie Migration] Existing data will be cleared (auth model changed)')
     })
+
+    // Version 3: Add product catalog for barcode lookups
+    this.version(3).stores({
+      stores: 'id, phone, createdAt',
+      categories: 'id, storePhone, syncedAt, sortOrder',
+      customers: 'id, storePhone, syncedAt, name, phone, address',
+      products: 'id, storePhone, syncedAt, categoryId, barcode, name',
+      sales: 'id, storePhone, syncedAt, createdAt, customerId',
+      utangTransactions: 'id, storePhone, syncedAt, customerId, saleId, createdAt',
+      inventoryMovements: 'id, storePhone, syncedAt, productId, createdAt, type',
+      productCatalog: 'id, barcode, name',
+    }).upgrade(async (trans) => {
+      console.log('[Dexie Migration] Upgrading to version 3: Adding product catalog')
+    })
   }
 }
 
@@ -59,6 +74,7 @@ export async function clearAllLocalData(): Promise<void> {
       db.sales.clear(),
       db.utangTransactions.clear(),
       db.inventoryMovements.clear(),
+      // Note: productCatalog is NOT cleared - it's shared reference data
     ])
     console.log('[clearAllLocalData] All tables cleared successfully')
   } catch (error) {

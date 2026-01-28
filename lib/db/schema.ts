@@ -78,3 +78,13 @@ export interface InventoryMovement extends BaseEntity {
   qty: number
   notes: string | null
 }
+
+// Product Catalog (shared reference - does not extend BaseEntity)
+export interface ProductCatalog {
+  id: string
+  barcode: string
+  name: string
+  categoryName: string | null
+  createdAt: string
+  updatedAt: string
+}
