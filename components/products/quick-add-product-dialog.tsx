@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -13,10 +13,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { CameraBarcodeScanner } from '@/components/ui/camera-barcode-scanner'
 import { useQuickAddProduct } from '@/lib/hooks/use-quick-add-product'
 import { useFormattedNumberInput } from '@/lib/hooks/use-formatted-input'
 import { PRESET_COLORS } from '@/lib/constants/colors'
 import type { QuickAddProductDialogProps } from '@/lib/types'
+import { db } from '@/lib/db'
+import { toast } from 'sonner'
 import { Zap, Plus } from 'lucide-react'
 
 export function QuickAddProductDialog({
@@ -26,6 +29,9 @@ export function QuickAddProductDialog({
   storePhone,
   onSuccess,
 }: QuickAddProductDialogProps) {
+  const [isCameraOpen, setIsCameraOpen] = useState(false)
+  const [showForm, setShowForm] = useState(false)
+
   const {
     formData,
     categoryFormData,
@@ -47,6 +53,68 @@ export function QuickAddProductDialog({
     open,
   })
 
+  // Open camera scanner when dialog opens
+  useEffect(() => {
+    if (open) {
+      setIsCameraOpen(true)
+      setShowForm(false)
+    }
+  }, [open])
+
+  // Handle barcode scan
+  const handleBarcodeScanned = async (barcode: string) => {
+    setIsCameraOpen(false)
+
+    try {
+      // Look up in catalog
+      const catalogItem = await db.productCatalog
+        .where('barcode')
+        .equals(barcode)
+        .first()
+
+      if (catalogItem) {
+        // Find or use first category that matches
+        const matchingCategory = categories.find(
+          (c) => c.name === catalogItem.categoryName
+        )
+        const categoryId = matchingCategory?.id || categories[0]?.id || ''
+
+        // Pre-fill form with catalog data
+        setFormData({
+          name: catalogItem.name,
+          barcode: catalogItem.barcode,
+          categoryId,
+          sellingPrice: '',
+          stockQty: '',
+        })
+
+        toast.success('Product found in catalog!', {
+          description: catalogItem.name,
+        })
+      } else {
+        // Not in catalog, just set barcode
+        setFormData({
+          barcode,
+          name: '',
+          categoryId: categories[0]?.id || '',
+          sellingPrice: '',
+          stockQty: '',
+        })
+
+        toast.info('Product not in catalog', {
+          description: 'Fill in the details manually',
+        })
+      }
+
+      // Show form
+      setShowForm(true)
+    } catch (error) {
+      console.error('Error looking up catalog:', error)
+      toast.error('Failed to look up product')
+      setShowForm(true)
+    }
+  }
+
   // Use formatted input for selling price
   const formattedSellingPrice = useFormattedNumberInput(formData.sellingPrice)
 
@@ -63,8 +131,20 @@ export function QuickAddProductDialog({
   }, [formData.sellingPrice])
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+    <>
+      {/* Camera Barcode Scanner */}
+      <CameraBarcodeScanner
+        isOpen={isCameraOpen}
+        onScan={handleBarcodeScanned}
+        onClose={() => {
+          setIsCameraOpen(false)
+          onOpenChange(false)
+        }}
+      />
+
+      {/* Form Dialog */}
+      <Dialog open={open && showForm} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base lg:text-lg">
             <Zap className="h-4 w-4 text-yellow-500 lg:h-5 lg:w-5" />
@@ -280,5 +360,6 @@ export function QuickAddProductDialog({
         </form>
       </DialogContent>
     </Dialog>
+    </>
   )
 }
