@@ -10,6 +10,7 @@ interface ProductsListState {
   editingProduct: Product | null
   isFormOpen: boolean
   isQuickAddOpen: boolean
+  isOptionsDialogOpen: boolean
   deletingProduct: Product | null
   isDeleteDialogOpen: boolean
 
@@ -19,6 +20,7 @@ interface ProductsListState {
   setEditingProduct: (product: Product | null) => void
   setIsFormOpen: (open: boolean) => void
   setIsQuickAddOpen: (open: boolean) => void
+  setIsOptionsDialogOpen: (open: boolean) => void
   setDeletingProduct: (product: Product | null) => void
   setIsDeleteDialogOpen: (open: boolean) => void
   reset: () => void
@@ -30,6 +32,7 @@ const initialState = {
   editingProduct: null,
   isFormOpen: false,
   isQuickAddOpen: false,
+  isOptionsDialogOpen: false,
   deletingProduct: null,
   isDeleteDialogOpen: false,
 }
@@ -42,6 +45,7 @@ export const useProductsListStore = create<ProductsListState>((set) => ({
   setEditingProduct: (product) => set({ editingProduct: product }),
   setIsFormOpen: (open) => set({ isFormOpen: open }),
   setIsQuickAddOpen: (open) => set({ isQuickAddOpen: open }),
+  setIsOptionsDialogOpen: (open) => set({ isOptionsDialogOpen: open }),
   setDeletingProduct: (product) => set({ deletingProduct: product }),
   setIsDeleteDialogOpen: (open) => set({ isDeleteDialogOpen: open }),
   reset: () => set(initialState),

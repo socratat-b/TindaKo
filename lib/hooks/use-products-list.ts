@@ -11,6 +11,7 @@ export function useProductsList({ products, categories, onRefresh }: UseProducts
     editingProduct,
     isFormOpen,
     isQuickAddOpen,
+    isOptionsDialogOpen,
     deletingProduct,
     isDeleteDialogOpen,
     setSearch,
@@ -18,6 +19,7 @@ export function useProductsList({ products, categories, onRefresh }: UseProducts
     setEditingProduct,
     setIsFormOpen,
     setIsQuickAddOpen,
+    setIsOptionsDialogOpen,
     setDeletingProduct,
     setIsDeleteDialogOpen,
   } = useProductsListStore()
@@ -90,6 +92,7 @@ export function useProductsList({ products, categories, onRefresh }: UseProducts
     editingProduct,
     isFormOpen,
     isQuickAddOpen,
+    isOptionsDialogOpen,
     deletingProduct,
     isDeleteDialogOpen,
     filteredProducts,
@@ -98,6 +101,7 @@ export function useProductsList({ products, categories, onRefresh }: UseProducts
     setSearch,
     setCategoryFilter,
     setIsQuickAddOpen,
+    setIsOptionsDialogOpen,
     setIsDeleteDialogOpen,
     setIsFormOpen,
 
