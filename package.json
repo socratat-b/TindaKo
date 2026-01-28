@@ -39,6 +39,7 @@
     "dexie": "^4.2.1",
     "dexie-react-hooks": "^4.2.0",
     "framer-motion": "^12.27.5",
+    "html5-qrcode": "^2.3.8",
     "lucide-react": "^0.562.0",
     "nanoid": "^5.1.6",
     "next": "16.1.3",
