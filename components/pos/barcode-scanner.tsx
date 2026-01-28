@@ -6,6 +6,7 @@ import { db } from '@/lib/db'
 import type { ProductCatalog } from '@/lib/db/schema'
 import { useCart } from '@/lib/hooks/use-cart'
 import { useAuth } from '@/lib/hooks/use-auth'
+import { useProductsStore } from '@/lib/stores/products-store'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -42,6 +43,7 @@ export function BarcodeScanner() {
   const inputRef = useRef<HTMLInputElement>(null)
   const { addItem } = useCart()
   const { phone: storePhone } = useAuth()
+  const { refreshProducts } = useProductsStore()
 
   // Auto-focus the input on mount
   useEffect(() => {
@@ -219,6 +221,11 @@ export function BarcodeScanner() {
 
       // Add to cart
       addItem(newProduct)
+
+      // Refresh product list in POS
+      if (storePhone) {
+        refreshProducts(storePhone)
+      }
 
       // Show success
       toast.success('Product added!', {
