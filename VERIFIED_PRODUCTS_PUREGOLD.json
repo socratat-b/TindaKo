@@ -1,0 +1,452 @@
+{
+  "source": "Puregold.com.ph - Verified Barcodes",
+  "date": "2026-01-28",
+  "total": 94,
+  "products": [
+    {
+      "barcode": "4801981110001",
+      "name": "Coca-Cola Original Taste 325ml",
+      "categoryName": "Beverages"
+    },
+    {
+      "barcode": "4801981112005",
+      "name": "Coca-Cola Original Taste 2L",
+      "categoryName": "Beverages"
+    },
+    {
+      "barcode": "4801981110209",
+      "name": "Sprite Lemon Lime 325ml",
+      "categoryName": "Beverages"
+    },
+    {
+      "barcode": "4801981110971",
+      "name": "Sprite Zero Sugar 325ml",
+      "categoryName": "Beverages"
+    },
+    {
+      "barcode": "4801981110100",
+      "name": "Royal Tru-Orange 325ml",
+      "categoryName": "Beverages"
+    },
+    {
+      "barcode": "4801981189991",
+      "name": "Royal Tru-Lemon 325ml",
+      "categoryName": "Beverages"
+    },
+    {
+      "barcode": "4801981110544",
+      "name": "Royal Tru-Grape 325ml",
+      "categoryName": "Beverages"
+    },
+    {
+      "barcode": "4800611546760",
+      "name": "Cobra Energy Drink Original 350ml",
+      "categoryName": "Beverages"
+    },
+    {
+      "barcode": "4800611223579",
+      "name": "Cobra Energy Drink Smart 350ml",
+      "categoryName": "Beverages"
+    },
+    {
+      "barcode": "4800611112880",
+      "name": "Cobra Energy Drink Berry Blast 350ml",
+      "categoryName": "Beverages"
+    },
+    {
+      "barcode": "4800016052040",
+      "name": "C2 Green Tea Apple 335ml",
+      "categoryName": "Beverages"
+    },
+    {
+      "barcode": "4800016072697",
+      "name": "C2 Apple Solo Pack 230ml x6",
+      "categoryName": "Beverages"
+    },
+    {
+      "barcode": "4804888620277",
+      "name": "Zest-O Orange 200ml x10",
+      "categoryName": "Beverages"
+    },
+    {
+      "barcode": "4804888889308",
+      "name": "Zest-O Apple 250ml",
+      "categoryName": "Beverages"
+    },
+    {
+      "barcode": "4807770273704",
+      "name": "Lucky Me Pancit Canton Original 80g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4807770273698",
+      "name": "Lucky Me Pancit Canton Chilimansi 80g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4807770274596",
+      "name": "Lucky Me Pancit Canton Kalamansi 60g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4807770274602",
+      "name": "Lucky Me Pancit Canton Extra Hot 60g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4800016644504",
+      "name": "Jack 'n Jill Piattos Cheese 85g",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800016644801",
+      "name": "Jack 'n Jill Piattos Cheese 40g",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800016666421",
+      "name": "Jack 'n Jill Piattos Spicy Cheese 85g",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800016635076",
+      "name": "Jack 'n Jill Chippy BBQ 110g",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800016642029",
+      "name": "Jack 'n Jill Chippy BBQ 27g",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800016641008",
+      "name": "Jack 'n Jill Chippy Chili & Cheese 27g",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800016641503",
+      "name": "Jack 'n Jill Chippy Chili & Cheese 110g",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800016663802",
+      "name": "Jack 'n Jill Nova Country Cheddar 40g",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800016663505",
+      "name": "Jack 'n Jill Nova Country Cheddar 78g",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800016604225",
+      "name": "Jack 'n Jill Nova Homestyle BBQ 40g",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800016078545",
+      "name": "Jack 'n Jill Cream-O Deluxe 30g x10",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800010075564",
+      "name": "Jack 'n Jill Cream-O Choco 33g x10",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800010075526",
+      "name": "Jack 'n Jill Cream-O Vanilla 33g x10",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "750515018501",
+      "name": "My San Skyflakes Crackers 25g x10",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "750515018105",
+      "name": "My San Skyflakes Crackers Original 850g",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "750515030152",
+      "name": "My San Skyflakes Garlic 25g x10",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "750515017825",
+      "name": "My San Fita Spreadz Spicy Tuna 25g x10",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "748485100401",
+      "name": "Century Tuna Flakes in Vegetable Oil 155g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "748485101903",
+      "name": "Century Tuna Lite Vegetable Oil 180g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "748485103693",
+      "name": "Century Tuna Flakes in Oil 125g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "748485100098",
+      "name": "Century Tuna Flakes Hot & Spicy 180g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "748485100418",
+      "name": "Century Tuna Flakes Hot & Spicy 155g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "748485200040",
+      "name": "555 Sardines Spanish Style 155g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "748485200033",
+      "name": "555 Sardines in Natural Oil 155g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "748485200019",
+      "name": "555 Sardines in Tomato Sauce 155g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "748485801803",
+      "name": "Argentina Corned Beef 100g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "748485800431",
+      "name": "Argentina Corned Beef 150g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "748485800011",
+      "name": "Argentina Corned Beef 175g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "748485800035",
+      "name": "Argentina Corned Beef 260g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800361403801",
+      "name": "Nescafe Original 3-in-1 28g x30",
+      "categoryName": "Coffee & Chocolate Drinks"
+    },
+    {
+      "barcode": "4800361416726",
+      "name": "Nescafe Creamy White 3-in-1 52g x10",
+      "categoryName": "Coffee & Chocolate Drinks"
+    },
+    {
+      "barcode": "4800361403764",
+      "name": "Nescafe Original 3-in-1 28g x10",
+      "categoryName": "Coffee & Chocolate Drinks"
+    },
+    {
+      "barcode": "4800016012273",
+      "name": "Great Taste Premium Classic 50g",
+      "categoryName": "Coffee & Chocolate Drinks"
+    },
+    {
+      "barcode": "4801668500224",
+      "name": "Datu Puti Soy Sauce 1L",
+      "categoryName": "Condiments"
+    },
+    {
+      "barcode": "4801668600832",
+      "name": "Datu Puti Soy Sauce 340ml",
+      "categoryName": "Condiments"
+    },
+    {
+      "barcode": "4801668602218",
+      "name": "Datu Puti Soy Sauce 100ml",
+      "categoryName": "Condiments"
+    },
+    {
+      "barcode": "4801668602034",
+      "name": "Datu Puti Soy Sauce 200ml",
+      "categoryName": "Condiments"
+    },
+    {
+      "barcode": "4801668603635",
+      "name": "Datu Puti Vinegar 1L",
+      "categoryName": "Condiments"
+    },
+    {
+      "barcode": "4801668100172",
+      "name": "Datu Puti Vinegar 1.893L",
+      "categoryName": "Condiments"
+    },
+    {
+      "barcode": "4800344001000",
+      "name": "Silver Swan Soy Sauce 19L",
+      "categoryName": "Condiments"
+    },
+    {
+      "barcode": "4800344004124",
+      "name": "Silver Swan Vinegar 3785ml",
+      "categoryName": "Condiments"
+    },
+    {
+      "barcode": "4800361419642",
+      "name": "Maggi Magic Sarap 8g x16",
+      "categoryName": "Cooking Essentials"
+    },
+    {
+      "barcode": "4800361420143",
+      "name": "Maggi Magic Sarap 150g",
+      "categoryName": "Cooking Essentials"
+    },
+    {
+      "barcode": "4800361420129",
+      "name": "Maggi Magic Sarap 55g",
+      "categoryName": "Cooking Essentials"
+    },
+    {
+      "barcode": "4800888223333",
+      "name": "Knorr Chicken Powder 300g",
+      "categoryName": "Cooking Essentials"
+    },
+    {
+      "barcode": "4808680230764",
+      "name": "Knorr Liquid Seasoning Original 130ml",
+      "categoryName": "Cooking Essentials"
+    },
+    {
+      "barcode": "4902430899604",
+      "name": "Tide Liquid Detergent Sparkling Fresh 60g x6",
+      "categoryName": "Household"
+    },
+    {
+      "barcode": "4800888151827",
+      "name": "Surf Powder Detergent Kalamansi 57g x6",
+      "categoryName": "Household"
+    },
+    {
+      "barcode": "4800888151841",
+      "name": "Surf Powder Detergent Sun Fresh 65g x6",
+      "categoryName": "Household"
+    },
+    {
+      "barcode": "4902430495073",
+      "name": "Safeguard Bar Soap Pure White 85g",
+      "categoryName": "Personal Care"
+    },
+    {
+      "barcode": "4902430945554",
+      "name": "Safeguard Bar Soap Pure White 60g",
+      "categoryName": "Personal Care"
+    },
+    {
+      "barcode": "4902430327428",
+      "name": "Safeguard Bath Soap Arctic Fresh 60g",
+      "categoryName": "Personal Care"
+    },
+    {
+      "barcode": "4808888892566",
+      "name": "Colgate Toothpaste Cool Menthol Fresh 22g",
+      "categoryName": "Personal Care"
+    },
+    {
+      "barcode": "4800361410816",
+      "name": "Bear Brand Powdered Milk 33g x8",
+      "categoryName": "Dairy"
+    },
+    {
+      "barcode": "4800575144590",
+      "name": "Alaska Fortified Powdered Milk 300g",
+      "categoryName": "Dairy"
+    },
+    {
+      "barcode": "4800575142633",
+      "name": "Alaska Fortified Powdered Milk 33g x6",
+      "categoryName": "Dairy"
+    },
+    {
+      "barcode": "4806502727423",
+      "name": "Gardenia Neubake Wheaten Bread 480g",
+      "categoryName": "Bread"
+    },
+    {
+      "barcode": "4806502726822",
+      "name": "Gardenia Neubake White Bread 450g",
+      "categoryName": "Bread"
+    },
+    {
+      "barcode": "4806502727300",
+      "name": "Gardenia Neubake Choco Bread Roll 150g",
+      "categoryName": "Bread"
+    },
+    {
+      "barcode": "4806502726976",
+      "name": "Gardenia Neubake Spanish Bread 150g",
+      "categoryName": "Bread"
+    },
+    {
+      "barcode": "4195795",
+      "name": "Equal Sinandomeng Rice 25kg",
+      "categoryName": "Rice"
+    },
+    {
+      "barcode": "4195788",
+      "name": "Equal Sinandomeng Rice 10kg",
+      "categoryName": "Rice"
+    },
+    {
+      "barcode": "4195764",
+      "name": "Equal Sinandomeng Rice 5kg",
+      "categoryName": "Rice"
+    },
+    {
+      "barcode": "4195757",
+      "name": "Equal Sinandomeng Rice 2kg",
+      "categoryName": "Rice"
+    },
+    {
+      "barcode": "4809010955562",
+      "name": "Farmboy Sinandomeng Rice 25kg",
+      "categoryName": "Rice"
+    },
+    {
+      "barcode": "4809010955104",
+      "name": "Harvester Sinandomeng Rice 5kg",
+      "categoryName": "Rice"
+    },
+    {
+      "barcode": "4800177024207",
+      "name": "Fortune Menthol Cigarettes Ream 100s",
+      "categoryName": "Cigarettes"
+    },
+    {
+      "barcode": "4806504613229",
+      "name": "Marlboro Crafted Red 10s Ream",
+      "categoryName": "Cigarettes"
+    },
+    {
+      "barcode": "4806504613212",
+      "name": "Marlboro Flip Top Red Ream",
+      "categoryName": "Cigarettes"
+    },
+    {
+      "barcode": "4806504616213",
+      "name": "Marlboro Flip Top Menthol Ice Blast Ream",
+      "categoryName": "Cigarettes"
+    },
+    {
+      "barcode": "4806504613311",
+      "name": "Marlboro Flip Top Lights Gold Ream",
+      "categoryName": "Cigarettes"
+    }
+  ]
+}
