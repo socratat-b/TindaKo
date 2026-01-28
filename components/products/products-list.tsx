@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { ProductFormDialog } from './product-form-dialog'
 import { QuickAddProductDialog } from './quick-add-product-dialog'
+import { AddProductOptionsDialog } from './add-product-options-dialog'
 import { useProductsList } from '@/lib/hooks/use-products-list'
 import { useFormatCurrency } from '@/lib/utils/currency'
 import { Zap } from 'lucide-react'
@@ -55,12 +56,14 @@ export function ProductsList({
     editingProduct,
     isFormOpen,
     isQuickAddOpen,
+    isOptionsDialogOpen,
     deletingProduct,
     isDeleteDialogOpen,
     filteredProducts,
     setSearch,
     setCategoryFilter,
     setIsQuickAddOpen,
+    setIsOptionsDialogOpen,
     setIsDeleteDialogOpen,
     setIsFormOpen,
     handleEdit,
@@ -116,12 +119,12 @@ export function ProductsList({
         </div>
 
         <Button
-          onClick={() => setIsQuickAddOpen(true)}
+          onClick={() => setIsOptionsDialogOpen(true)}
           className="h-9 w-full gap-1.5 text-xs lg:h-10 lg:w-auto lg:text-sm"
           variant="default"
         >
           <Zap className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
-          <span>Quick Add Product</span>
+          <span>Add Product</span>
         </Button>
       </motion.div>
 
@@ -133,7 +136,7 @@ export function ProductsList({
               <>
                 <p className="text-sm font-medium lg:text-lg">Welcome to TindaKo!</p>
                 <p className="text-xs text-muted-foreground lg:text-sm">
-                  Start by adding your first product. Click &quot;Quick Add Product&quot; to get started.
+                  Start by adding your first product. Click &quot;Add Product&quot; to get started.
                 </p>
                 <p className="mt-2 text-[10px] text-muted-foreground lg:text-xs">
                   Tip: Add common items like Coke 1L, Lucky Me Pancit Canton, or Del Monte Sardinas
@@ -246,7 +249,7 @@ export function ProductsList({
                       <>
                         <p className="text-lg font-medium">Welcome to TindaKo!</p>
                         <p className="text-sm text-muted-foreground">
-                          Start by adding your first product. Click &quot;Quick Add Product&quot; to get started.
+                          Start by adding your first product. Click &quot;Add Product&quot; to get started.
                         </p>
                         <p className="mt-2 text-xs text-muted-foreground">
                           Tip: Add common items like Coke 1L, Lucky Me Pancit Canton, or Del Monte Sardinas
@@ -317,6 +320,13 @@ export function ProductsList({
           </TableBody>
         </Table>
       </div>
+
+      <AddProductOptionsDialog
+        open={isOptionsDialogOpen}
+        onOpenChange={setIsOptionsDialogOpen}
+        onSelectQuickAdd={() => setIsQuickAddOpen(true)}
+        onSelectManualAdd={() => setIsFormOpen(true)}
+      />
 
       <QuickAddProductDialog
         open={isQuickAddOpen}
