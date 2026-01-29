@@ -2,6 +2,7 @@ import { db } from './index'
 import { createClient } from '@/lib/supabase/client'
 import { getCurrentPhone } from '@/lib/auth/session'
 import {
+  pushStores,
   pushCategories,
   pushCustomers,
   pushProducts,
@@ -84,30 +85,34 @@ export async function pushToCloud(storePhone?: string, onProgress?: (current: st
 
     const currentPhone = storePhone || getCurrentPhoneOrThrow()
     const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
-    const totalTables = 6
+    const totalTables = 7
 
-    // Push in dependency order
-    onProgress?.('Categories', 0, totalTables, 0)
+    // Push in dependency order (STORE MUST BE FIRST!)
+    onProgress?.('Store', 0, totalTables, 0)
+    const storeStats = await pushStores(currentPhone)
+    stats.pushedCount += storeStats.pushedCount
+
+    onProgress?.('Categories', 1, totalTables, storeStats.pushedCount)
     const categoriesStats = await pushCategories(currentPhone)
     stats.pushedCount += categoriesStats.pushedCount
 
-    onProgress?.('Customers', 1, totalTables, categoriesStats.pushedCount)
+    onProgress?.('Customers', 2, totalTables, categoriesStats.pushedCount)
     const customersStats = await pushCustomers(currentPhone)
     stats.pushedCount += customersStats.pushedCount
 
-    onProgress?.('Products', 2, totalTables, customersStats.pushedCount)
+    onProgress?.('Products', 3, totalTables, customersStats.pushedCount)
     const productsStats = await pushProducts(currentPhone)
     stats.pushedCount += productsStats.pushedCount
 
-    onProgress?.('Sales', 3, totalTables, productsStats.pushedCount)
+    onProgress?.('Sales', 4, totalTables, productsStats.pushedCount)
     const salesStats = await pushSales(currentPhone)
     stats.pushedCount += salesStats.pushedCount
 
-    onProgress?.('Utang', 4, totalTables, salesStats.pushedCount)
+    onProgress?.('Utang', 5, totalTables, salesStats.pushedCount)
     const utangStats = await pushUtangTransactions(currentPhone)
     stats.pushedCount += utangStats.pushedCount
 
-    onProgress?.('Inventory', 5, totalTables, utangStats.pushedCount)
+    onProgress?.('Inventory', 6, totalTables, utangStats.pushedCount)
     const inventoryStats = await pushInventoryMovements(currentPhone)
     stats.pushedCount += inventoryStats.pushedCount
 

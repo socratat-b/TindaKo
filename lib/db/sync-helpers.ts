@@ -10,6 +10,29 @@ import type { SyncStats } from './sync'
 
 // PUSH-ONLY FUNCTIONS (Upload to cloud only)
 
+export async function pushStores(storePhone: string): Promise<SyncStats> {
+  const supabase = createClient()
+  const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
+
+  // Get the store record for this phone
+  const store = await db.stores.where('phone').equals(storePhone).first()
+
+  if (store) {
+    const supabaseData = toSnakeCase(store)
+    const { error } = await supabase.from('stores').upsert(supabaseData)
+
+    if (!error) {
+      stats.pushedCount++
+      console.log('[pushStores] Store synced successfully:', storePhone)
+    } else {
+      console.error('[pushStores] Failed to push store:', storePhone, error)
+      throw new Error(`Failed to sync store: ${error.message}`)
+    }
+  }
+
+  return stats
+}
+
 export async function pushCategories(storePhone: string): Promise<SyncStats> {
   const supabase = createClient()
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
