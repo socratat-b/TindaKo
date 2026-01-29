@@ -14,8 +14,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "TindaKo",
-  description: "Business management system for Sari-Sari stores",
+  title: "TindaKo - Offline POS",
+  description: "Offline-first Point of Sale for Philippine Sari-Sari Stores. Track sales, inventory, utang, and manage your tindahan kahit walang internet.",
 };
 
 export default function RootLayout({

@@ -1,4 +1,43 @@
 <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-  <rect width="512" height="512" fill="#10b981" rx="86"/>
-  <text x="256" y="320" font-family="Arial, sans-serif" font-size="210" font-weight="bold" fill="white" text-anchor="middle">TK</text>
+  <!-- Background with gradient -->
+  <defs>
+    <linearGradient id="bgGradient512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d9488;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#10b981;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="storeGradient512" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f0fdfa;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded background -->
+  <rect width="512" height="512" fill="url(#bgGradient512)" rx="112"/>
+
+  <!-- Store building (scaled up) -->
+  <g transform="translate(256, 256)">
+    <!-- Awning/Roof -->
+    <path d="M -120 -93 L -133 -67 L 133 -67 L 120 -93 Z" fill="#065f46" opacity="0.9"/>
+    <rect x="-133" y="-67" width="266" height="21" fill="#047857" opacity="0.9"/>
+
+    <!-- Store front -->
+    <rect x="-120" y="-46" width="240" height="173" fill="url(#storeGradient512)" stroke="#0d9488" stroke-width="5" rx="10"/>
+
+    <!-- Window left -->
+    <rect x="-101" y="-21" width="75" height="64" fill="#ccfbf1" stroke="#0d9488" stroke-width="4" rx="5"/>
+    <line x1="-63.5" y1="-21" x2="-63.5" y2="43" stroke="#0d9488" stroke-width="4"/>
+    <line x1="-101" y1="11" x2="-26" y2="11" stroke="#0d9488" stroke-width="4"/>
+
+    <!-- Window right -->
+    <rect x="26" y="-21" width="75" height="64" fill="#ccfbf1" stroke="#0d9488" stroke-width="4" rx="5"/>
+    <line x1="63.5" y1="-21" x2="63.5" y2="43" stroke="#0d9488" stroke-width="4"/>
+    <line x1="26" y1="11" x2="101" y2="11" stroke="#0d9488" stroke-width="4"/>
+
+    <!-- Door -->
+    <rect x="-32" y="53" width="64" height="74" fill="#0d9488" rx="5"/>
+    <circle cx="16" cy="90" r="4" fill="#fef3c7"/>
+
+    <!-- Store name -->
+    <text x="0" y="-80" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="700" fill="white" text-anchor="middle">TindaKo</text>
+  </g>
 </svg>
