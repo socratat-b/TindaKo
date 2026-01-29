@@ -173,7 +173,14 @@ export function UtangTransactionsList({
                           ))}
                         </div>
                       ) : (
-                        <p className="text-sm text-muted-foreground italic">Manual charge</p>
+                        <div className="space-y-1">
+                          <p className="text-sm text-muted-foreground italic">Manual charge</p>
+                          {transaction.notes && (
+                            <p className="text-xs text-muted-foreground">
+                              Reason: {transaction.notes}
+                            </p>
+                          )}
+                        </div>
                       )}
                     </TableCell>
                     <TableCell>
@@ -235,25 +242,38 @@ export function UtangTransactionsList({
                   </div>
                 </div>
 
-                {/* Products */}
-                {transaction.type === 'charge' && sale && (
-                  <div className="mt-2 border-t pt-2 space-y-1">
-                    <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                      <ShoppingBag className="h-3 w-3" />
-                      <span>{sale.items.length} item{sale.items.length > 1 ? 's' : ''} bought</span>
+                {/* Products or Manual Charge */}
+                {transaction.type === 'charge' && (
+                  sale ? (
+                    <div className="mt-2 border-t pt-2 space-y-1">
+                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                        <ShoppingBag className="h-3 w-3" />
+                        <span>{sale.items.length} item{sale.items.length > 1 ? 's' : ''} bought</span>
+                      </div>
+                      <div className="space-y-0.5">
+                        {sale.items.map((item, i) => (
+                          <div key={i} className="text-[11px]">
+                            <span className="font-semibold">{item.quantity}x</span>{' '}
+                            <span className="text-muted-foreground">{item.productName}</span>
+                            <span className="text-[10px] text-muted-foreground ml-1">
+                              ({formatCurrency(item.unitPrice)})
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <div className="space-y-0.5">
-                      {sale.items.map((item, i) => (
-                        <div key={i} className="text-[11px]">
-                          <span className="font-semibold">{item.quantity}x</span>{' '}
-                          <span className="text-muted-foreground">{item.productName}</span>
-                          <span className="text-[10px] text-muted-foreground ml-1">
-                            ({formatCurrency(item.unitPrice)})
-                          </span>
-                        </div>
-                      ))}
+                  ) : transaction.notes ? (
+                    <div className="mt-2 border-t pt-2">
+                      <p className="text-[10px] text-muted-foreground italic mb-1">Manual charge</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        Reason: {transaction.notes}
+                      </p>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="mt-2 border-t pt-2">
+                      <p className="text-[11px] text-muted-foreground italic">Manual charge</p>
+                    </div>
+                  )
                 )}
 
                 <div className="mt-2 flex items-center justify-between border-t pt-2">
