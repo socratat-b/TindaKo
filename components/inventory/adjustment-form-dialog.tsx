@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import {
   Dialog,
@@ -19,7 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ArrowUpCircle, ArrowDownCircle, Settings } from 'lucide-react'
+import { ArrowUpCircle, ArrowDownCircle, Settings, Search, X } from 'lucide-react'
+import { CategoryFilter } from '@/components/shared/category-filter'
 import { useAdjustmentForm } from '@/lib/hooks/use-adjustment-form'
 import type { AdjustmentFormDialogProps } from '@/lib/types'
 
@@ -40,6 +42,9 @@ export function AdjustmentFormDialog({
     mode,
   })
 
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all')
+
   const isRestockMode = mode === 'restock'
 
   const selectedProduct = products.find((p) => p.id === formData.productId)
@@ -48,8 +53,40 @@ export function AdjustmentFormDialog({
     return categories.find((c) => c.id === categoryId)?.name || 'Uncategorized'
   }
 
+  // Filter products based on search and category
+  const filteredProducts = useMemo(() => {
+    let filtered = products
+
+    // Filter by category
+    if (selectedCategoryId !== 'all') {
+      filtered = filtered.filter((p) => p.categoryId === selectedCategoryId)
+    }
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(
+        (p) =>
+          p.name.toLowerCase().includes(query) ||
+          p.barcode?.toLowerCase().includes(query) ||
+          getCategoryName(p.categoryId).toLowerCase().includes(query)
+      )
+    }
+
+    return filtered
+  }, [products, selectedCategoryId, searchQuery])
+
+  // Reset filters when dialog closes
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+      setSearchQuery('')
+      setSelectedCategoryId('all')
+    }
+    onOpenChange(isOpen)
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="text-lg md:text-xl">
@@ -107,36 +144,87 @@ export function AdjustmentFormDialog({
               </>
             ) : (
               <>
-                {/* Full product selector for manual mode */}
-                <Label htmlFor="productId" className="text-xs md:text-sm">
-                  Select Product *
-                </Label>
-                <Select
-                  name="productId"
-                  value={formData.productId}
-                  onValueChange={(value) => setFormData({ productId: value })}
-                  required
-                >
-                  <SelectTrigger className="h-9 w-full text-xs md:h-10 md:text-sm">
-                    <SelectValue placeholder="Select a product" />
-                  </SelectTrigger>
-                  <SelectContent className="w-full max-w-[calc(100vw-2rem)] md:max-w-[calc(var(--radix-select-trigger-width))]">
-                    {products.map((product) => (
-                      <SelectItem
-                        key={product.id}
-                        value={product.id}
-                        className="text-xs md:text-sm"
-                      >
-                        <div className="flex items-center justify-between gap-2 w-full">
-                          <span className="flex-1 truncate">{product.name}</span>
-                          <span className="text-[10px] text-muted-foreground shrink-0">
-                            Stock: {product.stockQty}
-                          </span>
+                {/* Search and Filter for manual mode */}
+                <div className="space-y-3">
+                  {/* Search Input */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs md:text-sm">Search Product</Label>
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        type="text"
+                        placeholder="Search by name or barcode..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="h-9 pl-9 pr-9 text-xs md:h-10 md:text-sm"
+                      />
+                      {searchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => setSearchQuery('')}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Category Filter */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs md:text-sm">Filter by Category</Label>
+                    <CategoryFilter
+                      categories={categories}
+                      value={selectedCategoryId}
+                      onValueChange={setSelectedCategoryId}
+                      className="h-9 w-full text-xs md:h-10 md:text-sm"
+                    />
+                  </div>
+                </div>
+
+                {/* Product Selector */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="productId" className="text-xs md:text-sm">
+                    Select Product *
+                  </Label>
+                  <Select
+                    name="productId"
+                    value={formData.productId}
+                    onValueChange={(value) => setFormData({ productId: value })}
+                    required
+                  >
+                    <SelectTrigger className="h-9 w-full text-xs md:h-10 md:text-sm">
+                      <SelectValue placeholder="Select a product" />
+                    </SelectTrigger>
+                    <SelectContent className="w-full max-w-[calc(100vw-2rem)] md:max-w-[calc(var(--radix-select-trigger-width))]">
+                      {filteredProducts.length > 0 ? (
+                        filteredProducts.map((product) => (
+                          <SelectItem
+                            key={product.id}
+                            value={product.id}
+                            className="text-xs md:text-sm"
+                          >
+                            <div className="flex items-center justify-between gap-2 w-full">
+                              <span className="flex-1 truncate">{product.name}</span>
+                              <span className="text-[10px] text-muted-foreground shrink-0">
+                                Stock: {product.stockQty}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <div className="py-6 text-center text-xs text-muted-foreground md:text-sm">
+                          No products found
                         </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  {searchQuery || selectedCategoryId !== 'all' ? (
+                    <p className="text-[10px] text-muted-foreground md:text-xs">
+                      Showing {filteredProducts.length} of {products.length} products
+                    </p>
+                  ) : null}
+                </div>
                 {selectedProduct && (
                   <motion.div
                     className="rounded-md bg-muted p-3"
@@ -286,7 +374,7 @@ export function AdjustmentFormDialog({
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={() => handleOpenChange(false)}
               disabled={isLoading}
               className="flex-1 h-9 text-xs md:h-10 md:text-sm"
             >
