@@ -1,5 +1,3 @@
-'use server'
-
 import { db } from '@/lib/db'
 import { useSyncStore } from '@/lib/stores/sync-store'
 

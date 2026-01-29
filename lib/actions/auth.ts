@@ -4,8 +4,10 @@
  */
 
 import { db } from '@/lib/db'
+import { createClient } from '@/lib/supabase/client'
 import { hashPin, verifyPin, isValidPin } from '@/lib/auth/pin'
 import { saveSession, clearSession } from '@/lib/auth/session'
+import { pullFromCloud } from '@/lib/db/sync'
 import type { Store } from '@/lib/db/schema'
 
 export type AuthResult = {
@@ -70,8 +72,9 @@ export async function signupAction(
 
     // Create store in IndexedDB
     const now = new Date().toISOString()
+    const storeId = crypto.randomUUID()
     const store: Store = {
-      id: crypto.randomUUID(),
+      id: storeId,
       phone,
       storeName: storeName.trim(),
       pinHash,
@@ -80,6 +83,27 @@ export async function signupAction(
     }
 
     await db.stores.add(store)
+
+    // Save to Supabase for multi-device support
+    try {
+      const supabase = createClient()
+      const { error: supabaseError } = await supabase.from('stores').insert({
+        id: storeId,
+        phone,
+        store_name: store.storeName,
+        pin_hash: pinHash,
+        created_at: now,
+        updated_at: now,
+      })
+
+      if (supabaseError) {
+        console.error('[signupAction] Failed to save to cloud:', supabaseError)
+        // Continue anyway - local account created successfully
+      }
+    } catch (cloudError) {
+      console.error('[signupAction] Cloud save failed:', cloudError)
+      // Continue anyway - local account created successfully
+    }
 
     // Save session
     saveSession({
@@ -155,12 +179,69 @@ export async function loginAction(phone: string, pin: string): Promise<AuthResul
       }
     }
 
-    // TODO: If not found locally, try Supabase (new device scenario)
-    // This will be implemented when we update the sync system
+    // Not found locally - try Supabase (new device scenario)
+    try {
+      const supabase = createClient()
+      const { data: remoteStore, error: supabaseError } = await supabase
+        .from('stores')
+        .select('*')
+        .eq('phone', phone)
+        .single()
 
-    return {
-      success: false,
-      error: 'Phone number not found. Please sign up first.',
+      if (supabaseError || !remoteStore) {
+        return {
+          success: false,
+          error: 'Phone number not found. Please sign up first.',
+        }
+      }
+
+      // Verify PIN against remote hash
+      const isValid = await verifyPin(pin, remoteStore.pin_hash)
+
+      if (!isValid) {
+        return {
+          success: false,
+          error: 'Incorrect PIN',
+        }
+      }
+
+      // Save store to local IndexedDB
+      const localStoreData: Store = {
+        id: remoteStore.id,
+        phone: remoteStore.phone,
+        storeName: remoteStore.store_name,
+        pinHash: remoteStore.pin_hash,
+        createdAt: remoteStore.created_at,
+        updatedAt: remoteStore.updated_at,
+      }
+
+      await db.stores.add(localStoreData)
+
+      // Save session
+      saveSession({
+        phone: localStoreData.phone,
+        storeName: localStoreData.storeName,
+        pinHash: localStoreData.pinHash,
+      })
+
+      console.log('[loginAction] Logged in (new device, restoring from cloud):', phone)
+
+      // Auto-restore data from cloud (runs in background)
+      pullFromCloud(phone).catch((err) => {
+        console.error('[loginAction] Failed to restore data:', err)
+      })
+
+      return {
+        success: true,
+        phone: localStoreData.phone,
+        storeName: localStoreData.storeName,
+      }
+    } catch (cloudError) {
+      console.error('[loginAction] Cloud lookup failed:', cloudError)
+      return {
+        success: false,
+        error: 'Phone number not found. Please sign up first.',
+      }
     }
   } catch (error) {
     console.error('[loginAction] Error:', error)
