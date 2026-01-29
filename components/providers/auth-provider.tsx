@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { useAuthStore } from '@/lib/stores/auth-store'
-import { getSession } from '@/lib/auth/session'
+import { getSession, restoreCookieIfNeeded } from '@/lib/auth/session'
 import { seedProductCatalog } from '@/lib/db/seeders'
 
 /**
@@ -15,6 +15,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { setAuth, setLoading } = useAuthStore()
 
   useEffect(() => {
+    // CRITICAL: Restore cookie if localStorage has session but cookie expired
+    // This prevents logout when offline or when cookie expires before localStorage
+    restoreCookieIfNeeded()
+
     // Initialize auth from localStorage session
     const session = getSession()
 

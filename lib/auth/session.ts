@@ -96,3 +96,41 @@ export function getCurrentPhone(): string | null {
   const session = getSession()
   return session?.phone || null
 }
+
+/**
+ * Check if auth cookie exists
+ * Returns true if cookie is present
+ */
+function hasCookie(): boolean {
+  if (typeof document === 'undefined') return false
+  return document.cookie.split('; ').some(cookie => cookie.startsWith(`${COOKIE_NAME}=`))
+}
+
+/**
+ * Restore cookie from localStorage session
+ * Fixes middleware auth when cookie expires but localStorage still has valid session
+ * This ensures offline users aren't logged out when cookie expires
+ */
+export function restoreCookieIfNeeded(): void {
+  if (typeof window === 'undefined') return
+
+  try {
+    // If cookie already exists, nothing to do
+    if (hasCookie()) {
+      return
+    }
+
+    // Check if we have a valid localStorage session
+    const session = getSession()
+    if (!session) {
+      return
+    }
+
+    // Restore cookie from localStorage session
+    // This fixes the case where cookie expired but user is still legitimately authenticated
+    document.cookie = `${COOKIE_NAME}=${session.phone}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`
+    console.log('[restoreCookieIfNeeded] Cookie restored from localStorage for:', session.phone)
+  } catch (error) {
+    console.error('[restoreCookieIfNeeded] Failed to restore cookie:', error)
+  }
+}

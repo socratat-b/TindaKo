@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { signupAction } from '@/lib/actions/auth'
 import { useAuthStore } from '@/lib/stores/auth-store'
+import { getSession } from '@/lib/auth/session'
 import Link from 'next/link'
 import { Loader2 } from 'lucide-react'
 
@@ -18,6 +19,14 @@ export default function SignupPage() {
   const [confirmPin, setConfirmPin] = useState('')
   const [error, setError] = useState('')
   const [isPending, setIsPending] = useState(false)
+
+  // Check if already logged in
+  useEffect(() => {
+    const session = getSession()
+    if (session) {
+      router.push('/pos')
+    }
+  }, [router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
