@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { useCart } from '@/lib/hooks/use-cart'
 import { useSettings } from '@/lib/hooks/use-settings'
 import { useSyncStore } from '@/lib/stores/sync-store'
+import { useProductCartSync } from '@/lib/hooks/use-product-cart-sync'
 import { processSale } from '@/lib/actions/pos'
 import { ProductGrid } from './product-grid'
 import { CartDisplay } from './cart-display'
@@ -21,6 +22,9 @@ export default function POSInterface({ storePhone }: POSInterfaceProps) {
   const { enableBarcodeScanner } = useSettings()
   const cart = useCart()
   const { setHasPendingChanges } = useSyncStore()
+
+  // Sync cart with latest product data
+  useProductCartSync()
 
   const handleCheckout = async (amountPaid: number, customerId: string | null) => {
     try {

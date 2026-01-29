@@ -93,7 +93,7 @@ export function CartDisplay({ onCheckout }: CartDisplayProps) {
                 >
                   <div className="flex items-start justify-between gap-2 mb-1.5">
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-sm leading-tight">
+                      <h4 className="font-medium text-sm leading-tight break-words">
                         {item.productName}
                       </h4>
                       <p className="text-xs text-muted-foreground mt-0.5">

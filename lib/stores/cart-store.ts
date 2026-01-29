@@ -24,6 +24,7 @@ interface CartState {
   setPaymentMethod: (method: 'cash' | 'gcash' | 'utang') => void
   setUserId: (userId: string | null) => void
   clearCart: () => void
+  syncCartWithProducts: (products: Product[]) => void
 }
 
 export const useCartStore = create<CartState>()(
@@ -153,6 +154,37 @@ export const useCartStore = create<CartState>()(
           subtotal: 0,
           total: 0
         })
+      },
+
+      syncCartWithProducts: (products) => {
+        const { items } = get()
+
+        if (items.length === 0) return
+
+        // Update cart items with fresh product data
+        const updatedItems = items.map(cartItem => {
+          const latestProduct = products.find(p => p.id === cartItem.productId)
+
+          if (!latestProduct) {
+            // Product was deleted, keep cart item as is but mark it
+            return cartItem
+          }
+
+          // Update with latest product data
+          return {
+            ...cartItem,
+            productName: latestProduct.name,
+            unitPrice: latestProduct.sellingPrice,
+            stockQty: latestProduct.stockQty,
+            barcode: latestProduct.barcode,
+            total: cartItem.quantity * latestProduct.sellingPrice
+          }
+        })
+
+        const subtotal = updatedItems.reduce((sum, item) => sum + item.total, 0)
+        const total = subtotal
+
+        set({ items: updatedItems, subtotal, total })
       }
     }),
     {

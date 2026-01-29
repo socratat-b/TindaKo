@@ -6,12 +6,18 @@ import { useSearchParams } from 'next/navigation'
 import { db } from '@/lib/db'
 import { seedDefaultCategories } from '@/lib/db/seeders'
 import { ProductsList } from './products-list'
+import { useProductsStore } from '@/lib/stores/products-store'
+import { useProductCartSync } from '@/lib/hooks/use-product-cart-sync'
 import type { ProductsInterfaceProps } from '@/lib/types'
 
 export default function ProductsInterface({ storePhone }: ProductsInterfaceProps) {
   const [refreshKey, setRefreshKey] = useState(0)
   const [isSeeding, setIsSeeding] = useState(false)
   const searchParams = useSearchParams()
+  const { refreshProducts } = useProductsStore()
+
+  // Sync cart with products when data changes
+  useProductCartSync()
 
   // Check for catalog pre-fill data from URL
   const catalogData = {
@@ -33,7 +39,9 @@ export default function ProductsInterface({ storePhone }: ProductsInterfaceProps
 
   const handleRefresh = useCallback(() => {
     setRefreshKey((prev) => prev + 1)
-  }, [])
+    // Refresh ProductsStore for POS page sync
+    refreshProducts(storePhone)
+  }, [storePhone, refreshProducts])
 
   // Auto-seed default categories for new users
   useEffect(() => {

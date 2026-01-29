@@ -108,10 +108,18 @@ export function ProductsList({
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
+              <SelectItem value="all" className="text-xs lg:text-sm">
+                All Categories
+              </SelectItem>
               {categories.map((cat) => (
-                <SelectItem key={cat.id} value={cat.id}>
-                  {cat.name}
+                <SelectItem key={cat.id} value={cat.id} className="text-xs lg:text-sm">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="h-3 w-3 rounded-full"
+                      style={{ backgroundColor: cat.color }}
+                    />
+                    {cat.name}
+                  </div>
                 </SelectItem>
               ))}
             </SelectContent>
@@ -165,9 +173,9 @@ export function ProductsList({
                 {/* Product Name and Stock Status */}
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-semibold truncate">{product.name}</h3>
+                    <h3 className="text-sm font-semibold break-words leading-tight">{product.name}</h3>
                     {product.barcode && (
-                      <p className="text-[10px] font-mono text-muted-foreground">{product.barcode}</p>
+                      <p className="text-[10px] font-mono text-muted-foreground break-all">{product.barcode}</p>
                     )}
                   </div>
                   <Badge variant={stockStatus.variant} className="text-[9px] shrink-0">

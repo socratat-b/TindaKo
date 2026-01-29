@@ -1,85 +1,91 @@
-'use client'
+"use client";
 
-import { useEffect, useState, useMemo } from 'react'
-import { motion } from 'framer-motion'
-import type { Product } from '@/lib/db/schema'
-import { useCart } from '@/lib/hooks/use-cart'
-import { useFormatCurrency } from '@/lib/utils/currency'
-import { useSyncStore } from '@/lib/stores/sync-store'
-import { useProductsStore } from '@/lib/stores/products-store'
-import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Search, Plus, Package, Loader2 } from 'lucide-react'
+import { useEffect, useState, useMemo } from "react";
+import { motion } from "framer-motion";
+import type { Product } from "@/lib/db/schema";
+import { useCart } from "@/lib/hooks/use-cart";
+import { useFormatCurrency } from "@/lib/utils/currency";
+import { useSyncStore } from "@/lib/stores/sync-store";
+import { useProductsStore } from "@/lib/stores/products-store";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Search, Plus, Package, Loader2 } from "lucide-react";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from "@/components/ui/select";
 
 interface ProductGridProps {
-  storePhone: string
+  storePhone: string;
 }
 
 export function ProductGrid({ storePhone }: ProductGridProps) {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState<string>('all')
-  const { addItem, items: cartItems } = useCart()
-  const formatCurrency = useFormatCurrency()
-  const { status: syncStatus } = useSyncStore()
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const { addItem, items: cartItems } = useCart();
+  const formatCurrency = useFormatCurrency();
+  const { status: syncStatus } = useSyncStore();
 
   // Get products from Zustand store
-  const { products, categories, isLoading, loadProducts, refreshProducts } = useProductsStore()
+  const { products, categories, isLoading, loadProducts, refreshProducts } =
+    useProductsStore();
 
   // Load products on mount and when data is restored
   useEffect(() => {
-    loadProducts(storePhone)
+    loadProducts(storePhone);
 
     // Listen for data restore event (from cloud sync)
     const handleDataRestored = () => {
-      refreshProducts(storePhone)
-    }
+      refreshProducts(storePhone);
+    };
 
-    window.addEventListener('data-restored', handleDataRestored)
-    return () => window.removeEventListener('data-restored', handleDataRestored)
-  }, [storePhone, loadProducts, refreshProducts])
+    window.addEventListener("data-restored", handleDataRestored);
+    return () =>
+      window.removeEventListener("data-restored", handleDataRestored);
+  }, [storePhone, loadProducts, refreshProducts]);
 
   // Filter products based on search and category
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
       const matchesSearch =
-        searchQuery === '' ||
+        searchQuery === "" ||
         product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (product.barcode && product.barcode.includes(searchQuery))
+        (product.barcode && product.barcode.includes(searchQuery));
 
       const matchesCategory =
-        selectedCategory === 'all' || product.categoryId === selectedCategory
+        selectedCategory === "all" || product.categoryId === selectedCategory;
 
-      return matchesSearch && matchesCategory
-    })
-  }, [products, searchQuery, selectedCategory])
+      return matchesSearch && matchesCategory;
+    });
+  }, [products, searchQuery, selectedCategory]);
 
   const handleAddToCart = (product: Product) => {
     if (product.stockQty <= 0) {
-      alert('Product is out of stock')
-      return
+      alert("Product is out of stock");
+      return;
     }
-    addItem(product)
-  }
+    addItem(product);
+  };
 
   // Show loading skeleton when syncing or initially loading with no data
-  const showLoadingSkeleton = (isLoading && products.length === 0) || (syncStatus === 'syncing' && products.length === 0)
+  const showLoadingSkeleton =
+    (isLoading && products.length === 0) ||
+    (syncStatus === "syncing" && products.length === 0);
 
   if (showLoadingSkeleton) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-3">
         <Loader2 className="w-8 h-8 animate-spin text-primary lg:w-10 lg:h-10" />
-        <p className="text-sm text-muted-foreground lg:text-base">Loading products...</p>
+        <p className="text-sm text-muted-foreground lg:text-base">
+          Loading products...
+        </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -88,7 +94,7 @@ export function ProductGrid({ storePhone }: ProductGridProps) {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: 'easeOut' }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
         className="flex-none flex flex-col lg:flex-row gap-2 mb-2"
       >
         <div className="relative flex-1">
@@ -109,7 +115,11 @@ export function ProductGrid({ storePhone }: ProductGridProps) {
               All Categories
             </SelectItem>
             {categories.map((category) => (
-              <SelectItem key={category.id} value={category.id} className="text-sm">
+              <SelectItem
+                key={category.id}
+                value={category.id}
+                className="text-sm"
+              >
                 <div className="flex items-center gap-2">
                   <div
                     className="h-3 w-3 rounded-full"
@@ -124,105 +134,114 @@ export function ProductGrid({ storePhone }: ProductGridProps) {
       </motion.div>
 
       {/* Product List - Scrollable */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
         {filteredProducts.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center py-8">
             <Package className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
             <p className="text-sm text-muted-foreground px-4">
-              {searchQuery || selectedCategory !== 'all'
-                ? 'No products found'
-                : 'No products available'}
+              {searchQuery || selectedCategory !== "all"
+                ? "No products found"
+                : "No products available"}
             </p>
           </div>
         ) : (
           <div className="space-y-2 pb-2">
             {filteredProducts.map((product, index) => {
-              const category = categories.find((c) => c.id === product.categoryId)
+              const category = categories.find(
+                (c) => c.id === product.categoryId,
+              );
 
               // Calculate remaining stock after cart items
-              const cartItem = cartItems.find(item => item.productId === product.id)
-              const cartQty = cartItem?.quantity || 0
-              const remainingStock = product.stockQty - cartQty
+              const cartItem = cartItems.find(
+                (item) => item.productId === product.id,
+              );
+              const cartQty = cartItem?.quantity || 0;
+              const remainingStock = product.stockQty - cartQty;
 
-              const isOutOfStock = remainingStock <= 0
+              const isOutOfStock = remainingStock <= 0;
               const isLowStock =
-                !isOutOfStock && remainingStock <= product.lowStockThreshold
+                !isOutOfStock && remainingStock <= product.lowStockThreshold;
 
               return (
                 <motion.div
                   key={product.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.03, ease: 'easeOut' }}
+                  transition={{
+                    duration: 0.3,
+                    delay: index * 0.03,
+                    ease: "easeOut",
+                  }}
+                  className="w-full"
                 >
                   <Card
-                    className={`p-2.5 cursor-pointer transition-all active:scale-[0.99] ${
-                      isOutOfStock ? 'opacity-50' : ''
+                    className={`p-2.5 cursor-pointer transition-all active:scale-[0.99] w-full ${
+                      isOutOfStock ? "opacity-50" : ""
                     }`}
                     onClick={() => !isOutOfStock && handleAddToCart(product)}
                   >
-                  <div className="flex items-start gap-2.5">
-                    {/* Product Info */}
-                    <div className="flex-1 min-w-0 space-y-0.5">
-                      <div className="flex items-start justify-between gap-2">
-                        <h3 className="font-semibold text-sm leading-tight line-clamp-1">
-                          {product.name}
-                        </h3>
-                        {category && (
-                          <Badge
-                            variant="secondary"
-                            className="text-xs h-5 px-1.5 shrink-0"
-                            style={{
-                              backgroundColor: `${category.color}20`,
-                              color: category.color,
-                            }}
+                    <div className="flex items-start gap-2.5 w-full">
+                      {/* Product Info */}
+                      <div className="flex-1 min-w-0 space-y-0.5">
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="flex-1 min-w-0 font-semibold text-sm leading-tight break-words">
+                            {product.name}
+                          </h3>
+                          {category && (
+                            <Badge
+                              variant="secondary"
+                              className="text-xs h-5 px-1.5 shrink-0"
+                              style={{
+                                backgroundColor: `${category.color}20`,
+                                color: category.color,
+                              }}
+                            >
+                              {category.name}
+                            </Badge>
+                          )}
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <p className="text-base font-bold text-emerald-600">
+                            {formatCurrency(product.sellingPrice)}
+                          </p>
+                          <p
+                            className={`text-xs font-medium ${
+                              isOutOfStock
+                                ? "text-destructive"
+                                : isLowStock
+                                  ? "text-amber-600"
+                                  : "text-muted-foreground"
+                            }`}
                           >
-                            {category.name}
-                          </Badge>
-                        )}
+                            {isOutOfStock
+                              ? "Out of stock"
+                              : `${remainingStock} left`}
+                          </p>
+                        </div>
                       </div>
 
-                      <div className="flex items-center justify-between">
-                        <p className="text-base font-bold text-emerald-600">
-                          {formatCurrency(product.sellingPrice)}
-                        </p>
-                        <p
-                          className={`text-xs font-medium ${
-                            isOutOfStock
-                              ? 'text-destructive'
-                              : isLowStock
-                                ? 'text-amber-600'
-                                : 'text-muted-foreground'
-                          }`}
+                      {/* Add Button */}
+                      {!isOutOfStock && (
+                        <Button
+                          size="icon"
+                          className="h-10 w-10 shrink-0 rounded-full"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddToCart(product);
+                          }}
                         >
-                          {isOutOfStock
-                            ? 'Out of stock'
-                            : `${remainingStock} left`}
-                        </p>
-                      </div>
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
-
-                    {/* Add Button */}
-                    {!isOutOfStock && (
-                      <Button
-                        size="icon"
-                        className="h-10 w-10 shrink-0 rounded-full"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleAddToCart(product)
-                        }}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                </Card>
+                  </Card>
                 </motion.div>
-              )
+              );
             })}
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }
