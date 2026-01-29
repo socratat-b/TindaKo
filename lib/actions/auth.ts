@@ -268,3 +268,70 @@ export async function logoutAction(): Promise<void> {
     console.error('[logoutAction] Error:', error)
   }
 }
+
+/**
+ * Update store name in both IndexedDB and Supabase
+ */
+export async function updateStoreNameAction(
+  phone: string,
+  newStoreName: string
+): Promise<AuthResult> {
+  try {
+    if (!phone || !newStoreName.trim()) {
+      return {
+        success: false,
+        error: 'Phone and store name are required',
+      }
+    }
+
+    const now = new Date().toISOString()
+
+    // Update in IndexedDB
+    const localStore = await db.stores.where('phone').equals(phone).first()
+
+    if (localStore) {
+      await db.stores.update(localStore.id, {
+        storeName: newStoreName.trim(),
+        updatedAt: now,
+      })
+    } else {
+      return {
+        success: false,
+        error: 'Store not found locally',
+      }
+    }
+
+    // Update in Supabase
+    try {
+      const supabase = createClient()
+      const { error: supabaseError } = await supabase
+        .from('stores')
+        .update({
+          store_name: newStoreName.trim(),
+          updated_at: now,
+        })
+        .eq('phone', phone)
+
+      if (supabaseError) {
+        console.error('[updateStoreNameAction] Supabase error:', supabaseError)
+        // Don't fail the whole operation if Supabase update fails
+        // The sync will pick it up later
+      }
+    } catch (supabaseError) {
+      console.error('[updateStoreNameAction] Supabase error:', supabaseError)
+      // Continue - local update succeeded
+    }
+
+    return {
+      success: true,
+      phone,
+      storeName: newStoreName.trim(),
+    }
+  } catch (error) {
+    console.error('[updateStoreNameAction] Error:', error)
+    return {
+      success: false,
+      error: 'Failed to update store name',
+    }
+  }
+}

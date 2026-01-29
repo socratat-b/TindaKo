@@ -11,14 +11,16 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { useSettings } from '@/lib/hooks/use-settings'
+import { useStoreName } from '@/lib/hooks/use-store-name'
 
 export function GeneralSettingsSection() {
+  const { language, timezone, updateSettings } = useSettings()
   const {
     storeName,
-    language,
-    timezone,
-    updateSettings
-  } = useSettings()
+    isUpdating: isUpdatingStoreName,
+    handleChange: handleStoreNameChange,
+    handleSave: handleStoreNameSave
+  } = useStoreName()
 
   return (
     <Card className="p-4 lg:p-6">
@@ -31,10 +33,15 @@ export function GeneralSettingsSection() {
           <Input
             id="store-name"
             value={storeName}
-            onChange={(e) => updateSettings({ storeName: e.target.value })}
+            onChange={(e) => handleStoreNameChange(e.target.value)}
+            onBlur={handleStoreNameSave}
             placeholder="My Sari-Sari Store"
+            disabled={isUpdatingStoreName}
             className="h-9 text-xs lg:h-10 lg:text-sm w-full"
           />
+          {isUpdatingStoreName && (
+            <p className="text-[10px] text-muted-foreground">Saving...</p>
+          )}
         </div>
 
         <div className="space-y-1.5">
