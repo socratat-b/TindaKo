@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import { syncAll, pushToCloud, pullFromCloud, SyncStats } from '@/lib/db/sync'
+import { syncAll, pushToCloud, pullFromCloud, SyncStats, hasUnsyncedChanges } from '@/lib/db/sync'
+import { getCurrentPhone } from '@/lib/auth/session'
 
 type SyncStatus = 'idle' | 'syncing' | 'error' | 'success'
 
@@ -22,6 +23,7 @@ interface SyncState {
   backup: (userId?: string) => Promise<void> // Push-only (manual backup)
   restore: (userId?: string) => Promise<SyncStats> // Pull-only (auto-restore)
   sync: (isInitialSync?: boolean) => Promise<void> // Full sync (both push + pull, for future use)
+  checkPendingChanges: () => Promise<void> // Check for unsynced changes dynamically
   setHasPendingChanges: (value: boolean) => void
   setProgress: (progress: SyncProgress | null) => void
   resetStatus: () => void // Reset status to idle and clear error
@@ -164,6 +166,22 @@ export const useSyncStore = create<SyncState>((set, get) => ({
       })
       console.error('❌ Sync failed:', errorMessage)
       console.error('Full error:', error)
+    }
+  },
+
+  checkPendingChanges: async () => {
+    try {
+      const phone = getCurrentPhone()
+      if (!phone) {
+        set({ hasPendingChanges: false })
+        return
+      }
+
+      const hasPending = await hasUnsyncedChanges(phone)
+      set({ hasPendingChanges: hasPending })
+    } catch (error) {
+      console.error('Failed to check pending changes:', error)
+      set({ hasPendingChanges: false })
     }
   },
 

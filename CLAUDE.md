@@ -78,8 +78,11 @@ Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Ser
 
 **Testing:**
 - Vitest + React Testing Library
-- 14/14 tests passing (unit + integration)
+- 42/42 tests passing (unit + integration)
 - Mocked IndexedDB (fake-indexeddb) and Supabase (vi.mock)
+- Comprehensive backup workflow tests (28 tests)
+- Catalog isolation tests
+- Offline change tracking tests
 
 **PWA:**
 - Service worker (Serwist)
@@ -188,15 +191,19 @@ Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Ser
 ## Key Patterns
 
 ### Database & Sync
+- **Offline-first pattern**: All operations hit local IndexedDB first, Supabase is backup/restore ONLY
 - **Soft delete only**: Set `isDeleted: true`, never hard delete
 - **Client-side IDs**: Use `crypto.randomUUID()` or `nanoid()`
 - **Update timestamps**: Always update `updatedAt` and reset `syncedAt: null` on changes
 - **Filter deleted**: Query with `.filter(item => !item.isDeleted)`
 - **User isolation**: ALWAYS filter by phone: `.where('storePhone').equals(phone)`
-- **Phone as foreign key**: All tables use `storePhone` instead of `userId`
+- **Phone as foreign key**: All tables use `storePhone` (local) ↔ `store_phone` (cloud)
 - **Sync order**: categories, customers, products, sales, utangTransactions, inventoryMovements
 - **Case conversion**: Use `toSnakeCase()` and `toCamelCase()` helpers in `lib/db/sync.ts`
-- **Auth table**: New `stores` table with phone (unique), storeName, pinHash
+- **Auth table**: `stores` table with phone (unique), storeName, pinHash
+- **Catalog isolation**: `productCatalog` is local-only, NEVER synced to cloud
+- **Change tracking**: Dynamic `hasUnsyncedChanges()` checks `syncedAt === null` across all tables
+- **Schema consistency**: No `user_id` columns - only `store_phone` in Supabase
 
 ### Next.js 16 & React 19
 - Use `proxy.ts` instead of `middleware.ts` (Next.js 16 naming)
