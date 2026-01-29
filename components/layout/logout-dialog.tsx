@@ -77,15 +77,21 @@ export function LogoutDialog({ open, onOpenChange }: LogoutDialogProps) {
       // Clear lastLoggedInUserId to trigger restore on next login
       localStorage.removeItem('lastLoggedInUserId')
 
-      // Proceed with logout (redirect will throw NEXT_REDIRECT)
+      // Proceed with logout (redirect will throw)
       await logoutAction()
+
+      // This line should never be reached due to redirect
+      setIsLoading(false)
     } catch (err) {
-      // Ignore NEXT_REDIRECT error (expected from redirect)
-      const errorMessage = err instanceof Error ? err.message : String(err)
-      if (errorMessage.includes('NEXT_REDIRECT')) {
-        return
+      // Check if this is a Next.js redirect (has digest property)
+      if (err && typeof err === 'object' && 'digest' in err) {
+        // This is a redirect - let it propagate
+        throw err
       }
+
+      // Real error - show to user
       console.error('Logout failed:', err)
+      const errorMessage = err instanceof Error ? err.message : 'Failed to logout'
       setError(errorMessage)
       setIsLoading(false)
     }

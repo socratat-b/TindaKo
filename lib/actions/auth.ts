@@ -3,6 +3,7 @@
  * Client-side operations with IndexedDB
  */
 
+import { redirect } from 'next/navigation'
 import { db } from '@/lib/db'
 import { createClient } from '@/lib/supabase/client'
 import { hashPin, verifyPin, isValidPin } from '@/lib/auth/pin'
@@ -253,19 +254,25 @@ export async function loginAction(phone: string, pin: string): Promise<AuthResul
 }
 
 /**
- * Logout - clear session and local data
+ * Logout - clear session and redirect to login
+ * Note: IndexedDB data is cleared by logout-dialog before calling this
  */
 export async function logoutAction(): Promise<void> {
   try {
     // Clear session
     clearSession()
 
-    // Note: We don't clear IndexedDB data on logout
-    // Data stays local for offline use on same device
+    console.log('[logoutAction] Logged out, redirecting to login...')
 
-    console.log('[logoutAction] Logged out')
+    // Redirect to login page
+    redirect('/login')
   } catch (error) {
     console.error('[logoutAction] Error:', error)
+    // If error is not a redirect, rethrow
+    if (error && typeof error === 'object' && 'digest' in error) {
+      throw error // This is a Next.js redirect, let it through
+    }
+    throw error
   }
 }
 

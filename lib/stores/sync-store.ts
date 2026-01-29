@@ -20,8 +20,8 @@ interface SyncState {
   progress: SyncProgress | null
 
   // Actions
-  backup: (userId?: string) => Promise<void> // Push-only (manual backup)
-  restore: (userId?: string) => Promise<SyncStats> // Pull-only (auto-restore)
+  backup: (phone?: string) => Promise<void> // Push-only (manual backup)
+  restore: (phone?: string) => Promise<SyncStats> // Pull-only (auto-restore)
   sync: (isInitialSync?: boolean) => Promise<void> // Full sync (both push + pull, for future use)
   checkPendingChanges: () => Promise<void> // Check for unsynced changes dynamically
   setHasPendingChanges: (value: boolean) => void
@@ -37,7 +37,7 @@ export const useSyncStore = create<SyncState>((set, get) => ({
   hasPendingChanges: false,
   progress: null,
 
-  backup: async (userId?: string) => {
+  backup: async (phone?: string) => {
     const { status } = get()
 
     // Prevent concurrent operations
@@ -49,7 +49,7 @@ export const useSyncStore = create<SyncState>((set, get) => ({
     set({ status: 'syncing', error: null, progress: null })
 
     try {
-      const stats = await pushToCloud(userId, (currentTable, tablesCompleted, totalTables, currentTableCount) => {
+      const stats = await pushToCloud(phone, (currentTable, tablesCompleted, totalTables, currentTableCount) => {
         set({
           progress: {
             currentTable,
@@ -69,6 +69,9 @@ export const useSyncStore = create<SyncState>((set, get) => ({
       })
       console.log('✅ Backup completed at', new Date().toISOString(), stats)
 
+      // Re-check pending changes after backup
+      await get().checkPendingChanges()
+
       // Reset status to idle after 3 seconds
       setTimeout(() => {
         const currentState = get()
@@ -87,7 +90,7 @@ export const useSyncStore = create<SyncState>((set, get) => ({
     }
   },
 
-  restore: async (userId?: string) => {
+  restore: async (phone?: string) => {
     const { status } = get()
 
     // Prevent concurrent operations
@@ -99,7 +102,7 @@ export const useSyncStore = create<SyncState>((set, get) => ({
     set({ status: 'syncing', error: null })
 
     try {
-      const stats = await pullFromCloud(userId)
+      const stats = await pullFromCloud(phone)
       set({
         status: 'success',
         lastSyncTime: Date.now(),
@@ -107,6 +110,9 @@ export const useSyncStore = create<SyncState>((set, get) => ({
         error: null
       })
       console.log('✅ Restore completed at', new Date().toISOString(), stats)
+
+      // Re-check pending changes after restore
+      await get().checkPendingChanges()
 
       // Reset status to idle after 3 seconds
       setTimeout(() => {
