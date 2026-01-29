@@ -4,6 +4,7 @@ interface InventoryListState {
   // UI state
   activeTab: 'inventory' | 'history'
   searchQuery: string
+  categoryFilter: string
 
   // Pagination state
   allProductsPage: number
@@ -14,6 +15,7 @@ interface InventoryListState {
   // Actions
   setActiveTab: (tab: 'inventory' | 'history') => void
   setSearchQuery: (query: string) => void
+  setCategoryFilter: (categoryId: string) => void
   setAllProductsPage: (page: number) => void
   setLowStockPage: (page: number) => void
   setHistoryPage: (page: number) => void
@@ -24,6 +26,7 @@ export const useInventoryListStore = create<InventoryListState>((set) => ({
   // Initial state
   activeTab: 'inventory',
   searchQuery: '',
+  categoryFilter: 'all',
   allProductsPage: 1,
   lowStockPage: 1,
   historyPage: 1,
@@ -32,6 +35,7 @@ export const useInventoryListStore = create<InventoryListState>((set) => ({
   // Actions
   setActiveTab: (tab) => set({ activeTab: tab }),
   setSearchQuery: (query) => set({ searchQuery: query, allProductsPage: 1, lowStockPage: 1, historyPage: 1 }), // Reset pagination on search
+  setCategoryFilter: (categoryId) => set({ categoryFilter: categoryId, allProductsPage: 1, lowStockPage: 1 }), // Reset pagination on category change
   setAllProductsPage: (page) => set({ allProductsPage: page }),
   setLowStockPage: (page) => set({ lowStockPage: page }),
   setHistoryPage: (page) => set({ historyPage: page }),

@@ -7,12 +7,14 @@ export function useInventoryList({ storePhone }: UseInventoryListParams) {
   const {
     activeTab,
     searchQuery,
+    categoryFilter,
     allProductsPage,
     lowStockPage,
     historyPage,
     itemsPerPage,
     setActiveTab,
     setSearchQuery,
+    setCategoryFilter,
     setAllProductsPage,
     setLowStockPage,
     setHistoryPage,
@@ -79,6 +81,7 @@ export function useInventoryList({ storePhone }: UseInventoryListParams) {
     // State
     activeTab,
     searchQuery,
+    categoryFilter,
     movements,
     products,
     lowStockProducts,
@@ -95,6 +98,7 @@ export function useInventoryList({ storePhone }: UseInventoryListParams) {
     // Actions
     setActiveTab,
     setSearchQuery,
+    setCategoryFilter,
     setAllProductsPage,
     setLowStockPage,
     setHistoryPage,

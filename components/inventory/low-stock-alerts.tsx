@@ -22,6 +22,7 @@ export function LowStockAlerts({
   lowStockProducts,
   allProducts,
   categories,
+  categoryFilter,
   storePhone,
   currentPage,
   itemsPerPage,
@@ -32,6 +33,10 @@ export function LowStockAlerts({
 
   const getCategoryName = (categoryId: string) => {
     return categories.find((c) => c.id === categoryId)?.name || 'Uncategorized'
+  }
+
+  const getCategoryColor = (categoryId: string) => {
+    return categories.find((c) => c.id === categoryId)?.color || '#6b7280'
   }
 
   const getStockStatus = (stockQty: number, threshold: number) => {
@@ -49,7 +54,12 @@ export function LowStockAlerts({
     setIsAdjustmentDialogOpen(true)
   }
 
-  if (!lowStockProducts || lowStockProducts.length === 0) {
+  // Filter by category
+  const filteredLowStockProducts = lowStockProducts?.filter((product) => {
+    return categoryFilter === 'all' || product.categoryId === categoryFilter
+  })
+
+  if (!filteredLowStockProducts || filteredLowStockProducts.length === 0) {
     return (
       <motion.div
         className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center"
@@ -58,16 +68,20 @@ export function LowStockAlerts({
         transition={{ duration: 0.2 }}
       >
         <Package className="mb-3 h-12 w-12 text-green-600 dark:text-green-400" />
-        <h3 className="text-base font-semibold md:text-lg">All Stock Levels Good!</h3>
+        <h3 className="text-base font-semibold md:text-lg">
+          {categoryFilter === 'all' ? 'All Stock Levels Good!' : 'No Low Stock Items'}
+        </h3>
         <p className="mt-1 text-xs text-muted-foreground md:text-sm">
-          No products are currently below their low stock threshold.
+          {categoryFilter === 'all'
+            ? 'No products are currently below their low stock threshold.'
+            : 'No products in this category are below their low stock threshold.'}
         </p>
       </motion.div>
     )
   }
 
   // Sort by stock quantity (lowest first)
-  const sortedProducts = [...lowStockProducts].sort((a, b) => a.stockQty - b.stockQty)
+  const sortedProducts = [...filteredLowStockProducts].sort((a, b) => a.stockQty - b.stockQty)
 
   // Pagination calculations
   const totalPages = Math.ceil(sortedProducts.length / itemsPerPage)
@@ -85,7 +99,7 @@ export function LowStockAlerts({
           <div className="flex-1">
             <h2 className="text-base font-semibold md:text-lg">Low Stock Alerts</h2>
             <p className="mt-1 text-xs text-muted-foreground md:text-sm">
-              {lowStockProducts.length} {lowStockProducts.length === 1 ? 'product' : 'products'} below
+              {filteredLowStockProducts.length} {filteredLowStockProducts.length === 1 ? 'product' : 'products'} below
               threshold. Restock soon to avoid running out.
             </p>
           </div>
@@ -118,9 +132,19 @@ export function LowStockAlerts({
                       className="group"
                     >
                       <TableCell>
-                        <div>
+                        <div className="space-y-1">
                           <p className="font-medium text-sm">{product.name}</p>
-                          <p className="text-xs text-muted-foreground">{categoryName}</p>
+                          <Badge
+                            variant="outline"
+                            className="text-[10px]"
+                            style={{
+                              backgroundColor: `${getCategoryColor(product.categoryId)}20`,
+                              borderColor: getCategoryColor(product.categoryId),
+                              color: getCategoryColor(product.categoryId),
+                            }}
+                          >
+                            {categoryName}
+                          </Badge>
                         </div>
                       </TableCell>
                       <TableCell className="text-center">
@@ -180,26 +204,29 @@ export function LowStockAlerts({
               >
                 <Card className="p-3">
                   <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1">
-                      <div className="flex items-start gap-2">
-                        <div
-                          className={`mt-0.5 h-2 w-2 rounded-full ${
-                            product.stockQty === 0
-                              ? 'bg-red-600'
-                              : product.stockQty <= product.lowStockThreshold * 0.5
-                                ? 'bg-orange-600'
-                                : 'bg-yellow-600'
-                          }`}
-                        />
-                        <div>
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
                           <p className="text-xs font-semibold">{product.name}</p>
-                          <p className="text-[10px] text-muted-foreground">
-                            {categoryName}
-                          </p>
                         </div>
+                        <Badge variant="outline" className={`shrink-0 text-[9px] ${status.color}`}>
+                          {status.label}
+                        </Badge>
                       </div>
 
-                      <div className="mt-2 flex items-center gap-3 text-[10px]">
+                      <Badge
+                        variant="outline"
+                        className="text-[10px]"
+                        style={{
+                          backgroundColor: `${getCategoryColor(product.categoryId)}20`,
+                          borderColor: getCategoryColor(product.categoryId),
+                          color: getCategoryColor(product.categoryId),
+                        }}
+                      >
+                        {categoryName}
+                      </Badge>
+
+                      <div className="flex items-center gap-3 text-[10px]">
                         <div>
                           <span className="text-muted-foreground">Stock: </span>
                           <span
@@ -222,17 +249,12 @@ export function LowStockAlerts({
                           </span>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="flex flex-col items-end gap-1.5">
-                      <Badge variant="outline" className={`text-[9px] ${status.color}`}>
-                        {status.label}
-                      </Badge>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => handleRestock(product.id)}
-                        className="h-7 gap-1 text-[10px]"
+                        className="h-7 w-full gap-1 text-[10px]"
                       >
                         <ArrowUpCircle className="h-3 w-3" />
                         Restock

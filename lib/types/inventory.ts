@@ -32,6 +32,7 @@ export interface LowStockAlertsProps {
   lowStockProducts: Product[]
   allProducts: Product[]
   categories: Category[]
+  categoryFilter: string
   storePhone: string
   currentPage: number
   itemsPerPage: number

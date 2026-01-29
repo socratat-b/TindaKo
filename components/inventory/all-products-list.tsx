@@ -1,9 +1,12 @@
 'use client'
 
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Package } from 'lucide-react'
+import { Package, Plus, Minus, Edit3 } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Table,
   TableBody,
@@ -13,29 +16,41 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Pagination } from '@/components/ui/pagination'
+import { getCategoryName } from '@/lib/utils/category-utils'
+import { QuickAdjustDialog } from './quick-adjust-dialog'
 import type { Product, Category } from '@/lib/db/schema'
 
 interface AllProductsListProps {
   products: Product[]
   categories: Category[]
   searchQuery: string
+  categoryFilter: string
   currentPage: number
   itemsPerPage: number
   onPageChange: (page: number) => void
+  storePhone: string
 }
 
 export function AllProductsList({
   products,
   categories,
   searchQuery,
+  categoryFilter,
   currentPage,
   itemsPerPage,
   onPageChange,
+  storePhone,
 }: AllProductsListProps) {
-  const getCategoryName = (categoryId: string) => {
-    return categories.find((c) => c.id === categoryId)?.name || 'Uncategorized'
-  }
+  const router = useRouter()
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [adjustmentType, setAdjustmentType] = useState<'in' | 'out' | 'adjust'>('in')
+  const [isQuickAdjustOpen, setIsQuickAdjustOpen] = useState(false)
 
+  const handleAdjustStock = (product: Product, type: 'in' | 'out' | 'adjust') => {
+    setSelectedProduct(product)
+    setAdjustmentType(type)
+    setIsQuickAdjustOpen(true)
+  }
   const getStockStatus = (stockQty: number, threshold: number) => {
     if (stockQty === 0) {
       return {
@@ -55,13 +70,19 @@ export function AllProductsList({
     }
   }
 
-  // Filter products based on search query
+  // Filter products based on search query and category
   const filteredProducts = products.filter((product) => {
-    if (!searchQuery) return true
+    // Category filter
+    const matchesCategory = !categoryFilter || categoryFilter === 'all' || product.categoryId === categoryFilter
+
+    // Search filter
+    if (!searchQuery) return matchesCategory
     const productName = product.name.toLowerCase()
-    const categoryName = getCategoryName(product.categoryId).toLowerCase()
+    const categoryName = getCategoryName(product.categoryId, categories).toLowerCase()
     const search = searchQuery.toLowerCase()
-    return productName.includes(search) || categoryName.includes(search)
+    const matchesSearch = productName.includes(search) || categoryName.includes(search)
+
+    return matchesCategory && matchesSearch
   })
 
   // Sort by stock status (out of stock first, then low stock, then good stock)
@@ -88,16 +109,26 @@ export function AllProductsList({
   if (!products || products.length === 0) {
     return (
       <motion.div
-        className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center"
+        className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center gap-3"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.2 }}
       >
-        <Package className="mb-3 h-12 w-12 text-muted-foreground" />
-        <h3 className="text-base font-semibold md:text-lg">No Products Yet</h3>
-        <p className="mt-1 text-xs text-muted-foreground md:text-sm">
-          Add products to start tracking inventory.
-        </p>
+        <Package className="h-12 w-12 text-muted-foreground" />
+        <div className="space-y-2">
+          <h3 className="text-base font-semibold md:text-lg">No Products Yet</h3>
+          <p className="text-xs text-muted-foreground md:text-sm">
+            Add products to start tracking inventory
+          </p>
+        </div>
+        <Button
+          onClick={() => router.push('/products')}
+          size="sm"
+          className="mt-2"
+        >
+          <Plus className="h-4 w-4 mr-1.5" />
+          Add Product
+        </Button>
       </motion.div>
     )
   }
@@ -131,12 +162,12 @@ export function AllProductsList({
                 <TableHead>Category</TableHead>
                 <TableHead className="w-[100px] text-center">Stock</TableHead>
                 <TableHead className="w-[120px]">Status</TableHead>
+                <TableHead className="w-[200px] text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {paginatedProducts.map((product, index) => {
                 const status = getStockStatus(product.stockQty, product.lowStockThreshold)
-                const categoryName = getCategoryName(product.categoryId)
 
                 return (
                   <motion.tr
@@ -153,7 +184,9 @@ export function AllProductsList({
                       )}
                     </TableCell>
                     <TableCell>
-                      <span className="text-sm text-muted-foreground">{categoryName}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {getCategoryName(product.categoryId, categories)}
+                      </span>
                     </TableCell>
                     <TableCell className="text-center">
                       <span
@@ -173,6 +206,40 @@ export function AllProductsList({
                         {status.label}
                       </Badge>
                     </TableCell>
+                    <TableCell>
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleAdjustStock(product, 'in')}
+                          className="h-8 gap-1 text-xs"
+                          title="Add Stock"
+                        >
+                          <Plus className="h-3.5 w-3.5 text-green-600" />
+                          Add
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleAdjustStock(product, 'out')}
+                          className="h-8 gap-1 text-xs"
+                          title="Remove Stock"
+                        >
+                          <Minus className="h-3.5 w-3.5 text-red-600" />
+                          Remove
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleAdjustStock(product, 'adjust')}
+                          className="h-8 gap-1 text-xs"
+                          title="Set Exact Count"
+                        >
+                          <Edit3 className="h-3.5 w-3.5 text-blue-600" />
+                          Set
+                        </Button>
+                      </div>
+                    </TableCell>
                   </motion.tr>
                 )
               })}
@@ -185,7 +252,6 @@ export function AllProductsList({
       <div className="grid gap-2 md:hidden">
         {paginatedProducts.map((product, index) => {
           const status = getStockStatus(product.stockQty, product.lowStockThreshold)
-          const categoryName = getCategoryName(product.categoryId)
 
           return (
             <motion.div
@@ -196,27 +262,24 @@ export function AllProductsList({
             >
               <Card className="p-3">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1">
-                    <div className="flex items-start gap-2">
-                      <div
-                        className={`mt-0.5 h-2 w-2 rounded-full ${
-                          product.stockQty === 0
-                            ? 'bg-red-600'
-                            : product.stockQty <= product.lowStockThreshold
-                              ? 'bg-orange-600'
-                              : 'bg-green-600'
-                        }`}
-                      />
-                      <div>
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
                         <p className="text-xs font-semibold">{product.name}</p>
-                        <p className="text-[10px] text-muted-foreground">{categoryName}</p>
                         {product.barcode && (
                           <p className="text-[10px] text-muted-foreground">{product.barcode}</p>
                         )}
                       </div>
+                      <Badge variant="outline" className={`shrink-0 text-[9px] ${status.color}`}>
+                        {status.label}
+                      </Badge>
                     </div>
 
-                    <div className="mt-2 flex items-center gap-3 text-[10px]">
+                    <span className="text-[10px] text-muted-foreground">
+                      {getCategoryName(product.categoryId, categories)}
+                    </span>
+
+                    <div className="flex items-center gap-3 text-[10px]">
                       <div>
                         <span className="text-muted-foreground">Stock: </span>
                         <span
@@ -232,12 +295,37 @@ export function AllProductsList({
                         </span>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="flex flex-col items-end gap-1.5">
-                    <Badge variant="outline" className={`text-[9px] ${status.color}`}>
-                      {status.label}
-                    </Badge>
+                    {/* Action Buttons */}
+                    <div className="flex gap-1.5">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleAdjustStock(product, 'in')}
+                        className="h-7 flex-1 gap-1 text-[10px]"
+                      >
+                        <Plus className="h-3 w-3 text-green-600" />
+                        Add
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleAdjustStock(product, 'out')}
+                        className="h-7 flex-1 gap-1 text-[10px]"
+                      >
+                        <Minus className="h-3 w-3 text-red-600" />
+                        Remove
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleAdjustStock(product, 'adjust')}
+                        className="h-7 flex-1 gap-1 text-[10px]"
+                      >
+                        <Edit3 className="h-3 w-3 text-blue-600" />
+                        Set
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </Card>
@@ -257,6 +345,18 @@ export function AllProductsList({
             itemsPerPage={itemsPerPage}
           />
         </div>
+      )}
+
+      {/* Quick Adjust Dialog */}
+      {selectedProduct && (
+        <QuickAdjustDialog
+          open={isQuickAdjustOpen}
+          onOpenChange={setIsQuickAdjustOpen}
+          product={selectedProduct}
+          type={adjustmentType}
+          storePhone={storePhone}
+          categories={categories}
+        />
       )}
     </>
   )

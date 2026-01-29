@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import type { Product } from "@/lib/db/schema";
 import { useCart } from "@/lib/hooks/use-cart";
@@ -12,19 +13,14 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Search, Plus, Package, Loader2 } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { CategoryFilter } from "@/components/shared/category-filter";
 
 interface ProductGridProps {
   storePhone: string;
 }
 
 export function ProductGrid({ storePhone }: ProductGridProps) {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const { addItem, items: cartItems } = useCart();
@@ -106,43 +102,41 @@ export function ProductGrid({ storePhone }: ProductGridProps) {
             className="pl-8 h-9 text-sm"
           />
         </div>
-        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-          <SelectTrigger className="w-full lg:w-[180px] h-9 text-sm">
-            <SelectValue placeholder="Category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all" className="text-sm">
-              All Categories
-            </SelectItem>
-            {categories.map((category) => (
-              <SelectItem
-                key={category.id}
-                value={category.id}
-                className="text-sm"
-              >
-                <div className="flex items-center gap-2">
-                  <div
-                    className="h-3 w-3 rounded-full"
-                    style={{ backgroundColor: category.color }}
-                  />
-                  {category.name}
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <CategoryFilter
+          categories={categories}
+          value={selectedCategory}
+          onValueChange={setSelectedCategory}
+          className="w-full lg:w-[180px] h-9 text-sm"
+        />
       </motion.div>
 
       {/* Product List - Scrollable */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden">
         {filteredProducts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center py-8">
-            <Package className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
-            <p className="text-sm text-muted-foreground px-4">
-              {searchQuery || selectedCategory !== "all"
-                ? "No products found"
-                : "No products available"}
-            </p>
+          <div className="flex flex-col items-center justify-center h-full text-center py-8 gap-3">
+            <Package className="h-10 w-10 mx-auto text-muted-foreground" />
+            <div className="space-y-2">
+              <p className="text-sm font-medium">
+                {searchQuery || selectedCategory !== "all"
+                  ? "No products found"
+                  : "No products available"}
+              </p>
+              {!searchQuery && selectedCategory === "all" && products.length === 0 && (
+                <>
+                  <p className="text-xs text-muted-foreground px-4">
+                    Add products to start selling
+                  </p>
+                  <Button
+                    onClick={() => router.push("/products")}
+                    size="sm"
+                    className="mt-3"
+                  >
+                    <Plus className="h-4 w-4 mr-1.5" />
+                    Add Product
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         ) : (
           <div className="space-y-2 pb-2">

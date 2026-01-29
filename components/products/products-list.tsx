@@ -16,13 +16,6 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -32,6 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { CategoryFilter } from '@/components/shared/category-filter'
 import { ProductFormDialog } from './product-form-dialog'
 import { QuickAddProductDialog } from './quick-add-product-dialog'
 import { AddProductOptionsDialog } from './add-product-options-dialog'
@@ -103,27 +97,11 @@ export function ProductsList({
             className="h-9 text-xs lg:h-10 lg:max-w-sm lg:text-sm"
           />
 
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="h-9 w-full text-xs lg:h-10 lg:w-45 lg:text-sm">
-              <SelectValue placeholder="All Categories" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all" className="text-xs lg:text-sm">
-                All Categories
-              </SelectItem>
-              {categories.map((cat) => (
-                <SelectItem key={cat.id} value={cat.id} className="text-xs lg:text-sm">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="h-3 w-3 rounded-full"
-                      style={{ backgroundColor: cat.color }}
-                    />
-                    {cat.name}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <CategoryFilter
+            categories={categories}
+            value={categoryFilter}
+            onValueChange={setCategoryFilter}
+          />
         </div>
 
         <Button
@@ -135,27 +113,6 @@ export function ProductsList({
           <span>Add Product</span>
         </Button>
       </motion.div>
-
-      {/* Empty State */}
-      {filteredProducts.length === 0 && (
-        <Card className="p-6 lg:p-12">
-          <div className="flex flex-col items-center gap-2 text-center">
-            {products.length === 0 ? (
-              <>
-                <p className="text-sm font-medium lg:text-lg">Welcome to TindaKo!</p>
-                <p className="text-xs text-muted-foreground lg:text-sm">
-                  Start by adding your first product. Click &quot;Add Product&quot; to get started.
-                </p>
-                <p className="mt-2 text-[10px] text-muted-foreground lg:text-xs">
-                  Tip: Add common items like Coke 1L, Lucky Me Pancit Canton, or Del Monte Sardinas
-                </p>
-              </>
-            ) : (
-              <p className="text-xs text-muted-foreground lg:text-sm">No products found matching your search.</p>
-            )}
-          </div>
-        </Card>
-      )}
 
       {/* Mobile Card View */}
       <div className="space-y-2 lg:hidden">
@@ -257,10 +214,7 @@ export function ProductsList({
                       <>
                         <p className="text-lg font-medium">Welcome to TindaKo!</p>
                         <p className="text-sm text-muted-foreground">
-                          Start by adding your first product. Click &quot;Add Product&quot; to get started.
-                        </p>
-                        <p className="mt-2 text-xs text-muted-foreground">
-                          Tip: Add common items like Coke 1L, Lucky Me Pancit Canton, or Del Monte Sardinas
+                          Click &quot;Add Product&quot; to get started
                         </p>
                       </>
                     ) : (
