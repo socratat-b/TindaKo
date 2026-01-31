@@ -1,7 +1,7 @@
 {
   "source": "Puregold.com.ph - Verified Barcodes",
-  "date": "2026-01-28",
-  "total": 91,
+  "date": "2026-01-31",
+  "total": 122,
   "products": [
     {
       "barcode": "4801981110001",
@@ -91,6 +91,156 @@
     {
       "barcode": "4807770274602",
       "name": "Lucky Me Pancit Canton Extra Hot 60g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4807770274473",
+      "name": "Lucky Me Pancit Canton Sweet & Spicy 120g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4807770270017",
+      "name": "Lucky Me Instant Mami Beef 55g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4807770270024",
+      "name": "Lucky Me Instant Mami Chicken 55g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4807770274497",
+      "name": "Lucky Me Mami Beef Na Beef Kasalo Pack 100g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4807770274503",
+      "name": "Lucky Me Mami Chicken Kasalo Pack 100g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4807770274893",
+      "name": "Lucky Me Mami Beef Chilimansi 53g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4807770272813",
+      "name": "Lucky Me La Paz Batchoy 55g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4807770190339",
+      "name": "Lucky Me Supreme La Paz Batchoy 65g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4807770272394",
+      "name": "Lucky Me Instant Lomi 65g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4807770273100",
+      "name": "Lucky Me Jjamppong 55g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4807770272646",
+      "name": "Lucky Me Supreme Jjamppong Cup 70g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4807770270116",
+      "name": "Lucky Me Instant Mami Itnok 50g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4800016553332",
+      "name": "Payless Instant Mami Beef Paborito 55g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4800016553325",
+      "name": "Payless Instant Mami Chicken Espesyal 55g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4800016555992",
+      "name": "Payless Xtra Big Pancit Canton Original 130g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4800016555985",
+      "name": "Payless Xtra Big Pancit Canton Kalamansi 125g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4800016556517",
+      "name": "Payless Xtra Big Pancit Canton Chilimansi 125g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4800016556807",
+      "name": "Payless Xtra Big Pancit Canton Xtra Hot 125g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4800016562181",
+      "name": "Payless Pancit Canton Sakto Kalamansi 60g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4800016561443",
+      "name": "Nissin Mini Cup Noodles Hot Creamy Seafood 48g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4800016551840",
+      "name": "Nissin Cup Noodles Spicy Seafoods 60g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4800016552038",
+      "name": "Nissin Cup Noodles Seafoods 60g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4800016552250",
+      "name": "Nissin Cup Noodles Bulalo 60g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4800016561498",
+      "name": "Nissin Mini Cup Noodles Cheesy Seafood 50g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4800016557217",
+      "name": "Nissin Mini Cup Noodles Sotanghon Chicken 30g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4800016552274",
+      "name": "Nissin Mini Cup Noodles Bulalo 40g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4800016551871",
+      "name": "Nissin Yakisoba Cup Beef 77g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4800016551864",
+      "name": "Nissin Yakisoba Spicy Chicken 77g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4800016551611",
+      "name": "Nissin Yakisoba Savory Beef 59g",
+      "categoryName": "Instant Noodles"
+    },
+    {
+      "barcode": "4800016551598",
+      "name": "Nissin Ramen Seafood 55g",
       "categoryName": "Instant Noodles"
     },
     {
