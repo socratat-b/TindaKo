@@ -1,7 +1,7 @@
 {
   "source": "Puregold.com.ph - Verified Barcodes",
   "date": "2026-01-31",
-  "total": 122,
+  "total": 183,
   "products": [
     {
       "barcode": "4801981110001",
@@ -71,6 +71,51 @@
     {
       "barcode": "4804888889308",
       "name": "Zest-O Apple 250ml",
+      "categoryName": "Beverages"
+    },
+    {
+      "barcode": "4800024579317",
+      "name": "Del Monte 100% Pineapple Juice Heart Smart 1L",
+      "categoryName": "Beverages"
+    },
+    {
+      "barcode": "4800024581280",
+      "name": "Del Monte Juice Drink Four Seasons 220ml x6",
+      "categoryName": "Beverages"
+    },
+    {
+      "barcode": "4800024575258",
+      "name": "Del Monte Juice Drink Four Seasons 1L",
+      "categoryName": "Beverages"
+    },
+    {
+      "barcode": "4800024576040",
+      "name": "Del Monte Juice Drink Mango 1L",
+      "categoryName": "Beverages"
+    },
+    {
+      "barcode": "4800024581273",
+      "name": "Del Monte Juice Drink Sweetened Pineapple 220ml x6",
+      "categoryName": "Beverages"
+    },
+    {
+      "barcode": "4800024576064",
+      "name": "Del Monte Juice Drink Sweetened Pineapple 1L",
+      "categoryName": "Beverages"
+    },
+    {
+      "barcode": "4800024579294",
+      "name": "Del Monte 100% Pineapple Juice with A-C-E 1L",
+      "categoryName": "Beverages"
+    },
+    {
+      "barcode": "4800024579416",
+      "name": "Del Monte Juice Drink White Grape 1L",
+      "categoryName": "Beverages"
+    },
+    {
+      "barcode": "4800024579300",
+      "name": "Del Monte 100% Pineapple Juice Fiber-Enriched 1L",
       "categoryName": "Beverages"
     },
     {
@@ -329,6 +374,186 @@
       "categoryName": "Snacks"
     },
     {
+      "barcode": "750515018488",
+      "name": "My San Skyflakes Crackers 25g x24",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "750515030176",
+      "name": "My San Skyflakes Onion and Chives 25g x10",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "750515030190",
+      "name": "My San Skyflakes Fit Oat Fiber 25g x10",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "750515031029",
+      "name": "My San Skyflakes Sandwich Tsokolate 30g x10",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "750515031531",
+      "name": "My San Skyflakes Sandwich Condensada 30g x10",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "750515011359",
+      "name": "Happy Time Assorted Biscuits 1.5kg",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800092110238",
+      "name": "Rebisco Tins/Buckets Special Assorted 2kg",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800092110047",
+      "name": "Rebisco Crackers Sandwich Strawberry 32g x10",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800092111822",
+      "name": "Rebisco Crackers Plain 33g x10",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800092112058",
+      "name": "Rebisco Super Thin Milk 30g x10",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800092112782",
+      "name": "Rebisco Combi Wafer Sandwich Triple Choco 10s",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800092115646",
+      "name": "Rebisco Frootees Combo Assorted 30g x10",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800092112317",
+      "name": "Rebisco Hansel Crackers Plain 32g x10",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800092110511",
+      "name": "Rebisco Hansel Milk Sandwich 32g x10",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800092120312",
+      "name": "Rebisco Crackers Hansel Cheese 29g x10",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800092110023",
+      "name": "Rebisco Hansel Mocha 32g x10",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800092112904",
+      "name": "Rebisco Hansel Sandwich Flavor Bunch Assorted 32g x10",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800092113871",
+      "name": "Rebisco Hansel Premium Cheese 127g",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4807770120213",
+      "name": "Monde Wafer Choco 12g x20",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4807770121203",
+      "name": "Monde Stick Wafer Chocolate 22g x10",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4807770121197",
+      "name": "Monde Nissin Wafer Stick 22g x10",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "8993175538145",
+      "name": "Richeese Cream Wafer Cheese 52g",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800016081132",
+      "name": "Jack 'n Jill Magic Flakes Cheese Flavored Crackers 28g x10",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800016082924",
+      "name": "Jack 'n Jill Magic Flakes Onion Chives Flavored Crackers 28g x10",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4807770100611",
+      "name": "Bingo Cookie Sandwich Double Choco 28g x10",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800194117463",
+      "name": "Oishi Pillows Chocolate Crackers 24g",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800194116466",
+      "name": "Oishi Pillows Choco-Filled Crackers 38g",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800194114462",
+      "name": "Oishi Pillows Filled Crackers Chocolate 150g",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800194153324",
+      "name": "Oishi Pillows Ube Cracker 24g",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800194152327",
+      "name": "Oishi Pillows Filled Crackers Ube 38g",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800092111228",
+      "name": "Rebisco Marie Time Biscuits Milk Flavor 20s x 7.5g",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800010075601",
+      "name": "Jack 'n Jill Presto Creams Chocolate Sandwich 30g x10",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800010075922",
+      "name": "Jack 'n Jill Presto Creams Peanut Butter Sandwich 30g x10",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "7622300743048",
+      "name": "Tiger Energy Vanilla 25.2g x10",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "4800129110163",
+      "name": "Khong Guan Iced Gem Biscuits 30g x12",
+      "categoryName": "Snacks"
+    },
+    {
+      "barcode": "750515021204",
+      "name": "My San Honey Graham Crackers Handy Pack 210g",
+      "categoryName": "Snacks"
+    },
+    {
       "barcode": "748485100401",
       "name": "Century Tuna Flakes in Vegetable Oil 155g",
       "categoryName": "Canned Goods"
@@ -416,6 +641,61 @@
     {
       "barcode": "4800016012273",
       "name": "Great Taste Premium Classic 50g",
+      "categoryName": "Coffee & Chocolate Drinks"
+    },
+    {
+      "barcode": "8998666001702",
+      "name": "Kopiko Black 3-in-1 Twin Pack 52g x10",
+      "categoryName": "Coffee & Chocolate Drinks"
+    },
+    {
+      "barcode": "8998666001726",
+      "name": "Kopiko Blanca Twin Pack 52g x10",
+      "categoryName": "Coffee & Chocolate Drinks"
+    },
+    {
+      "barcode": "8996001600597",
+      "name": "Kopiko Lucky Day 180ml",
+      "categoryName": "Coffee & Chocolate Drinks"
+    },
+    {
+      "barcode": "8996001410547",
+      "name": "Kopiko Brown Coffee 3-in-1 27.5g x10",
+      "categoryName": "Coffee & Chocolate Drinks"
+    },
+    {
+      "barcode": "8996001320051",
+      "name": "Kopiko Coffee Shot Classic Candy 50s x3g",
+      "categoryName": "Coffee & Chocolate Drinks"
+    },
+    {
+      "barcode": "4800361362139",
+      "name": "Milo Ready to Drink 180ml",
+      "categoryName": "Coffee & Chocolate Drinks"
+    },
+    {
+      "barcode": "4800361413503",
+      "name": "Milo Powdered Choco Malt 24g x12",
+      "categoryName": "Coffee & Chocolate Drinks"
+    },
+    {
+      "barcode": "4800361381246",
+      "name": "Milo Choco Malt Powdered 300g",
+      "categoryName": "Coffee & Chocolate Drinks"
+    },
+    {
+      "barcode": "4800361418034",
+      "name": "Milo Activ-Go Chocolate Powdered 600g",
+      "categoryName": "Coffee & Chocolate Drinks"
+    },
+    {
+      "barcode": "4800361415293",
+      "name": "Milo Activ-Go Twin 48g x8",
+      "categoryName": "Coffee & Chocolate Drinks"
+    },
+    {
+      "barcode": "4800361418058",
+      "name": "Milo Activ-Go Winner Regular 1kg",
       "categoryName": "Coffee & Chocolate Drinks"
     },
     {
@@ -675,6 +955,166 @@
       "categoryName": "Canned Goods"
     },
     {
+      "barcode": "748485100319",
+      "name": "Century Tuna Flakes in Vegetable Oil 420g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "748485102245",
+      "name": "Century Tuna Flakes in Vegetable Oil 95g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "748485102252",
+      "name": "Century Tuna Flakes Hot & Spicy 95g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "748485200064",
+      "name": "555 Sardines Tomato Sauce 425g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "748485200675",
+      "name": "555 Fried Sardines with Tausi 155g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "748485200668",
+      "name": "555 Fried Sardines Hot & Spicy 155g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "748485200026",
+      "name": "555 Sardines Tomato Sauce with Chili 155g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "748485200736",
+      "name": "555 Sardines Spanish Style 230g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4808887011678",
+      "name": "Star Corned Beef 175g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4808887011852",
+      "name": "Star Corned Beef 150g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4808887010015",
+      "name": "Purefoods Corned Beef 210g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800249008517",
+      "name": "San Marino Corned Tuna 85g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800249006599",
+      "name": "San Marino Corned Tuna 100g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800249008531",
+      "name": "San Marino Chili Corned Tuna 85g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800249006636",
+      "name": "San Marino Chili Corned Tuna 150g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800249043587",
+      "name": "San Marino Spanish Style Corned Tuna 150g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800249011319",
+      "name": "Highlands Classic Corned Beef 150g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800249012033",
+      "name": "Highlands Classic Corned Beef 180g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800249011579",
+      "name": "Highlands Classic Corned Beef 260g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800249032628",
+      "name": "Highlands Gold Corned Beef 260g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4806504710157",
+      "name": "Mega Sardines Spanish Style 155g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4806504710812",
+      "name": "Mega Fried Sardines with Tausi 155g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4806504710355",
+      "name": "Mega Sardines Tomato Sauce with Chili 425g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4806504710928",
+      "name": "Mega Corned Sardines Hot 155g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800399030079",
+      "name": "Liberty Luncheon Meat 375g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800399039492",
+      "name": "Liberty Luncheon Meat Chicken 375g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800399041266",
+      "name": "Liberty Premium Pork Luncheon Meat 340g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800399039805",
+      "name": "Liberty Ham Luncheon Meat 375g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800399030086",
+      "name": "Liberty Luncheon Meat Pork 165g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800527127688",
+      "name": "Young's Town Sardines Tomato Sauce 425g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800527123055",
+      "name": "Young's Town Sardines Tomato Sauce with Chili 155g",
+      "categoryName": "Canned Goods"
+    },
+    {
+      "barcode": "4800163011259",
+      "name": "Ligo Sardines Tomato Sauce 425g",
+      "categoryName": "Canned Goods"
+    },
+    {
       "barcode": "4800344001628",
       "name": "Silver Swan Soy Sauce 1L",
       "categoryName": "Condiments"
@@ -717,6 +1157,51 @@
     {
       "barcode": "4806515630000",
       "name": "Suka Pinakurat Spiced Vinegar 250ml",
+      "categoryName": "Condiments"
+    },
+    {
+      "barcode": "14285002789",
+      "name": "UFC Banana Catsup 100g",
+      "categoryName": "Condiments"
+    },
+    {
+      "barcode": "14285003656",
+      "name": "UFC Banana Catsup Pouch 200g",
+      "categoryName": "Condiments"
+    },
+    {
+      "barcode": "14285000068",
+      "name": "UFC Banana Catsup Tamis Anghang 320g",
+      "categoryName": "Condiments"
+    },
+    {
+      "barcode": "14285003250",
+      "name": "UFC Banana Catsup Stand Up Pouch 320g",
+      "categoryName": "Condiments"
+    },
+    {
+      "barcode": "14285000051",
+      "name": "UFC Banana Catsup Hot & Spicy 320g",
+      "categoryName": "Condiments"
+    },
+    {
+      "barcode": "14285000075",
+      "name": "UFC Banana Catsup 550g",
+      "categoryName": "Condiments"
+    },
+    {
+      "barcode": "14285003908",
+      "name": "UFC Banana Catsup 25g x12",
+      "categoryName": "Condiments"
+    },
+    {
+      "barcode": "14285003045",
+      "name": "UFC Banana Catsup 1kg",
+      "categoryName": "Condiments"
+    },
+    {
+      "barcode": "4801668100295",
+      "name": "Papa Banana Catsup 320g",
       "categoryName": "Condiments"
     }
   ]
