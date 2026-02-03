@@ -1,17 +1,20 @@
-import { useAuthStore } from "@/lib/stores/auth-store";
-import { getCurrentPhone } from "@/lib/auth/session";
+import { useAuthStore } from '@/lib/stores/auth-store'
 
 /**
- * Auth hook for phone-based authentication
- * Returns current user phone and store info
+ * Auth hook for OAuth authentication
+ * Returns current user info from Zustand store
+ * Session is managed by Supabase Auth (httpOnly cookies)
  */
 export function useAuth() {
-  const { phone, storeName, isAuthenticated, isLoading } = useAuthStore();
+  const { userId, email, storeName, avatarUrl, isAuthenticated, isLoading } =
+    useAuthStore()
 
   return {
-    phone: phone || getCurrentPhone(), // Fallback to session if store not hydrated
+    userId,
+    email,
     storeName,
+    avatarUrl,
     isAuthenticated,
     isLoading,
-  };
+  }
 }

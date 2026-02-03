@@ -2,37 +2,99 @@
 
 import { useEffect } from 'react'
 import { useAuthStore } from '@/lib/stores/auth-store'
-import { getSession, restoreCookieIfNeeded } from '@/lib/auth/session'
+import { createClient } from '@/lib/supabase/client'
+import { db } from '@/lib/db'
 import { seedProductCatalog } from '@/lib/db/seeders'
 
 /**
- * AuthProvider - Initialize auth state from localStorage
+ * AuthProvider - Initialize auth state from Supabase Auth
+ * Following Next.js authentication patterns
  *
- * Phone-based auth uses localStorage for session persistence.
- * No Supabase Auth calls, no token refresh needed.
+ * - Listens to Supabase auth state changes
+ * - Syncs user profile from IndexedDB
+ * - Session managed by Supabase (httpOnly cookies)
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { setAuth, setLoading } = useAuthStore()
+  const { setAuth, clearAuth, setLoading } = useAuthStore()
 
   useEffect(() => {
-    // CRITICAL: Restore cookie if localStorage has session but cookie expired
-    // This prevents logout when offline or when cookie expires before localStorage
-    restoreCookieIfNeeded()
+    const supabase = createClient()
 
-    // Initialize auth from localStorage session
-    const session = getSession()
+    // Helper to sync profile from Supabase to IndexedDB
+    async function syncProfile(userId: string) {
+      try {
+        // Check IndexedDB first
+        let profile = await db.userProfile.get(userId)
 
-    if (session) {
-      setAuth(session.phone, session.storeName)
+        if (!profile) {
+          // Not in IndexedDB - fetch from Supabase
+          const { data, error } = await supabase
+            .from('stores')
+            .select('*')
+            .eq('id', userId)
+            .single()
+
+          if (data && !error) {
+            // Save to IndexedDB
+            profile = {
+              id: data.id,
+              email: data.email,
+              storeName: data.store_name,
+              avatarUrl: data.avatar_url,
+              provider: data.provider,
+              createdAt: data.created_at,
+              updatedAt: data.updated_at,
+            }
+
+            await db.userProfile.put(profile)
+            console.log('[AuthProvider] Profile synced from Supabase to IndexedDB')
+          }
+        }
+
+        if (profile) {
+          setAuth(profile.id, profile.email, profile.storeName, profile.avatarUrl)
+        }
+
+        return profile
+      } catch (error) {
+        console.error('[AuthProvider] Failed to sync profile:', error)
+        return null
+      }
     }
 
-    setLoading(false)
+    // Initialize auth state from current session
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        await syncProfile(session.user.id)
+      }
 
-    // Seed product catalog on first app launch (runs once)
+      setLoading(false)
+    })
+
+    // Listen for auth state changes (login, logout, token refresh)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('[AuthProvider] Auth state changed:', event)
+
+      if (session?.user) {
+        // User logged in or token refreshed
+        await syncProfile(session.user.id)
+      } else {
+        // User logged out
+        clearAuth()
+      }
+    })
+
+    // Seed product catalog on first app launch
     seedProductCatalog().catch((error) => {
       console.error('[AuthProvider] Failed to seed product catalog:', error)
     })
-  }, [setAuth, setLoading])
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [setAuth, clearAuth, setLoading])
 
   return <>{children}</>
 }

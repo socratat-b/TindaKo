@@ -1,32 +1,55 @@
 import { create } from 'zustand'
 
 /**
- * Auth state for phone-based authentication
- * Note: Actual session (phone, pinHash) is stored separately in localStorage
- * This store is for reactive UI state only
+ * Auth state for OAuth authentication
+ * Managed by Supabase Auth, this store is for reactive UI state only
+ * Session is stored in httpOnly cookies by Supabase
  */
 interface AuthState {
-  phone: string | null
+  userId: string | null
+  email: string | null
   storeName: string | null
+  avatarUrl: string | null
   isAuthenticated: boolean
   isLoading: boolean
 
-  setAuth: (phone: string, storeName: string) => void
+  setAuth: (
+    userId: string,
+    email: string,
+    storeName: string,
+    avatarUrl?: string | null
+  ) => void
   setLoading: (isLoading: boolean) => void
   clearAuth: () => void
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
-  phone: null,
+  userId: null,
+  email: null,
   storeName: null,
+  avatarUrl: null,
   isAuthenticated: false,
   isLoading: true,
 
-  setAuth: (phone, storeName) =>
-    set({ phone, storeName, isAuthenticated: true, isLoading: false }),
+  setAuth: (userId, email, storeName, avatarUrl = null) =>
+    set({
+      userId,
+      email,
+      storeName,
+      avatarUrl,
+      isAuthenticated: true,
+      isLoading: false,
+    }),
 
   setLoading: (isLoading) => set({ isLoading }),
 
   clearAuth: () =>
-    set({ phone: null, storeName: null, isAuthenticated: false, isLoading: false }),
+    set({
+      userId: null,
+      email: null,
+      storeName: null,
+      avatarUrl: null,
+      isAuthenticated: false,
+      isLoading: false,
+    }),
 }))
