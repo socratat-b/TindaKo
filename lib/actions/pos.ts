@@ -4,9 +4,9 @@ import { useProductsStore } from '@/lib/stores/products-store'
 import { useSyncStore } from '@/lib/stores/sync-store'
 
 // Helper to refresh products store (works on client-side only)
-const refreshStore = (storePhone: string) => {
+const refreshStore = (userId: string) => {
   if (typeof window !== 'undefined') {
-    useProductsStore.getState().refreshProducts(storePhone)
+    useProductsStore.getState().refreshProducts(userId)
     useSyncStore.getState().setHasPendingChanges(true)
   }
 }
@@ -19,7 +19,7 @@ export interface CheckoutData {
   amountPaid: number
   paymentMethod: 'cash' | 'gcash' | 'utang'
   customerId: string | null
-  storePhone: string
+  userId: string
 }
 
 /**
@@ -43,7 +43,7 @@ export async function processSale(data: CheckoutData): Promise<string> {
         const change = Math.max(0, data.amountPaid - data.total)
         const sale: Sale = {
           id: saleId,
-          storePhone: data.storePhone,
+          userId: data.userId,
           items: data.items,
           subtotal: data.subtotal,
           discount: data.discount,
@@ -84,7 +84,7 @@ export async function processSale(data: CheckoutData): Promise<string> {
           // Create inventory movement
           const movement: InventoryMovement = {
             id: crypto.randomUUID(),
-            storePhone: data.storePhone,
+            userId: data.userId,
             productId: item.productId,
             type: 'out',
             qty: item.quantity,
@@ -119,7 +119,7 @@ export async function processSale(data: CheckoutData): Promise<string> {
           // Create utang transaction record
           const utangTransaction: UtangTransaction = {
             id: crypto.randomUUID(),
-            storePhone: data.storePhone,
+            userId: data.userId,
             customerId: data.customerId,
             saleId,
             type: 'charge',
@@ -138,7 +138,7 @@ export async function processSale(data: CheckoutData): Promise<string> {
     )
 
     // Refresh products store (stock updated)
-    refreshStore(data.storePhone)
+    refreshStore(data.userId)
 
     return saleId
   } catch (error) {

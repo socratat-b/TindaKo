@@ -4,15 +4,15 @@ import { useProductsStore } from '@/lib/stores/products-store'
 import { useSyncStore } from '@/lib/stores/sync-store'
 
 // Helper to refresh products store (works on client-side only)
-const refreshStore = (storePhone: string) => {
+const refreshStore = (userId: string) => {
   if (typeof window !== 'undefined') {
-    useProductsStore.getState().refreshProducts(storePhone)
+    useProductsStore.getState().refreshProducts(userId)
     useSyncStore.getState().setHasPendingChanges(true)
   }
 }
 
 export type CreateInventoryMovementInput = {
-  storePhone: string
+  userId: string
   productId: string
   type: 'in' | 'out' | 'adjust'
   qty: number
@@ -28,7 +28,7 @@ export async function createInventoryMovement(
   data: CreateInventoryMovementInput
 ): Promise<InventoryMovementResult> {
   try {
-    if (!data.productId || !data.storePhone) {
+    if (!data.productId || !data.userId) {
       return { success: false, error: 'Product and user are required' }
     }
 
@@ -89,7 +89,7 @@ export async function createInventoryMovement(
         // Create inventory movement record
         const movement: InventoryMovement = {
           id: movementId,
-          storePhone: data.storePhone,
+          userId: data.userId,
           productId: data.productId,
           type: data.type,
           qty: data.qty,
@@ -105,7 +105,7 @@ export async function createInventoryMovement(
     )
 
     // Refresh products store (stock updated)
-    refreshStore(data.storePhone)
+    refreshStore(data.userId)
 
     return {
       success: true,
@@ -131,12 +131,12 @@ export type LowStockProduct = {
 }
 
 export async function getLowStockProducts(
-  storePhone: string
+  userId: string
 ): Promise<LowStockProduct[]> {
   try {
     const products = await db.products
-      .where('storePhone')
-      .equals(storePhone)
+      .where('userId')
+      .equals(userId)
       .filter((p) => !p.isDeleted && p.stockQty <= p.lowStockThreshold)
       .toArray()
 

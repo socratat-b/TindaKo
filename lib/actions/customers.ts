@@ -3,7 +3,7 @@
 import { db } from '@/lib/db'
 
 export type CreateCustomerInput = {
-  storePhone: string
+  userId: string
   name: string
   phone?: string
   address?: string
@@ -27,13 +27,13 @@ export async function createCustomer(
   formData: FormData
 ): Promise<CustomerActionResult> {
   try {
-    const storePhone = formData.get('storePhone') as string
+    const userId = formData.get('userId') as string
     const name = formData.get('name') as string
     const phone = formData.get('phone') as string | undefined
     const address = formData.get('address') as string | undefined
 
     // Validate inputs
-    if (!storePhone || !name || name.trim().length === 0) {
+    if (!userId || !name || name.trim().length === 0) {
       return { success: false, error: 'Name is required' }
     }
 
@@ -42,7 +42,7 @@ export async function createCustomer(
 
     await db.customers.add({
       id: customerId,
-      storePhone,
+      userId,
       name: name.trim(),
       phone: phone?.trim() || null,
       address: address?.trim() || null,

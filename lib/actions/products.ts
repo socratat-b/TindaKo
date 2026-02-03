@@ -4,9 +4,9 @@ import { useProductsStore } from '@/lib/stores/products-store'
 import { useSyncStore } from '@/lib/stores/sync-store'
 
 // Helper to refresh products store (works on client-side only)
-const refreshStore = (storePhone: string) => {
+const refreshStore = (userId: string) => {
   if (typeof window !== 'undefined') {
-    useProductsStore.getState().refreshProducts(storePhone)
+    useProductsStore.getState().refreshProducts(userId)
     useSyncStore.getState().setHasPendingChanges(true)
   }
 }
@@ -18,14 +18,14 @@ export interface CreateProductInput {
   sellingPrice: number
   stockQty: number
   lowStockThreshold: number
-  storePhone: string
+  userId: string
 }
 
 export interface CreateCategoryInput {
   name: string
   color: string
   sortOrder: number
-  storePhone: string
+  userId: string
 }
 
 /**
@@ -47,7 +47,7 @@ export async function createProduct(data: CreateProductInput): Promise<string> {
       const existing = await db.products
         .where('barcode')
         .equals(data.barcode)
-        .and((p) => !p.isDeleted && p.storePhone === data.storePhone)
+        .and((p) => !p.isDeleted && p.userId === data.userId)
         .first()
 
       if (existing) {
@@ -57,7 +57,7 @@ export async function createProduct(data: CreateProductInput): Promise<string> {
 
     const product: Product = {
       id: productId,
-      storePhone: data.storePhone,
+      userId: data.userId,
       name: data.name.trim(),
       barcode: data.barcode?.trim() || null,
       categoryId: data.categoryId,
@@ -73,7 +73,7 @@ export async function createProduct(data: CreateProductInput): Promise<string> {
     await db.products.add(product)
 
     // Refresh products store
-    refreshStore(data.storePhone)
+    refreshStore(data.userId)
 
     return productId
   } catch (error) {
@@ -102,7 +102,7 @@ export async function updateProduct(
       const existing = await db.products
         .where('barcode')
         .equals(data.barcode)
-        .and((p) => !p.isDeleted && p.id !== id && p.storePhone === product.storePhone)
+        .and((p) => !p.isDeleted && p.id !== id && p.userId === product.userId)
         .first()
 
       if (existing) {
@@ -127,7 +127,7 @@ export async function updateProduct(
     })
 
     // Refresh products store
-    refreshStore(product.storePhone)
+    refreshStore(product.userId)
   } catch (error) {
     console.error('Failed to update product:', error)
     throw error
@@ -153,7 +153,7 @@ export async function deleteProduct(id: string): Promise<void> {
     })
 
     // Refresh products store
-    refreshStore(product.storePhone)
+    refreshStore(product.userId)
   } catch (error) {
     console.error('Failed to delete product:', error)
     throw error
@@ -172,7 +172,7 @@ export async function createCategory(data: CreateCategoryInput): Promise<string>
     const trimmedName = data.name.trim().toLowerCase()
     const existing = await db.categories
       .filter((c) =>
-        c.storePhone === data.storePhone &&
+        c.userId === data.userId &&
         !c.isDeleted &&
         c.name.toLowerCase() === trimmedName
       )
@@ -184,7 +184,7 @@ export async function createCategory(data: CreateCategoryInput): Promise<string>
 
     const category: Category = {
       id: categoryId,
-      storePhone: data.storePhone,
+      userId: data.userId,
       name: data.name.trim(),
       color: data.color,
       sortOrder: data.sortOrder,
@@ -197,7 +197,7 @@ export async function createCategory(data: CreateCategoryInput): Promise<string>
     await db.categories.add(category)
 
     // Refresh products store
-    refreshStore(data.storePhone)
+    refreshStore(data.userId)
 
     return categoryId
   } catch (error) {
@@ -226,7 +226,7 @@ export async function updateCategory(
       const trimmedName = data.name.trim().toLowerCase()
       const existing = await db.categories
         .filter((c) =>
-          c.storePhone === category.storePhone &&
+          c.userId === category.userId &&
           !c.isDeleted &&
           c.id !== id &&
           c.name.toLowerCase() === trimmedName
@@ -246,7 +246,7 @@ export async function updateCategory(
     })
 
     // Refresh products store
-    refreshStore(category.storePhone)
+    refreshStore(category.userId)
   } catch (error) {
     console.error('Failed to update category:', error)
     throw error
@@ -286,7 +286,7 @@ export async function deleteCategory(id: string): Promise<void> {
     })
 
     // Refresh products store
-    refreshStore(category.storePhone)
+    refreshStore(category.userId)
   } catch (error) {
     console.error('Failed to delete category:', error)
     throw error
@@ -312,10 +312,10 @@ export async function updateCategoriesOrder(
       }
     })
 
-    // Refresh products store (get storePhone from first category)
+    // Refresh products store (get userId from first category)
     const firstCategory = await db.categories.get(updates[0]?.id)
     if (firstCategory) {
-      refreshStore(firstCategory.storePhone)
+      refreshStore(firstCategory.userId)
     }
   } catch (error) {
     console.error('Failed to update categories order:', error)
