@@ -1,6 +1,5 @@
 import { create } from 'zustand'
 import { syncAll, pushToCloud, pullFromCloud, SyncStats, hasUnsyncedChanges } from '@/lib/db/sync'
-import { getCurrentPhone } from '@/lib/auth/session'
 
 type SyncStatus = 'idle' | 'syncing' | 'error' | 'success'
 
@@ -20,10 +19,10 @@ interface SyncState {
   progress: SyncProgress | null
 
   // Actions
-  backup: (phone?: string) => Promise<void> // Push-only (manual backup)
-  restore: (phone?: string) => Promise<SyncStats> // Pull-only (auto-restore)
-  sync: (isInitialSync?: boolean) => Promise<void> // Full sync (both push + pull, for future use)
-  checkPendingChanges: () => Promise<void> // Check for unsynced changes dynamically
+  backup: (userId: string) => Promise<void> // Push-only (manual backup)
+  restore: (userId: string) => Promise<SyncStats> // Pull-only (auto-restore)
+  sync: (userId: string, isInitialSync?: boolean) => Promise<void> // Full sync (both push + pull, for future use)
+  checkPendingChanges: (userId: string) => Promise<void> // Check for unsynced changes dynamically
   setHasPendingChanges: (value: boolean) => void
   setProgress: (progress: SyncProgress | null) => void
   resetStatus: () => void // Reset status to idle and clear error
@@ -37,7 +36,7 @@ export const useSyncStore = create<SyncState>((set, get) => ({
   hasPendingChanges: false,
   progress: null,
 
-  backup: async (phone?: string) => {
+  backup: async (userId: string) => {
     const { status } = get()
 
     // Prevent concurrent operations
@@ -49,7 +48,7 @@ export const useSyncStore = create<SyncState>((set, get) => ({
     set({ status: 'syncing', error: null, progress: null })
 
     try {
-      const stats = await pushToCloud(phone, (currentTable, tablesCompleted, totalTables, currentTableCount) => {
+      const stats = await pushToCloud(userId, (currentTable, tablesCompleted, totalTables, currentTableCount) => {
         set({
           progress: {
             currentTable,
@@ -70,7 +69,7 @@ export const useSyncStore = create<SyncState>((set, get) => ({
       console.log('✅ Backup completed at', new Date().toISOString(), stats)
 
       // Re-check pending changes after backup
-      await get().checkPendingChanges()
+      await get().checkPendingChanges(userId)
 
       // Reset status to idle after 3 seconds
       setTimeout(() => {
@@ -90,7 +89,7 @@ export const useSyncStore = create<SyncState>((set, get) => ({
     }
   },
 
-  restore: async (phone?: string) => {
+  restore: async (userId: string) => {
     const { status } = get()
 
     // Prevent concurrent operations
@@ -102,7 +101,7 @@ export const useSyncStore = create<SyncState>((set, get) => ({
     set({ status: 'syncing', error: null })
 
     try {
-      const stats = await pullFromCloud(phone)
+      const stats = await pullFromCloud(userId)
       set({
         status: 'success',
         lastSyncTime: Date.now(),
@@ -112,7 +111,7 @@ export const useSyncStore = create<SyncState>((set, get) => ({
       console.log('✅ Restore completed at', new Date().toISOString(), stats)
 
       // Re-check pending changes after restore
-      await get().checkPendingChanges()
+      await get().checkPendingChanges(userId)
 
       // Reset status to idle after 3 seconds
       setTimeout(() => {
@@ -135,7 +134,7 @@ export const useSyncStore = create<SyncState>((set, get) => ({
     }
   },
 
-  sync: async (isInitialSync = false) => {
+  sync: async (userId: string, isInitialSync = false) => {
     const { status } = get()
 
     // Prevent concurrent syncs
@@ -147,7 +146,7 @@ export const useSyncStore = create<SyncState>((set, get) => ({
     set({ status: 'syncing', error: null })
 
     try {
-      const stats = await syncAll(isInitialSync)
+      const stats = await syncAll(userId, isInitialSync)
       set({
         status: 'success',
         lastSyncTime: Date.now(),
@@ -175,15 +174,14 @@ export const useSyncStore = create<SyncState>((set, get) => ({
     }
   },
 
-  checkPendingChanges: async () => {
+  checkPendingChanges: async (userId: string) => {
     try {
-      const phone = getCurrentPhone()
-      if (!phone) {
+      if (!userId) {
         set({ hasPendingChanges: false })
         return
       }
 
-      const hasPending = await hasUnsyncedChanges(phone)
+      const hasPending = await hasUnsyncedChanges(userId)
       set({ hasPendingChanges: hasPending })
     } catch (error) {
       console.error('Failed to check pending changes:', error)

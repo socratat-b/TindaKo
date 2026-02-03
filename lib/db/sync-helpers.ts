@@ -10,35 +10,18 @@ import type { SyncStats } from './sync'
 
 // PUSH-ONLY FUNCTIONS (Upload to cloud only)
 
-export async function pushStores(storePhone: string): Promise<SyncStats> {
-  const supabase = createClient()
-  const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
-
-  // Get the store record for this phone
-  const store = await db.stores.where('phone').equals(storePhone).first()
-
-  if (store) {
-    const supabaseData = toSnakeCase(store)
-    const { error } = await supabase.from('stores').upsert(supabaseData)
-
-    if (!error) {
-      stats.pushedCount++
-      console.log('[pushStores] Store synced successfully:', storePhone)
-    } else {
-      console.error('[pushStores] Failed to push store:', storePhone, error)
-      throw new Error(`Failed to sync store: ${error.message}`)
-    }
-  }
-
-  return stats
+export async function pushStores(userId: string): Promise<SyncStats> {
+  // OAuth: User profiles are managed by Supabase Auth, no need to sync
+  // The stores table is updated via setupStoreAction/updateStoreNameAction
+  return { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 }
 
-export async function pushCategories(storePhone: string): Promise<SyncStats> {
+export async function pushCategories(userId: string): Promise<SyncStats> {
   const supabase = createClient()
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   const unsynced = await db.categories
-    .filter(item => item.syncedAt === null && item.storePhone === storePhone && !item.isDeleted)
+    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -56,12 +39,12 @@ export async function pushCategories(storePhone: string): Promise<SyncStats> {
   return stats
 }
 
-export async function pushCustomers(storePhone: string): Promise<SyncStats> {
+export async function pushCustomers(userId: string): Promise<SyncStats> {
   const supabase = createClient()
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   const unsynced = await db.customers
-    .filter(item => item.syncedAt === null && item.storePhone === storePhone && !item.isDeleted)
+    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -80,12 +63,12 @@ export async function pushCustomers(storePhone: string): Promise<SyncStats> {
   return stats
 }
 
-export async function pushProducts(storePhone: string): Promise<SyncStats> {
+export async function pushProducts(userId: string): Promise<SyncStats> {
   const supabase = createClient()
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   const unsynced = await db.products
-    .filter(item => item.syncedAt === null && item.storePhone === storePhone && !item.isDeleted)
+    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -103,12 +86,12 @@ export async function pushProducts(storePhone: string): Promise<SyncStats> {
   return stats
 }
 
-export async function pushSales(storePhone: string): Promise<SyncStats> {
+export async function pushSales(userId: string): Promise<SyncStats> {
   const supabase = createClient()
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   const unsynced = await db.sales
-    .filter(item => item.syncedAt === null && item.storePhone === storePhone && !item.isDeleted)
+    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -126,12 +109,12 @@ export async function pushSales(storePhone: string): Promise<SyncStats> {
   return stats
 }
 
-export async function pushUtangTransactions(storePhone: string): Promise<SyncStats> {
+export async function pushUtangTransactions(userId: string): Promise<SyncStats> {
   const supabase = createClient()
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   const unsynced = await db.utangTransactions
-    .filter(item => item.syncedAt === null && item.storePhone === storePhone && !item.isDeleted)
+    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -150,12 +133,12 @@ export async function pushUtangTransactions(storePhone: string): Promise<SyncSta
   return stats
 }
 
-export async function pushInventoryMovements(storePhone: string): Promise<SyncStats> {
+export async function pushInventoryMovements(userId: string): Promise<SyncStats> {
   const supabase = createClient()
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   const unsynced = await db.inventoryMovements
-    .filter(item => item.syncedAt === null && item.storePhone === storePhone && !item.isDeleted)
+    .filter(item => item.syncedAt === null && item.userId === userId && !item.isDeleted)
     .toArray()
 
   for (const item of unsynced) {
@@ -175,14 +158,14 @@ export async function pushInventoryMovements(storePhone: string): Promise<SyncSt
 
 // PULL-ONLY FUNCTIONS (Download from cloud only)
 
-export async function pullCategories(storePhone: string): Promise<SyncStats> {
+export async function pullCategories(userId: string): Promise<SyncStats> {
   const supabase = createClient()
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   const { data, error } = await supabase
     .from('categories')
     .select('*')
-    .eq('store_phone', storePhone)
+    .eq('user_id', userId)
     .eq('is_deleted', false)
 
   if (error) {
@@ -206,14 +189,14 @@ export async function pullCategories(storePhone: string): Promise<SyncStats> {
   return stats
 }
 
-export async function pullCustomers(storePhone: string): Promise<SyncStats> {
+export async function pullCustomers(userId: string): Promise<SyncStats> {
   const supabase = createClient()
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   const { data } = await supabase
     .from('customers')
     .select('*')
-    .eq('store_phone', storePhone)
+    .eq('user_id', userId)
     .eq('is_deleted', false)
 
   if (data) {
@@ -228,14 +211,14 @@ export async function pullCustomers(storePhone: string): Promise<SyncStats> {
   return stats
 }
 
-export async function pullProducts(storePhone: string): Promise<SyncStats> {
+export async function pullProducts(userId: string): Promise<SyncStats> {
   const supabase = createClient()
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   const { data, error } = await supabase
     .from('products')
     .select('*')
-    .eq('store_phone', storePhone)
+    .eq('user_id', userId)
     .eq('is_deleted', false)
 
   if (error) {
@@ -259,14 +242,14 @@ export async function pullProducts(storePhone: string): Promise<SyncStats> {
   return stats
 }
 
-export async function pullSales(storePhone: string): Promise<SyncStats> {
+export async function pullSales(userId: string): Promise<SyncStats> {
   const supabase = createClient()
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   const { data } = await supabase
     .from('sales')
     .select('*')
-    .eq('store_phone', storePhone)
+    .eq('user_id', userId)
     .eq('is_deleted', false)
 
   if (data) {
@@ -281,14 +264,14 @@ export async function pullSales(storePhone: string): Promise<SyncStats> {
   return stats
 }
 
-export async function pullUtangTransactions(storePhone: string): Promise<SyncStats> {
+export async function pullUtangTransactions(userId: string): Promise<SyncStats> {
   const supabase = createClient()
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   const { data } = await supabase
     .from('utang_transactions')
     .select('*')
-    .eq('store_phone', storePhone)
+    .eq('user_id', userId)
     .eq('is_deleted', false)
 
   if (data) {
@@ -303,14 +286,14 @@ export async function pullUtangTransactions(storePhone: string): Promise<SyncSta
   return stats
 }
 
-export async function pullInventoryMovements(storePhone: string): Promise<SyncStats> {
+export async function pullInventoryMovements(userId: string): Promise<SyncStats> {
   const supabase = createClient()
   const stats: SyncStats = { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 
   const { data } = await supabase
     .from('inventory_movements')
     .select('*')
-    .eq('store_phone', storePhone)
+    .eq('user_id', userId)
     .eq('is_deleted', false)
 
   if (data) {
