@@ -4,7 +4,7 @@ import { useAuth } from '@/lib/hooks/use-auth'
 import POSClient from './pos-client'
 
 export default function POSPage() {
-  const { phone, isAuthenticated, isLoading } = useAuth()
+  const { userId, isAuthenticated, isLoading } = useAuth()
 
   // Show loading state while checking auth
   if (isLoading) {
@@ -24,5 +24,5 @@ export default function POSPage() {
     )
   }
 
-  return <POSClient storePhone={phone || ''} />
+  return <POSClient userId={userId || ''} />
 }

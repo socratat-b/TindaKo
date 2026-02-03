@@ -4,7 +4,7 @@ import { useAuth } from '@/lib/hooks/use-auth'
 import ProductsClient from './products-client'
 
 export default function ProductsPage() {
-  const { phone, isAuthenticated, isLoading } = useAuth()
+  const { userId, isAuthenticated, isLoading } = useAuth()
 
   // Show loading state while checking auth
   if (isLoading) {
@@ -24,5 +24,5 @@ export default function ProductsPage() {
     )
   }
 
-  return <ProductsClient storePhone={phone || ''} />
+  return <ProductsClient userId={userId || ''} />
 }

@@ -4,7 +4,7 @@ import { useAuth } from '@/lib/hooks/use-auth'
 import InventoryClient from './inventory-client'
 
 export default function InventoryPage() {
-  const { phone, isAuthenticated, isLoading } = useAuth()
+  const { userId, isAuthenticated, isLoading } = useAuth()
 
   // Show loading state while checking auth
   if (isLoading) {
@@ -24,5 +24,5 @@ export default function InventoryPage() {
     )
   }
 
-  return <InventoryClient storePhone={phone || ''} />
+  return <InventoryClient userId={userId || ''} />
 }

@@ -4,7 +4,7 @@ import { useAuth } from '@/lib/hooks/use-auth'
 import UtangClient from './utang-client'
 
 export default function UtangPage() {
-  const { phone, isAuthenticated, isLoading } = useAuth()
+  const { userId, isAuthenticated, isLoading } = useAuth()
 
   // Show loading state while checking auth
   if (isLoading) {
@@ -24,5 +24,5 @@ export default function UtangPage() {
     )
   }
 
-  return <UtangClient storePhone={phone || ''} />
+  return <UtangClient userId={userId || ''} />
 }
