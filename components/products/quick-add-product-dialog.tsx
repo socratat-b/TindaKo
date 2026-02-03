@@ -26,7 +26,7 @@ export function QuickAddProductDialog({
   open,
   onOpenChange,
   categories,
-  storePhone,
+  userId,
   onSuccess,
 }: QuickAddProductDialogProps) {
   const [isCameraOpen, setIsCameraOpen] = useState(false)
@@ -46,7 +46,7 @@ export function QuickAddProductDialog({
     handleCancelCategoryForm,
     handleSubmit,
   } = useQuickAddProduct({
-    storePhone,
+    userId,
     onSuccess,
     onOpenChange,
     categories,

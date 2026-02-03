@@ -13,7 +13,7 @@ import { AllProductsList } from './all-products-list'
 import { useInventoryList } from '@/lib/hooks/use-inventory-list'
 import type { InventoryInterfaceProps } from '@/lib/types'
 
-export default function InventoryInterface({ storePhone }: InventoryInterfaceProps) {
+export default function InventoryInterface({ userId }: InventoryInterfaceProps) {
   const {
     activeTab,
     searchQuery,
@@ -33,7 +33,7 @@ export default function InventoryInterface({ storePhone }: InventoryInterfacePro
     setAllProductsPage,
     setLowStockPage,
     setHistoryPage,
-  } = useInventoryList({ storePhone })
+  } = useInventoryList({ userId })
 
   return (
     <motion.div
@@ -98,7 +98,7 @@ export default function InventoryInterface({ storePhone }: InventoryInterfacePro
                 allProducts={products || []}
                 categories={categories || []}
                 categoryFilter={categoryFilter}
-                storePhone={storePhone}
+                userId={userId}
                 currentPage={lowStockPage}
                 itemsPerPage={itemsPerPage}
                 onPageChange={setLowStockPage}
@@ -124,7 +124,7 @@ export default function InventoryInterface({ storePhone }: InventoryInterfacePro
                 currentPage={allProductsPage}
                 itemsPerPage={itemsPerPage}
                 onPageChange={setAllProductsPage}
-                storePhone={storePhone}
+                userId={userId}
               />
             </div>
           </Card>

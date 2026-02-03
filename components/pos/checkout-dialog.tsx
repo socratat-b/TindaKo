@@ -32,7 +32,7 @@ export function CheckoutDialog({
   open,
   onOpenChange,
   onCheckout,
-  storePhone,
+  userId,
 }: CheckoutDialogProps) {
   const { total, paymentMethod, clearCart } = useCart()
   const formatCurrency = useFormatCurrency()
@@ -57,7 +57,7 @@ export function CheckoutDialog({
     open,
     onOpenChange,
     onCheckout,
-    storePhone,
+    userId,
     total,
     paymentMethod,
     clearCart,
@@ -258,7 +258,7 @@ export function CheckoutDialog({
       <QuickAddCustomerDialog
         open={isQuickAddOpen}
         onOpenChange={setIsQuickAddOpen}
-        storePhone={storePhone}
+        userId={userId}
         onCustomerCreated={handleCustomerCreated}
       />
     </>

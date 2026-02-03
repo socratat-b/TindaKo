@@ -16,10 +16,10 @@ import { Search, Plus, Package, Loader2 } from "lucide-react";
 import { CategoryFilter } from "@/components/shared/category-filter";
 
 interface ProductGridProps {
-  storePhone: string;
+  userId: string;
 }
 
-export function ProductGrid({ storePhone }: ProductGridProps) {
+export function ProductGrid({ userId }: ProductGridProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -33,17 +33,17 @@ export function ProductGrid({ storePhone }: ProductGridProps) {
 
   // Load products on mount and when data is restored
   useEffect(() => {
-    loadProducts(storePhone);
+    loadProducts(userId);
 
     // Listen for data restore event (from cloud sync)
     const handleDataRestored = () => {
-      refreshProducts(storePhone);
+      refreshProducts(userId);
     };
 
     window.addEventListener("data-restored", handleDataRestored);
     return () =>
       window.removeEventListener("data-restored", handleDataRestored);
-  }, [storePhone, loadProducts, refreshProducts]);
+  }, [userId, loadProducts, refreshProducts]);
 
   // Filter products based on search and category
   const filteredProducts = useMemo(() => {

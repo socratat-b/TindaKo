@@ -42,7 +42,7 @@ export function BarcodeScanner() {
   const [isSaving, setIsSaving] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const { addItem } = useCart()
-  const { phone: storePhone } = useAuth()
+  const { userId } = useAuth()
   const { refreshProducts } = useProductsStore()
 
   // Auto-focus the input on mount
@@ -62,14 +62,14 @@ export function BarcodeScanner() {
   }, [scanResult])
 
   const handleScan = async (scannedBarcode: string) => {
-    if (!scannedBarcode.trim() || !storePhone) return
+    if (!scannedBarcode.trim() || !userId) return
 
     try {
       // Step 1: Check seller's own products first
       const product = await db.products
         .where('barcode')
         .equals(scannedBarcode)
-        .and((p) => !p.isDeleted && p.storePhone === storePhone)
+        .and((p) => !p.isDeleted && p.userId === userId)
         .first()
 
       if (product) {
@@ -142,7 +142,7 @@ export function BarcodeScanner() {
   }
 
   const handleQuickAddFromCatalog = async () => {
-    if (!catalogItem || !storePhone) return
+    if (!catalogItem || !userId) return
 
     // Validate inputs
     const price = parseFloat(sellingPrice)
@@ -165,7 +165,7 @@ export function BarcodeScanner() {
       const existingProduct = await db.products
         .where('barcode')
         .equals(catalogItem.barcode)
-        .and((p) => p.storePhone === storePhone && !p.isDeleted)
+        .and((p) => p.userId === userId && !p.isDeleted)
         .first()
 
       if (existingProduct) {
@@ -178,8 +178,8 @@ export function BarcodeScanner() {
 
       // Find or create matching category
       let category = await db.categories
-        .where('storePhone')
-        .equals(storePhone)
+        .where('userId')
+        .equals(userId)
         .filter((c) => !c.isDeleted && c.name === (catalogItem.categoryName || 'Uncategorized'))
         .first()
 
@@ -188,7 +188,7 @@ export function BarcodeScanner() {
       if (!category) {
         const newCategory = {
           id: crypto.randomUUID(),
-          storePhone,
+          userId,
           name: catalogItem.categoryName || 'Uncategorized',
           color: '#6b7280',
           sortOrder: 0,
@@ -204,7 +204,7 @@ export function BarcodeScanner() {
       // Create the product
       const newProduct = {
         id: crypto.randomUUID(),
-        storePhone,
+        userId,
         name: catalogItem.name,
         barcode: catalogItem.barcode,
         categoryId: categoryId!,
@@ -223,8 +223,8 @@ export function BarcodeScanner() {
       addItem(newProduct)
 
       // Refresh product list in POS
-      if (storePhone) {
-        refreshProducts(storePhone)
+      if (userId) {
+        refreshProducts(userId)
       }
 
       // Show success

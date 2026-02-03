@@ -28,7 +28,7 @@ interface LogoutDialogProps {
 }
 
 export function LogoutDialog({ open, onOpenChange }: LogoutDialogProps) {
-  const { phone } = useAuth()
+  const { userId } = useAuth()
   const clearCart = useCartStore((state) => state.clearCart)
   const hasPendingChanges = useSyncStore((state) => state.hasPendingChanges)
   const backup = useSyncStore((state) => state.backup)
@@ -48,7 +48,7 @@ export function LogoutDialog({ open, onOpenChange }: LogoutDialogProps) {
   }
 
   const handleLogout = async () => {
-    if (!phone) return
+    if (!userId) return
 
     setIsLoading(true)
     setError(null)
@@ -65,7 +65,7 @@ export function LogoutDialog({ open, onOpenChange }: LogoutDialogProps) {
 
       // Only backup if there are pending changes (reuse Backup Now logic)
       if (hasPendingChanges) {
-        await backup(phone)
+        await backup(userId)
       }
 
       // Clear cart before logout

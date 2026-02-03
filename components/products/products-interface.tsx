@@ -10,7 +10,7 @@ import { useProductsStore } from '@/lib/stores/products-store'
 import { useProductCartSync } from '@/lib/hooks/use-product-cart-sync'
 import type { ProductsInterfaceProps } from '@/lib/types'
 
-export default function ProductsInterface({ storePhone }: ProductsInterfaceProps) {
+export default function ProductsInterface({ userId }: ProductsInterfaceProps) {
   const [refreshKey, setRefreshKey] = useState(0)
   const [isSeeding, setIsSeeding] = useState(false)
   const searchParams = useSearchParams()
@@ -28,20 +28,20 @@ export default function ProductsInterface({ storePhone }: ProductsInterfaceProps
   }
 
   const products = useLiveQuery(
-    () => db.products.where('storePhone').equals(storePhone).filter((p) => !p.isDeleted).toArray(),
-    [storePhone, refreshKey]
+    () => db.products.where('userId').equals(userId).filter((p) => !p.isDeleted).toArray(),
+    [userId, refreshKey]
   )
 
   const categories = useLiveQuery(
-    () => db.categories.where('storePhone').equals(storePhone).filter((c) => !c.isDeleted).toArray(),
-    [storePhone, refreshKey]
+    () => db.categories.where('userId').equals(userId).filter((c) => !c.isDeleted).toArray(),
+    [userId, refreshKey]
   )
 
   const handleRefresh = useCallback(() => {
     setRefreshKey((prev) => prev + 1)
     // Refresh ProductsStore for POS page sync
-    refreshProducts(storePhone)
-  }, [storePhone, refreshProducts])
+    refreshProducts(userId)
+  }, [userId, refreshProducts])
 
   // Auto-seed default categories for new users
   useEffect(() => {
@@ -49,7 +49,7 @@ export default function ProductsInterface({ storePhone }: ProductsInterfaceProps
       const seedCategories = async () => {
         setIsSeeding(true)
         try {
-          await seedDefaultCategories(storePhone)
+          await seedDefaultCategories(userId)
           handleRefresh()
         } catch (err) {
           console.error('Failed to seed categories:', err)
@@ -59,7 +59,7 @@ export default function ProductsInterface({ storePhone }: ProductsInterfaceProps
       }
       seedCategories()
     }
-  }, [categories, storePhone, isSeeding, handleRefresh])
+  }, [categories, userId, isSeeding, handleRefresh])
 
   if (!products || !categories) {
     return (
@@ -81,7 +81,7 @@ export default function ProductsInterface({ storePhone }: ProductsInterfaceProps
       <ProductsList
         products={products}
         categories={categories}
-        storePhone={storePhone}
+        userId={userId}
         onRefresh={handleRefresh}
         catalogData={catalogData.fromCatalog ? catalogData : undefined}
       />

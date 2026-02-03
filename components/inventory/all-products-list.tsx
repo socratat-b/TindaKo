@@ -28,7 +28,7 @@ interface AllProductsListProps {
   currentPage: number
   itemsPerPage: number
   onPageChange: (page: number) => void
-  storePhone: string
+  userId: string
 }
 
 export function AllProductsList({
@@ -39,7 +39,7 @@ export function AllProductsList({
   currentPage,
   itemsPerPage,
   onPageChange,
-  storePhone,
+  userId,
 }: AllProductsListProps) {
   const router = useRouter()
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
@@ -354,7 +354,7 @@ export function AllProductsList({
           onOpenChange={setIsQuickAdjustOpen}
           product={selectedProduct}
           type={adjustmentType}
-          storePhone={storePhone}
+          userId={userId}
           categories={categories}
         />
       )}

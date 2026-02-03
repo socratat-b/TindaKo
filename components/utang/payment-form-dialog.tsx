@@ -31,7 +31,7 @@ import { useFormatCurrency } from '@/lib/utils/currency'
 type PaymentFormDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  storePhone: string
+  userId: string
   customers: Customer[]
   selectedCustomerId?: string | null
 }
@@ -39,7 +39,7 @@ type PaymentFormDialogProps = {
 export function PaymentFormDialog({
   open,
   onOpenChange,
-  storePhone,
+  userId,
   customers,
   selectedCustomerId,
 }: PaymentFormDialogProps) {
@@ -79,7 +79,7 @@ export function PaymentFormDialog({
 
     try {
       const result = await recordPayment({
-        storePhone,
+        userId,
         customerId,
         amount: parseFloat(formattedAmount.rawValue),
         notes: notes || undefined,

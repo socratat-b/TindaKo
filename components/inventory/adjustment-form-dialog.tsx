@@ -28,14 +28,14 @@ import type { AdjustmentFormDialogProps } from '@/lib/types'
 export function AdjustmentFormDialog({
   open,
   onOpenChange,
-  storePhone,
+  userId,
   products,
   categories,
   initialProductId,
   mode = 'manual',
 }: AdjustmentFormDialogProps) {
   const { formData, isLoading, error, setFormData, handleSubmit } = useAdjustmentForm({
-    storePhone,
+    userId,
     onOpenChange,
     open,
     initialProductId,

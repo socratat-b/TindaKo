@@ -9,12 +9,12 @@ import { useAuth } from '@/lib/hooks/use-auth'
  * This ensures all pages are cached and available offline
  */
 export function PrefetchProvider({ children }: { children: React.ReactNode }) {
-  const { phone } = useAuth()
+  const { userId } = useAuth()
   const pathname = usePathname()
 
   useEffect(() => {
     // Only prefetch if user is authenticated and on a dashboard page
-    if (!phone) return
+    if (!userId) return
 
     const isDashboardPage =
       pathname.startsWith('/pos') ||
@@ -27,7 +27,7 @@ export function PrefetchProvider({ children }: { children: React.ReactNode }) {
     if (!isDashboardPage) return
 
     // Check if we've already prefetched for this user
-    const prefetchKey = `prefetched_${phone}`
+    const prefetchKey = `prefetched_${userId}`
     if (typeof window !== 'undefined' && localStorage.getItem(prefetchKey)) {
       return
     }
@@ -78,7 +78,7 @@ export function PrefetchProvider({ children }: { children: React.ReactNode }) {
     const timeoutId = setTimeout(prefetchPages, 2000)
 
     return () => clearTimeout(timeoutId)
-  }, [phone, pathname])
+  }, [userId, pathname])
 
   return <>{children}</>
 }

@@ -24,7 +24,7 @@ interface QuickAdjustDialogProps {
   onOpenChange: (open: boolean) => void
   product: Product
   type: 'in' | 'out' | 'adjust'
-  storePhone: string
+  userId: string
   categories: Category[]
 }
 
@@ -33,7 +33,7 @@ export function QuickAdjustDialog({
   onOpenChange,
   product,
   type,
-  storePhone,
+  userId,
   categories,
 }: QuickAdjustDialogProps) {
   const [quantity, setQuantity] = useState('')
@@ -72,7 +72,7 @@ export function QuickAdjustDialog({
         productId: product.id,
         type,
         qty,
-        storePhone,
+        userId,
       })
 
       if (!result.success) {

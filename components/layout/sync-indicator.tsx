@@ -10,7 +10,7 @@ import { RefreshCw, CheckCircle2, AlertCircle, Cloud } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 export function SyncIndicator() {
-  const { phone } = useAuth()
+  const { userId } = useAuth()
   const status = useSyncStore((state) => state.status)
   const error = useSyncStore((state) => state.error)
   const backup = useSyncStore((state) => state.backup)
@@ -31,9 +31,7 @@ export function SyncIndicator() {
 
   // Count all pending changes across all tables
   const pendingChangesCount = useLiveQuery(async () => {
-    if (!phone) return 0
-
-    const storePhone = phone
+    if (!userId) return 0
 
     const [
       salesCount,
@@ -44,33 +42,33 @@ export function SyncIndicator() {
       inventoryCount,
     ] = await Promise.all([
       db.sales
-        .where('storePhone')
-        .equals(storePhone)
+        .where('userId')
+        .equals(userId)
         .filter((item) => !item.isDeleted && item.syncedAt === null)
         .count(),
       db.products
-        .where('storePhone')
-        .equals(storePhone)
+        .where('userId')
+        .equals(userId)
         .filter((item) => !item.isDeleted && item.syncedAt === null)
         .count(),
       db.categories
-        .where('storePhone')
-        .equals(storePhone)
+        .where('userId')
+        .equals(userId)
         .filter((item) => !item.isDeleted && item.syncedAt === null)
         .count(),
       db.customers
-        .where('storePhone')
-        .equals(storePhone)
+        .where('userId')
+        .equals(userId)
         .filter((item) => !item.isDeleted && item.syncedAt === null)
         .count(),
       db.utangTransactions
-        .where('storePhone')
-        .equals(storePhone)
+        .where('userId')
+        .equals(userId)
         .filter((item) => !item.isDeleted && item.syncedAt === null)
         .count(),
       db.inventoryMovements
-        .where('storePhone')
-        .equals(storePhone)
+        .where('userId')
+        .equals(userId)
         .filter((item) => !item.isDeleted && item.syncedAt === null)
         .count(),
     ])
@@ -91,11 +89,11 @@ export function SyncIndicator() {
       utangCount,
       inventoryCount,
       total,
-      storePhone
+      userId
     })
 
     return total
-  }, [phone])
+  }, [userId])
 
   // Animate text cycling when there are pending changes
   useEffect(() => {
@@ -112,10 +110,10 @@ export function SyncIndicator() {
 
   const handleManualBackup = () => {
     console.log('[SyncIndicator] Manual backup clicked')
-    if (!isSyncing) {
-      backup()
+    if (!isSyncing && userId) {
+      backup(userId)
     } else {
-      console.log('[SyncIndicator] Backup already in progress, skipping')
+      console.log('[SyncIndicator] Backup already in progress or no userId, skipping')
     }
   }
 

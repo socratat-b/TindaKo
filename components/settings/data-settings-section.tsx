@@ -5,10 +5,12 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { CloudUpload, Loader2, CheckCircle2 } from 'lucide-react'
 import { useSyncStore } from '@/lib/stores/sync-store'
+import { useAuth } from '@/lib/hooks/use-auth'
 import { BackupProgressDialog } from './backup-progress-dialog'
 import { formatDistanceToNow } from 'date-fns'
 
 export function DataSettingsSection() {
+  const { userId } = useAuth()
   const backup = useSyncStore((state) => state.backup)
   const status = useSyncStore((state) => state.status)
   const lastSyncTime = useSyncStore((state) => state.lastSyncTime)
@@ -23,15 +25,17 @@ export function DataSettingsSection() {
 
   // Check for pending changes on mount and periodically
   useEffect(() => {
-    checkPendingChanges()
+    if (userId) {
+      checkPendingChanges(userId)
 
-    // Check every 10 seconds for changes
-    const interval = setInterval(() => {
-      checkPendingChanges()
-    }, 10000)
+      // Check every 10 seconds for changes
+      const interval = setInterval(() => {
+        checkPendingChanges(userId)
+      }, 10000)
 
-    return () => clearInterval(interval)
-  }, [checkPendingChanges])
+      return () => clearInterval(interval)
+    }
+  }, [checkPendingChanges, userId])
 
   // Control backup dialog: only open when backup is actively triggered
   useEffect(() => {
@@ -52,7 +56,9 @@ export function DataSettingsSection() {
   }
 
   const handleBackup = async () => {
-    await backup()
+    if (userId) {
+      await backup(userId)
+    }
   }
 
   const isUpToDate = !hasPendingChanges && lastSyncTime !== null

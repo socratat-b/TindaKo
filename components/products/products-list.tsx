@@ -37,7 +37,7 @@ import type { ProductsListProps } from '@/lib/types'
 export function ProductsList({
   products,
   categories,
-  storePhone,
+  userId,
   onRefresh,
   catalogData,
 }: ProductsListProps) {
@@ -294,7 +294,7 @@ export function ProductsList({
         open={isQuickAddOpen}
         onOpenChange={setIsQuickAddOpen}
         categories={categories}
-        storePhone={storePhone}
+        userId={userId}
         onSuccess={onRefresh}
       />
 
@@ -303,7 +303,7 @@ export function ProductsList({
         onOpenChange={handleFormClose}
         product={editingProduct}
         categories={categories}
-        storePhone={storePhone}
+        userId={userId}
         onSuccess={onRefresh}
         catalogData={catalogData}
       />

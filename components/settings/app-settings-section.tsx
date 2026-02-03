@@ -10,7 +10,7 @@ import { useAuth } from '@/lib/hooks/use-auth'
 import { LogoutDialog } from '@/components/layout/logout-dialog'
 
 export function AppSettingsSection() {
-  const { phone } = useAuth()
+  const { userId } = useAuth()
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false)
 
   return (
@@ -19,21 +19,21 @@ export function AppSettingsSection() {
         <h2 className="text-base lg:text-lg font-semibold mb-3 lg:mb-4">Account</h2>
         <div className="space-y-3 lg:space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="user-phone" className="text-xs lg:text-sm">
+            <Label htmlFor="user-userId" className="text-xs lg:text-sm">
               Phone Number
             </Label>
             <div className="relative">
               <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                id="user-phone"
-                value={phone || ''}
+                id="user-userId"
+                value={userId || ''}
                 readOnly
                 disabled
                 className="h-9 text-xs lg:h-10 lg:text-sm pl-10 bg-muted/50 cursor-not-allowed"
               />
             </div>
             <p className="text-[10px] lg:text-xs text-muted-foreground">
-              Your account phone number (read-only)
+              Your account userId number (read-only)
             </p>
           </div>
 

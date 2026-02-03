@@ -15,10 +15,10 @@ import {
 } from '@/lib/utils/reports-utils';
 
 interface ReportsInterfaceProps {
-  storePhone: string;
+  userId: string;
 }
 
-export default function ReportsInterface({ storePhone }: ReportsInterfaceProps) {
+export default function ReportsInterface({ userId }: ReportsInterfaceProps) {
   const [dateRangePreset, setDateRangePreset] = useState<DateRangePreset>('today');
   const [customStartDate, setCustomStartDate] = useState<Date | null>(null);
   const [customEndDate, setCustomEndDate] = useState<Date | null>(null);
@@ -27,12 +27,12 @@ export default function ReportsInterface({ storePhone }: ReportsInterfaceProps) 
   const allSales = useLiveQuery(
     () =>
       db.sales
-        .where('storePhone')
-        .equals(storePhone)
+        .where('userId')
+        .equals(userId)
         .filter((s) => !s.isDeleted)
         .reverse()
         .sortBy('createdAt'),
-    [storePhone]
+    [userId]
   );
 
   // Filter sales by date range
