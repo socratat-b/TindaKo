@@ -9,7 +9,7 @@ import { toast } from 'sonner'
  * Syncs between auth store, settings store, and database
  */
 export function useStoreName() {
-  const { phone, storeName: authStoreName, setAuth } = useAuthStore()
+  const { userId, email, storeName: authStoreName, setAuth } = useAuthStore()
   const { storeName, updateSettings } = useSettingsStore()
   const [isUpdating, setIsUpdating] = useState(false)
 
@@ -30,16 +30,16 @@ export function useStoreName() {
 
   // Save to database when user finishes editing
   const handleSave = useCallback(async () => {
-    if (!phone || !storeName.trim() || storeName === authStoreName) return
+    if (!userId || !storeName.trim() || storeName === authStoreName) return
 
     setIsUpdating(true)
 
     try {
-      const result = await updateStoreNameAction(phone, storeName)
+      const result = await updateStoreNameAction(storeName)
 
-      if (result.success && result.storeName) {
+      if (result.success) {
         // Update auth store with new name
-        setAuth(phone, result.storeName)
+        setAuth(userId, email!, storeName)
         toast.success('Store name updated')
       } else {
         toast.error(result.error || 'Failed to update store name')
@@ -58,7 +58,7 @@ export function useStoreName() {
     } finally {
       setIsUpdating(false)
     }
-  }, [phone, storeName, authStoreName, setAuth, updateSettings])
+  }, [userId, email, storeName, authStoreName, setAuth, updateSettings])
 
   return {
     storeName,

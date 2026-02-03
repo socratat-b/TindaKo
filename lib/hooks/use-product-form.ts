@@ -6,7 +6,7 @@ import { createProduct, updateProduct, createCategory } from '@/lib/actions/prod
 import type { UseProductFormParams } from '@/lib/types'
 
 export function useProductForm({
-  storePhone,
+  userId,
   onSuccess,
   onOpenChange,
   product,
@@ -92,7 +92,7 @@ export function useProductForm({
         name: categoryFormData.name,
         color: categoryFormData.color,
         sortOrder,
-        storePhone,
+        userId,
       })
 
       // Auto-select the new category
@@ -204,7 +204,7 @@ export function useProductForm({
           sellingPrice,
           stockQty,
           lowStockThreshold,
-          storePhone,
+          userId,
         })
       } else {
         await createProduct({
@@ -214,7 +214,7 @@ export function useProductForm({
           sellingPrice,
           stockQty,
           lowStockThreshold,
-          storePhone,
+          userId,
         })
       }
 

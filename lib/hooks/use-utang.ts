@@ -3,7 +3,7 @@ import { db } from '@/lib/db'
 import { useUtangStore } from '@/lib/stores/utang-store'
 import type { UseUtangParams } from '@/lib/types/utang'
 
-export function useUtang({ storePhone }: UseUtangParams) {
+export function useUtang({ userId }: UseUtangParams) {
   // Get state from store
   const {
     searchQuery,
@@ -25,11 +25,11 @@ export function useUtang({ storePhone }: UseUtangParams) {
   const customers = useLiveQuery(
     () =>
       db.customers
-        .where('storePhone')
-        .equals(storePhone)
+        .where('userId')
+        .equals(userId)
         .filter((c) => !c.isDeleted)
         .sortBy('name'),
-    [storePhone]
+    [userId]
   )
 
   // Filter customers based on search

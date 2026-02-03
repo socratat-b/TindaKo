@@ -7,7 +7,7 @@ import type { UseQuickAddCustomerParams } from '@/lib/types'
 export function useQuickAddCustomer({
   open,
   onOpenChange,
-  storePhone,
+  userId,
   onCustomerCreated,
 }: UseQuickAddCustomerParams) {
   const {
@@ -36,7 +36,7 @@ export function useQuickAddCustomer({
 
     try {
       const result = await createCustomer({
-        storePhone,
+        userId,
         name: formData.name,
         phone: formData.phone,
         address: formData.address,
