@@ -1,9 +1,9 @@
 import Dexie, { type EntityTable } from 'dexie'
-import type { Store, Category, Customer, Product, Sale, UtangTransaction, InventoryMovement, ProductCatalog } from './schema'
+import type { UserProfile, Category, Customer, Product, Sale, UtangTransaction, InventoryMovement, ProductCatalog } from './schema'
 
 // Extend Dexie with our tables
 class TindaKoDB extends Dexie {
-  stores!: EntityTable<Store, 'id'>
+  userProfile!: EntityTable<UserProfile, 'id'>
   categories!: EntityTable<Category, 'id'>
   customers!: EntityTable<Customer, 'id'>
   products!: EntityTable<Product, 'id'>
@@ -54,6 +54,33 @@ class TindaKoDB extends Dexie {
     }).upgrade(async (trans) => {
       console.log('[Dexie Migration] Upgrading to version 3: Adding product catalog')
     })
+
+    // Version 4: OAuth migration - storePhone → userId
+    this.version(4).stores({
+      userProfile: 'id, email, storeName', // Replaces stores table
+      categories: 'id, userId, syncedAt, sortOrder',
+      customers: 'id, userId, syncedAt, name, phone, address',
+      products: 'id, userId, syncedAt, categoryId, barcode, name',
+      sales: 'id, userId, syncedAt, createdAt, customerId',
+      utangTransactions: 'id, userId, syncedAt, customerId, saleId, createdAt',
+      inventoryMovements: 'id, userId, syncedAt, productId, createdAt, type',
+      productCatalog: 'id, barcode, name',
+    }).upgrade(async (trans) => {
+      console.log('[Dexie Migration] Upgrading to version 4: OAuth migration')
+      console.log('[Dexie Migration] Converting storePhone → userId')
+      console.log('[Dexie Migration] Clearing all data (incompatible schema)')
+
+      // Clear all data (schema incompatible: text → uuid)
+      await trans.table('categories').clear()
+      await trans.table('customers').clear()
+      await trans.table('products').clear()
+      await trans.table('sales').clear()
+      await trans.table('utangTransactions').clear()
+      await trans.table('inventoryMovements').clear()
+
+      // Note: productCatalog is preserved (shared reference data)
+      console.log('[Dexie Migration] Migration complete. Data will be restored on first login.')
+    })
   }
 }
 
@@ -67,7 +94,7 @@ export async function clearAllLocalData(): Promise<void> {
   console.log('[clearAllLocalData] Starting to clear all tables...')
   try {
     await Promise.all([
-      db.stores.clear(),
+      db.userProfile.clear(),
       db.categories.clear(),
       db.customers.clear(),
       db.products.clear(),

@@ -1,11 +1,12 @@
 // TypeScript interfaces for all database tables
 
-// Store/Auth table (does not extend BaseEntity)
-export interface Store {
-  id: string
-  phone: string // Unique phone number (09XXXXXXXXX)
-  storeName: string
-  pinHash: string // bcrypt hash
+// User Profile from OAuth (replaces Store table)
+export interface UserProfile {
+  id: string // Supabase auth.uid() - UUID
+  email: string // From OAuth provider
+  storeName: string // Editable by user
+  avatarUrl: string | null // From OAuth provider
+  provider: 'google' | 'facebook' // Which OAuth provider
   createdAt: string
   updatedAt: string
 }
@@ -13,7 +14,7 @@ export interface Store {
 // Universal fields included in all data tables
 export interface BaseEntity {
   id: string
-  storePhone: string // Replaces userId - phone number for user isolation
+  userId: string // Supabase auth.uid() - UUID for user isolation
   createdAt: string
   updatedAt: string
   syncedAt: string | null
