@@ -1,44 +1,73 @@
 import { type NextRequest, NextResponse } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
 
 /**
- * Middleware for phone-based auth
- * Checks for auth cookie (set by client after login)
+ * Proxy (Middleware) - Optimistic Auth Checks
+ * Following Next.js authentication patterns
+ *
+ * IMPORTANT: Only performs optimistic checks using cookies
+ * Secure checks must be done in the Data Access Layer (DAL)
  */
-export function proxy(request: NextRequest) {
+
+// Specify protected and public routes
+const protectedRoutes = ['/pos', '/products', '/inventory', '/utang', '/reports', '/settings']
+const publicRoutes = ['/login', '/signup', '/', '/store-setup', '/privacy-policy', '/terms-of-service', '/data-deletion']
+const authCallbackRoutes = ['/auth/callback']
+
+export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
-  const isAuthPage = path.startsWith('/login') || path.startsWith('/signup')
-  const isPublicPage = path === '/' || path.startsWith('/_next') || path.startsWith('/api')
-  const isDashboardPage = path.startsWith('/pos') ||
-                          path.startsWith('/products') ||
-                          path.startsWith('/inventory') ||
-                          path.startsWith('/utang') ||
-                          path.startsWith('/reports') ||
-                          path.startsWith('/settings')
 
-  // Check for auth cookie (contains phone number)
-  const authCookie = request.cookies.get('tindako_auth')
-  const hasSession = !!authCookie?.value
+  // Check if current route is protected or public
+  const isProtectedRoute = protectedRoutes.some(route => path.startsWith(route))
+  const isPublicRoute = publicRoutes.includes(path)
+  const isAuthCallback = authCallbackRoutes.some(route => path.startsWith(route))
 
-  // Allow public pages without redirect
-  if (isPublicPage) {
-    return NextResponse.next({ request })
+  let response = NextResponse.next({ request })
+
+  // Create Supabase client for cookie-based session check (optimistic)
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value
+        },
+        set(name: string, value: string, options: any) {
+          response.cookies.set({ name, value, ...options })
+        },
+        remove(name: string, options: any) {
+          response.cookies.set({ name, value: '', ...options })
+        },
+      },
+    }
+  )
+
+  // Optimistic check: read session from cookie only (no DB query)
+  const { data: { session } } = await supabase.auth.getSession()
+  const hasSession = !!session
+
+  // Allow auth callback routes
+  if (isAuthCallback) {
+    return response
+  }
+
+  // Allow public routes (static assets, API routes)
+  if (path.startsWith('/_next') || path.startsWith('/api')) {
+    return response
   }
 
   // Redirect authenticated users away from auth pages
-  if (hasSession && isAuthPage) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/pos'
-    return NextResponse.redirect(url)
+  if (hasSession && (path === '/login' || path === '/signup')) {
+    return NextResponse.redirect(new URL('/pos', request.url))
   }
 
-  // Redirect unauthenticated users to login
-  if (!hasSession && isDashboardPage) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
+  // Redirect unauthenticated users from protected routes to login
+  if (isProtectedRoute && !hasSession) {
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  return NextResponse.next({ request })
+  return response
 }
 
 export const config = {
