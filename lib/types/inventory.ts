@@ -5,13 +5,13 @@ import type { Product, Category, InventoryMovement } from '@/lib/db/schema'
 // ============================================================================
 
 export interface InventoryInterfaceProps {
-  storePhone: string
+  userId: string
 }
 
 export interface AdjustmentFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  storePhone: string
+  userId: string
   products: Product[]
   categories: Category[]
   initialProductId?: string
@@ -33,7 +33,7 @@ export interface LowStockAlertsProps {
   allProducts: Product[]
   categories: Category[]
   categoryFilter: string
-  storePhone: string
+  userId: string
   currentPage: number
   itemsPerPage: number
   onPageChange: (page: number) => void
@@ -44,11 +44,11 @@ export interface LowStockAlertsProps {
 // ============================================================================
 
 export interface UseInventoryListParams {
-  storePhone: string
+  userId: string
 }
 
 export interface UseAdjustmentFormParams {
-  storePhone: string
+  userId: string
   onOpenChange: (open: boolean) => void
   open: boolean
   initialProductId?: string
