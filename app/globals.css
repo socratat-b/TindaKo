@@ -18,42 +18,42 @@
   --text-2xl: 1.5rem;      /* 24px */
   --text-3xl: 1.875rem;    /* 30px */
 
-  /* Color Palette - Muted teal for eye comfort */
-  --color-primary: #0d9488;
+  /* Color Palette - Warm orange/amber for Filipino market energy */
+  --color-primary: #ea580c;
   --color-primary-foreground: #ffffff;
   --color-secondary: #64748b;
   --color-secondary-foreground: #ffffff;
-  --color-accent: #0d9488;
+  --color-accent: #f59e0b;
   --color-accent-foreground: #ffffff;
 
   --color-background: #ffffff;
   --color-foreground: #0f172a;
   --color-card: #ffffff;
   --color-card-foreground: #0f172a;
-  --color-muted: #f1f5f9;
-  --color-muted-foreground: #64748b;
-  --color-border: #e2e8f0;
-  --color-input: #e2e8f0;
-  --color-ring: #0d9488;
+  --color-muted: #fef3c7;
+  --color-muted-foreground: #92400e;
+  --color-border: #fed7aa;
+  --color-input: #fed7aa;
+  --color-ring: #ea580c;
 
   --color-success: #059669;
   --color-warning: #d97706;
   --color-error: #dc2626;
-  --color-info: #0d9488;
+  --color-info: #ea580c;
 }
 
 /* Dark Mode Colors */
 @media (prefers-color-scheme: dark) {
   @theme {
-    --color-background: #020617;
-    --color-foreground: #f8fafc;
-    --color-card: #0f172a;
-    --color-card-foreground: #f8fafc;
-    --color-muted: #1e293b;
-    --color-muted-foreground: #94a3b8;
-    --color-border: #1e293b;
-    --color-input: #1e293b;
-    --color-ring: #14b8a6;
+    --color-background: #1c0a00;
+    --color-foreground: #fef3c7;
+    --color-card: #2c1810;
+    --color-card-foreground: #fef3c7;
+    --color-muted: #431407;
+    --color-muted-foreground: #fdba74;
+    --color-border: #431407;
+    --color-input: #431407;
+    --color-ring: #f97316;
   }
 }
 
