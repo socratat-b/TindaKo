@@ -75,7 +75,7 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-64 border-r border-border bg-card transition-transform duration-300 md:sticky md:top-16 md:h-[calc(100vh-4rem)] md:translate-x-0',
+          'fixed inset-y-0 left-0 z-50 w-64 border-r border-orange-200 bg-gradient-to-b from-white via-orange-50/30 to-amber-50/30 transition-transform duration-300 md:sticky md:top-16 md:h-[calc(100vh-4rem)] md:translate-x-0',
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
@@ -106,10 +106,10 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
                   href={item.href}
                   onClick={onClose}
                   className={cn(
-                    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                    'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
                     isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                      ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-lg shadow-orange-500/30'
+                      : 'text-gray-700 hover:bg-orange-100 hover:text-orange-900'
                   )}
                 >
                   <Icon className="h-5 w-5 flex-shrink-0" />
@@ -132,10 +132,10 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
           </nav>
 
           {/* Footer info */}
-          <div className="border-t border-border p-4">
-            <div className="text-xs text-muted-foreground">
-              <p className="font-semibold">TindaKo</p>
-              <p>Sari-Sari store management</p>
+          <div className="border-t border-orange-200 p-4">
+            <div className="text-xs text-gray-600">
+              <p className="font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">TindaKo</p>
+              <p className="mt-1">Sari-Sari store management</p>
             </div>
           </div>
         </div>

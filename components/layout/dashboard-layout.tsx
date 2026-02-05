@@ -14,7 +14,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <PrefetchProvider>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-gradient-to-br from-amber-50/50 via-white to-orange-50/50">
         <DashboardHeader onMenuClick={() => setIsSidebarOpen(true)} />
 
         <div className="flex">
