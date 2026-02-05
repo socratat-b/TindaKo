@@ -3,26 +3,14 @@
 import { useAuth } from '@/lib/hooks/use-auth'
 import POSClient from './pos-client'
 
+/**
+ * POS Page - No auth checks, middleware handles protection
+ * Loads instantly, offline-first
+ */
 export default function POSPage() {
-  const { userId, isAuthenticated, isLoading } = useAuth()
+  const { userId } = useAuth()
 
-  // Show loading state while checking auth
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-[calc(100vh-12rem)]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    )
-  }
-
-  // If not authenticated, show error message
-  if (!isAuthenticated) {
-    return (
-      <div className="flex items-center justify-center h-[calc(100vh-12rem)]">
-        <p className="text-destructive">Please log in to access the POS</p>
-      </div>
-    )
-  }
-
+  // Just render the POS - middleware protects this route
+  // userId might be null initially, but IndexedDB will have the data
   return <POSClient userId={userId || ''} />
 }

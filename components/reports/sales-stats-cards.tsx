@@ -18,15 +18,15 @@ export function SalesStatsCards({ stats }: SalesStatsCardsProps) {
       title: 'Total Sales',
       value: formatCurrency(stats.totalSales),
       icon: DollarSign,
-      bgColor: 'bg-green-500/10',
-      iconColor: 'text-green-600',
+      bgColor: 'bg-gradient-to-br from-orange-500/10 to-amber-500/10',
+      iconColor: 'text-orange-600 dark:text-orange-400',
     },
     {
       title: 'Transactions',
       value: stats.transactionCount.toString(),
       icon: Receipt,
-      bgColor: 'bg-blue-500/10',
-      iconColor: 'text-blue-600',
+      bgColor: 'bg-accent/10',
+      iconColor: 'text-amber-600 dark:text-amber-400',
     },
   ];
 

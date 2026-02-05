@@ -14,18 +14,18 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
   const currentTime = useClock(timezone)
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-orange-200 bg-gradient-to-r from-white via-orange-50/50 to-amber-50/50 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
       <div className="flex h-16 items-center justify-between px-4 gap-2 overflow-hidden">
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden shrink-0 hover:bg-orange-100"
+            className="md:hidden shrink-0"
             onClick={onMenuClick}
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <h1 className="text-base font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent sm:text-lg whitespace-nowrap">
+          <h1 className="text-base font-bold bg-gradient-to-r from-orange-600 to-amber-600 dark:from-orange-400 dark:to-amber-400 bg-clip-text text-transparent sm:text-lg whitespace-nowrap">
             TindaKo
           </h1>
         </div>

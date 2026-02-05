@@ -82,7 +82,7 @@ export default function UtangInterface({ userId }: UtangInterfaceProps) {
       <div className="grid gap-3 md:grid-cols-2">
         <Card className="p-3 md:p-4">
           <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-red-100 p-2 dark:bg-red-950">
+            <div className="rounded-lg bg-gradient-to-br from-red-100 to-orange-100 p-2 dark:from-red-950 dark:to-orange-950">
               <DollarSign className="h-5 w-5 text-red-600 dark:text-red-400" />
             </div>
             <div>
@@ -98,8 +98,8 @@ export default function UtangInterface({ userId }: UtangInterfaceProps) {
 
         <Card className="p-3 md:p-4">
           <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-blue-100 p-2 dark:bg-blue-950">
-              <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <div className="rounded-lg bg-gradient-to-br from-orange-100 to-amber-100 p-2 dark:from-orange-950 dark:to-amber-950">
+              <Users className="h-5 w-5 text-orange-600 dark:text-orange-400" />
             </div>
             <div>
               <p className="text-[10px] text-muted-foreground md:text-xs">

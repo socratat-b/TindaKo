@@ -59,7 +59,9 @@ export function CustomersList({
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.2 }}
       >
-        <Users className="mb-3 h-12 w-12 text-muted-foreground/50" />
+        <div className="rounded-full bg-orange-500/10 p-3 mb-3">
+          <Users className="h-8 w-8 text-orange-600 dark:text-orange-400" />
+        </div>
         <p className="text-sm text-muted-foreground">No customers found.</p>
       </motion.div>
     )

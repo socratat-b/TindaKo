@@ -114,7 +114,9 @@ export function ProductGrid({ userId }: ProductGridProps) {
       <div className="flex-1 overflow-y-auto overflow-x-hidden">
         {filteredProducts.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center py-8 gap-3">
-            <Package className="h-10 w-10 mx-auto text-muted-foreground" />
+            <div className="rounded-full bg-orange-500/10 p-3">
+              <Package className="h-8 w-8 text-orange-600 dark:text-orange-400" />
+            </div>
             <div className="space-y-2">
               <p className="text-sm font-medium">
                 {searchQuery || selectedCategory !== "all"
@@ -196,7 +198,7 @@ export function ProductGrid({ userId }: ProductGridProps) {
                         </div>
 
                         <div className="flex items-center justify-between">
-                          <p className="text-base font-bold text-emerald-600">
+                          <p className="text-base font-bold text-emerald-600 dark:text-emerald-400">
                             {formatCurrency(product.sellingPrice)}
                           </p>
                           <p
@@ -204,7 +206,7 @@ export function ProductGrid({ userId }: ProductGridProps) {
                               isOutOfStock
                                 ? "text-destructive"
                                 : isLowStock
-                                  ? "text-amber-600"
+                                  ? "text-amber-600 dark:text-amber-400"
                                   : "text-muted-foreground"
                             }`}
                           >

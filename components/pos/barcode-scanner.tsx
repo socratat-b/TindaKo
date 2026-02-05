@@ -295,10 +295,10 @@ export function BarcodeScanner() {
             transition={{ duration: 0.2 }}
             className={`flex items-center gap-2 p-2 rounded-md ${
               scanResult.type === 'success'
-                ? 'bg-emerald-50 text-emerald-900 border border-emerald-200'
+                ? 'bg-emerald-50 text-emerald-900 border border-emerald-200 dark:bg-emerald-950 dark:text-emerald-100 dark:border-emerald-800'
                 : scanResult.type === 'catalog'
-                ? 'bg-blue-50 text-blue-900 border border-blue-200'
-                : 'bg-red-50 text-red-900 border border-red-200'
+                ? 'bg-blue-50 text-blue-900 border border-blue-200 dark:bg-blue-950 dark:text-blue-100 dark:border-blue-800'
+                : 'bg-red-50 text-red-900 border border-red-200 dark:bg-red-950 dark:text-red-100 dark:border-red-800'
             }`}
           >
             {scanResult.type === 'success' ? (
@@ -333,9 +333,9 @@ export function BarcodeScanner() {
           {catalogItem && (
             <div className="space-y-4 py-2">
               {/* Product Info */}
-              <div className="space-y-2 rounded-lg bg-blue-50 p-3 border border-blue-200">
-                <div className="text-sm font-semibold text-blue-900">{catalogItem.name}</div>
-                <div className="flex items-center gap-2 text-xs text-blue-700">
+              <div className="space-y-2 rounded-lg bg-blue-50 p-3 border border-blue-200 dark:bg-blue-950 dark:border-blue-800">
+                <div className="text-sm font-semibold text-blue-900 dark:text-blue-100">{catalogItem.name}</div>
+                <div className="flex items-center gap-2 text-xs text-blue-700 dark:text-blue-300">
                   <span className="font-mono">{catalogItem.barcode}</span>
                   {catalogItem.categoryName && (
                     <>

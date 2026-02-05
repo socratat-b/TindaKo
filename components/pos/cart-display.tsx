@@ -70,7 +70,9 @@ export function CartDisplay({ onCheckout }: CartDisplayProps) {
       <div className="flex-1 overflow-y-auto p-2.5 bg-card">
         {isEmpty ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <ShoppingCart className="h-12 w-12 text-muted-foreground mb-2" />
+            <div className="rounded-full bg-orange-500/10 p-3 mb-2">
+              <ShoppingCart className="h-8 w-8 text-orange-600 dark:text-orange-400" />
+            </div>
             <p className="text-sm text-muted-foreground">Your cart is empty</p>
             <p className="text-xs text-muted-foreground mt-1">
               Add products to get started
@@ -103,7 +105,7 @@ export function CartDisplay({ onCheckout }: CartDisplayProps) {
                         remainingStock === 0
                           ? 'text-destructive'
                           : isLowStock
-                            ? 'text-amber-600'
+                            ? 'text-amber-600 dark:text-amber-400'
                             : 'text-muted-foreground'
                       }`}>
                         {remainingStock === 0
@@ -181,7 +183,7 @@ export function CartDisplay({ onCheckout }: CartDisplayProps) {
           {/* Totals */}
           <div className="flex justify-between items-center">
             <span className="text-base font-semibold">Total</span>
-            <span className="text-2xl font-bold text-emerald-600">{formatCurrency(total)}</span>
+            <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(total)}</span>
           </div>
 
           {/* Checkout Button */}

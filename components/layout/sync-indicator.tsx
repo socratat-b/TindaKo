@@ -212,11 +212,11 @@ export function SyncIndicator() {
   return (
     <Badge
       variant={syncStatus.variant}
-      className="cursor-pointer hover:opacity-80 transition-opacity relative h-6 min-w-[120px] justify-start"
+      className="cursor-pointer hover:bg-orange-50 dark:hover:bg-orange-950/20 transition-all relative h-6 min-w-[120px] justify-start border-orange-200 dark:border-orange-900"
       onClick={handleManualBackup}
       title="Click to save your data online"
     >
-      <Icon className="mr-1.5 h-3.5 w-3.5 shrink-0" />
+      <Icon className="mr-1.5 h-3.5 w-3.5 shrink-0 text-orange-600 dark:text-orange-400" />
       <div className="relative h-4 flex items-center overflow-hidden flex-1">
         <AnimatePresence mode="wait">
           {showChanges ? (

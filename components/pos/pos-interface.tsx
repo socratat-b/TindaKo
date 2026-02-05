@@ -50,9 +50,7 @@ export default function POSInterface({ userId }: POSInterfaceProps) {
   return (
     <>
       {/* Desktop Layout - Hidden on Mobile */}
-      <div className="hidden lg:flex h-[calc(100vh-10rem)] flex-col gap-4 relative">
-        {/* Subtle background accent */}
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-50/30 via-transparent to-amber-50/30 pointer-events-none rounded-lg -z-10" />
+      <div className="hidden lg:flex h-[calc(100vh-10rem)] flex-col gap-4">
         {/* Barcode Scanner */}
         {enableBarcodeScanner && <BarcodeScanner />}
 
@@ -81,9 +79,7 @@ export default function POSInterface({ userId }: POSInterfaceProps) {
       </div>
 
       {/* Mobile Layout - Tabs */}
-      <div className="lg:hidden flex flex-col h-[calc(100vh-7.5rem)] overflow-hidden relative">
-        {/* Subtle background accent */}
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-50/30 via-transparent to-amber-50/30 pointer-events-none rounded-lg -z-10" />
+      <div className="lg:hidden flex flex-col h-[calc(100vh-7.5rem)] overflow-hidden">
         {/* Barcode Scanner */}
         {enableBarcodeScanner && (
           <div className="flex-none mb-3">

@@ -55,18 +55,18 @@ export function AllProductsList({
     if (stockQty === 0) {
       return {
         label: 'Out of Stock',
-        color: 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200',
+        color: 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200 border-red-200 dark:border-red-900',
       }
     }
     if (stockQty <= threshold) {
       return {
         label: 'Low Stock',
-        color: 'bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-200',
+        color: 'bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-200 border-orange-200 dark:border-orange-900',
       }
     }
     return {
       label: 'Good Stock',
-      color: 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200',
+      color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200 border-emerald-200 dark:border-emerald-900',
     }
   }
 

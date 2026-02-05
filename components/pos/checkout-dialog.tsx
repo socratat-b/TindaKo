@@ -91,10 +91,10 @@ export function CheckoutDialog({
 
           <form onSubmit={handleSubmit} className="space-y-3">
               {/* Sale Summary */}
-              <div className="space-y-2 p-3 rounded-lg bg-muted/50">
+              <div className="space-y-2 p-3 rounded-lg bg-muted/30 border">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Total Amount</span>
-                  <span className="font-semibold text-base">{formatCurrency(total)}</span>
+                  <span className="font-semibold text-base text-foreground">{formatCurrency(total)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Payment Method</span>
