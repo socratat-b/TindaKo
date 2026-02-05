@@ -111,9 +111,12 @@ describe('Sync Store Integration Tests', () => {
   })
 
   it('handles offline scenario gracefully', async () => {
-    // Mock offline
-    const { isOnline } = await import('@/lib/auth/session-cache')
-    ;(isOnline as any).mockResolvedValueOnce(false)
+    // Mock offline by stubbing navigator.onLine
+    const originalOnline = navigator.onLine
+    Object.defineProperty(navigator, 'onLine', {
+      writable: true,
+      value: false,
+    })
 
     // Add local changes
     await db.categories.add({
@@ -140,6 +143,12 @@ describe('Sync Store Integration Tests', () => {
     // Data should remain unsynced locally
     const category = await db.categories.get('cat-offline')
     expect(category?.syncedAt).toBeNull()
+
+    // Restore
+    Object.defineProperty(navigator, 'onLine', {
+      writable: true,
+      value: originalOnline,
+    })
   })
 
   it('handles initial sync (restore from backup)', async () => {

@@ -8,7 +8,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { db } from '@/lib/db'
 import { pushToCloud } from '@/lib/db/sync'
 
-const TEST_PHONE = '09171234567'
+const TEST_USER_ID = crypto.randomUUID()
 
 // Mock Supabase to track what tables are accessed
 const mockUpsertCalls: Array<{ table: string; data: any }> = []
@@ -68,7 +68,7 @@ describe('Product Catalog Isolation Tests', () => {
     expect(catalogCount).toBe(2)
 
     // Attempt to backup
-    await pushToCloud(TEST_PHONE)
+    await pushToCloud(TEST_USER_ID)
 
     // Verify NO calls were made to product_catalog table
     const catalogCalls = mockUpsertCalls.filter(
@@ -84,7 +84,7 @@ describe('Product Catalog Isolation Tests', () => {
     // Create user's category
     await db.categories.add({
       id: categoryId,
-      storePhone: TEST_PHONE,
+      userId: TEST_USER_ID,
       name: 'Instant Noodles',
       color: '#FF0000',
       sortOrder: 1,
@@ -97,7 +97,7 @@ describe('Product Catalog Isolation Tests', () => {
     // Create user's product (actual product in their store)
     await db.products.add({
       id: userProductId,
-      storePhone: TEST_PHONE,
+      userId: TEST_USER_ID,
       name: 'Lucky Me Pancit Canton',
       barcode: '4800016644207',
       categoryId,
@@ -121,7 +121,7 @@ describe('Product Catalog Isolation Tests', () => {
     })
 
     // Backup
-    await pushToCloud(TEST_PHONE)
+    await pushToCloud(TEST_USER_ID)
 
     // Verify user's product was synced
     const productCalls = mockUpsertCalls.filter((call) => call.table === 'products')
@@ -159,7 +159,7 @@ describe('Product Catalog Isolation Tests', () => {
     ])
 
     // Backup (should not affect catalog)
-    await pushToCloud(TEST_PHONE)
+    await pushToCloud(TEST_USER_ID)
 
     // Verify catalog is still in IndexedDB
     const catalogCount = await db.productCatalog.count()
@@ -178,7 +178,7 @@ describe('Product Catalog Isolation Tests', () => {
     // Add user data
     await db.categories.add({
       id: categoryId,
-      storePhone: TEST_PHONE,
+      userId: TEST_USER_ID,
       name: 'Beverages',
       color: '#FF0000',
       sortOrder: 1,
@@ -232,7 +232,7 @@ describe('Product Catalog Isolation Tests', () => {
     })
 
     // Backup (should ignore catalog completely)
-    const stats = await pushToCloud(TEST_PHONE)
+    const stats = await pushToCloud(TEST_USER_ID)
 
     // Verify catalog was not counted in sync stats
     // (pushedCount should be 0 since only catalog exists)

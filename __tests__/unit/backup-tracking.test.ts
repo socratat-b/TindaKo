@@ -21,7 +21,7 @@ vi.mock('@/lib/supabase/client', () => ({
   })
 }))
 
-const TEST_PHONE = '09171234567'
+const TEST_USER_ID = crypto.randomUUID()
 
 describe('Backup Offline Change Tracking', () => {
   beforeEach(async () => {
@@ -38,14 +38,14 @@ describe('Backup Offline Change Tracking', () => {
 
   describe('hasUnsyncedChanges', () => {
     it('should return false when no data exists', async () => {
-      const result = await hasUnsyncedChanges(TEST_PHONE)
+      const result = await hasUnsyncedChanges(TEST_USER_ID)
       expect(result).toBe(false)
     })
 
     it('should return false when all items are synced', async () => {
       await db.categories.add({
         id: '1',
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         name: 'Beverages',
         color: '#FF0000',
         sortOrder: 1,
@@ -55,14 +55,14 @@ describe('Backup Offline Change Tracking', () => {
         isDeleted: false,
       })
 
-      const result = await hasUnsyncedChanges(TEST_PHONE)
+      const result = await hasUnsyncedChanges(TEST_USER_ID)
       expect(result).toBe(false)
     })
 
     it('should return true when category has unsynced changes', async () => {
       await db.categories.add({
         id: '1',
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         name: 'Beverages',
         color: '#FF0000',
         sortOrder: 1,
@@ -72,7 +72,7 @@ describe('Backup Offline Change Tracking', () => {
         isDeleted: false,
       })
 
-      const result = await hasUnsyncedChanges(TEST_PHONE)
+      const result = await hasUnsyncedChanges(TEST_USER_ID)
       expect(result).toBe(true)
     })
 
@@ -81,7 +81,7 @@ describe('Backup Offline Change Tracking', () => {
 
       await db.categories.add({
         id: categoryId,
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         name: 'Beverages',
         color: '#FF0000',
         sortOrder: 1,
@@ -93,7 +93,7 @@ describe('Backup Offline Change Tracking', () => {
 
       await db.products.add({
         id: crypto.randomUUID(),
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         name: 'Coke',
         barcode: '123456',
         categoryId,
@@ -106,14 +106,14 @@ describe('Backup Offline Change Tracking', () => {
         isDeleted: false,
       })
 
-      const result = await hasUnsyncedChanges(TEST_PHONE)
+      const result = await hasUnsyncedChanges(TEST_USER_ID)
       expect(result).toBe(true)
     })
 
     it('should ignore deleted items when checking unsynced changes', async () => {
       await db.categories.add({
         id: '1',
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         name: 'Beverages',
         color: '#FF0000',
         sortOrder: 1,
@@ -123,7 +123,7 @@ describe('Backup Offline Change Tracking', () => {
         isDeleted: true, // Deleted - should be ignored
       })
 
-      const result = await hasUnsyncedChanges(TEST_PHONE)
+      const result = await hasUnsyncedChanges(TEST_USER_ID)
       expect(result).toBe(false)
     })
 
@@ -131,7 +131,7 @@ describe('Backup Offline Change Tracking', () => {
       // Add item for different phone
       await db.categories.add({
         id: '1',
-        storePhone: '09999999999', // Different phone
+        userId: crypto.randomUUID(), // Different user
         name: 'Beverages',
         color: '#FF0000',
         sortOrder: 1,
@@ -141,7 +141,7 @@ describe('Backup Offline Change Tracking', () => {
         isDeleted: false,
       })
 
-      const result = await hasUnsyncedChanges(TEST_PHONE)
+      const result = await hasUnsyncedChanges(TEST_USER_ID)
       expect(result).toBe(false)
     })
 
@@ -152,7 +152,7 @@ describe('Backup Offline Change Tracking', () => {
       // Synced category
       await db.categories.add({
         id: categoryId,
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         name: 'Beverages',
         color: '#FF0000',
         sortOrder: 1,
@@ -165,7 +165,7 @@ describe('Backup Offline Change Tracking', () => {
       // Unsynced customer
       await db.customers.add({
         id: customerId,
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         name: 'Juan Dela Cruz',
         phone: '09171234567',
         address: 'Manila',
@@ -176,7 +176,7 @@ describe('Backup Offline Change Tracking', () => {
         isDeleted: false,
       })
 
-      const result = await hasUnsyncedChanges(TEST_PHONE)
+      const result = await hasUnsyncedChanges(TEST_USER_ID)
       expect(result).toBe(true)
     })
 
@@ -186,7 +186,7 @@ describe('Backup Offline Change Tracking', () => {
 
       await db.categories.add({
         id: categoryId,
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         name: 'Beverages',
         color: '#FF0000',
         sortOrder: 1,
@@ -198,7 +198,7 @@ describe('Backup Offline Change Tracking', () => {
 
       await db.products.add({
         id: productId,
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         name: 'Coke',
         barcode: '123456',
         categoryId,
@@ -214,7 +214,7 @@ describe('Backup Offline Change Tracking', () => {
       // Unsynced sale
       await db.sales.add({
         id: crypto.randomUUID(),
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         items: [
           {
             productId,
@@ -237,7 +237,7 @@ describe('Backup Offline Change Tracking', () => {
         isDeleted: false,
       })
 
-      const result = await hasUnsyncedChanges(TEST_PHONE)
+      const result = await hasUnsyncedChanges(TEST_USER_ID)
       expect(result).toBe(true)
     })
   })
@@ -248,7 +248,7 @@ describe('Backup Offline Change Tracking', () => {
 
       await db.categories.add({
         id,
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         name: 'Beverages',
         color: '#FF0000',
         sortOrder: 1,
@@ -268,7 +268,7 @@ describe('Backup Offline Change Tracking', () => {
 
       await db.categories.add({
         id,
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         name: 'Beverages',
         color: '#FF0000',
         sortOrder: 1,
@@ -295,7 +295,7 @@ describe('Backup Offline Change Tracking', () => {
 
       await db.categories.add({
         id,
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         name: 'Beverages',
         color: '#FF0000',
         sortOrder: 1,
@@ -319,7 +319,7 @@ describe('Backup Offline Change Tracking', () => {
 
   describe('offline change tracking edge cases', () => {
     it('should handle empty tables gracefully', async () => {
-      const result = await hasUnsyncedChanges(TEST_PHONE)
+      const result = await hasUnsyncedChanges(TEST_USER_ID)
       expect(result).toBe(false)
     })
 
@@ -327,7 +327,7 @@ describe('Backup Offline Change Tracking', () => {
       // Synced item
       await db.categories.add({
         id: '1',
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         name: 'Beverages',
         color: '#FF0000',
         sortOrder: 1,
@@ -340,7 +340,7 @@ describe('Backup Offline Change Tracking', () => {
       // Unsynced item
       await db.categories.add({
         id: '2',
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         name: 'Snacks',
         color: '#00FF00',
         sortOrder: 2,
@@ -350,7 +350,7 @@ describe('Backup Offline Change Tracking', () => {
         isDeleted: false,
       })
 
-      const result = await hasUnsyncedChanges(TEST_PHONE)
+      const result = await hasUnsyncedChanges(TEST_USER_ID)
       expect(result).toBe(true)
     })
 
@@ -361,7 +361,7 @@ describe('Backup Offline Change Tracking', () => {
         promises.push(
           db.categories.add({
             id: `cat-${i}`,
-            storePhone: TEST_PHONE,
+            userId: TEST_USER_ID,
             name: `Category ${i}`,
             color: '#FF0000',
             sortOrder: i,
@@ -374,7 +374,7 @@ describe('Backup Offline Change Tracking', () => {
       }
       await Promise.all(promises)
 
-      const result = await hasUnsyncedChanges(TEST_PHONE)
+      const result = await hasUnsyncedChanges(TEST_USER_ID)
       expect(result).toBe(false)
     })
   })

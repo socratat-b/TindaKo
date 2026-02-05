@@ -105,9 +105,12 @@ describe('syncAll', () => {
   })
 
   it('skips sync when offline', async () => {
-    // Mock offline
-    const { isOnline } = await import('@/lib/auth/session-cache')
-    ;(isOnline as any).mockResolvedValueOnce(false)
+    // Mock offline by stubbing navigator.onLine
+    const originalOnline = navigator.onLine
+    Object.defineProperty(navigator, 'onLine', {
+      writable: true,
+      value: false,
+    })
 
     const stats = await syncAll()
 
@@ -115,6 +118,12 @@ describe('syncAll', () => {
       pushedCount: 0,
       pulledCount: 0,
       skippedCount: 0,
+    })
+
+    // Restore
+    Object.defineProperty(navigator, 'onLine', {
+      writable: true,
+      value: originalOnline,
     })
   })
 

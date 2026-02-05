@@ -8,7 +8,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { db } from '@/lib/db'
 import { pushToCloud, pullFromCloud, hasUnsyncedChanges } from '@/lib/db/sync'
 
-const TEST_PHONE = '09171234567'
+const TEST_USER_ID = crypto.randomUUID()
 
 // Mock Supabase client with in-memory storage
 const mockSupabaseStorage: Record<string, any[]> = {
@@ -38,9 +38,9 @@ vi.mock('@/lib/supabase/client', () => ({
       select: vi.fn(() => ({
         eq: vi.fn((column: string, value: any) => ({
           eq: vi.fn((column2: string, value2: any) => {
-            // Filter mock storage by store_phone and is_deleted
+            // Filter mock storage by user_id and is_deleted
             const filtered = mockSupabaseStorage[table].filter(
-              (item) => item.store_phone === value && item.is_deleted === value2
+              (item) => item.user_id === value && item.is_deleted === value2
             )
             return Promise.resolve({ data: filtered, error: null })
           }),
@@ -74,7 +74,7 @@ describe('Backup Workflow Integration Tests', () => {
       const categoryId = crypto.randomUUID()
       await db.categories.add({
         id: categoryId,
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         name: 'Beverages',
         color: '#FF0000',
         sortOrder: 1,
@@ -85,11 +85,11 @@ describe('Backup Workflow Integration Tests', () => {
       })
 
       // 2. Verify unsynced changes detected
-      const hasPending = await hasUnsyncedChanges(TEST_PHONE)
+      const hasPending = await hasUnsyncedChanges(TEST_USER_ID)
       expect(hasPending).toBe(true)
 
       // 3. Push to cloud (backup)
-      const pushStats = await pushToCloud(TEST_PHONE)
+      const pushStats = await pushToCloud(TEST_USER_ID)
       expect(pushStats.pushedCount).toBe(1)
 
       // 4. Verify syncedAt is set after backup
@@ -97,7 +97,7 @@ describe('Backup Workflow Integration Tests', () => {
       expect(category?.syncedAt).not.toBe(null)
 
       // 5. Verify no more pending changes
-      const hasPendingAfter = await hasUnsyncedChanges(TEST_PHONE)
+      const hasPendingAfter = await hasUnsyncedChanges(TEST_USER_ID)
       expect(hasPendingAfter).toBe(false)
 
       // 6. Verify data is in mock cloud storage
@@ -109,7 +109,7 @@ describe('Backup Workflow Integration Tests', () => {
       // 1. Simulate data already in cloud (from previous backup)
       mockSupabaseStorage.categories.push({
         id: crypto.randomUUID(),
-        store_phone: TEST_PHONE,
+        user_id: TEST_USER_ID,
         name: 'Cloud Category',
         color: '#00FF00',
         sort_order: 1,
@@ -120,7 +120,7 @@ describe('Backup Workflow Integration Tests', () => {
       })
 
       // 2. Pull from cloud (restore on new device)
-      const pullStats = await pullFromCloud(TEST_PHONE)
+      const pullStats = await pullFromCloud(TEST_USER_ID)
       expect(pullStats.pulledCount).toBe(1)
 
       // 3. Verify data is in local IndexedDB
@@ -138,7 +138,7 @@ describe('Backup Workflow Integration Tests', () => {
 
       await db.categories.add({
         id: categoryId,
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         name: 'Beverages',
         color: '#FF0000',
         sortOrder: 1,
@@ -150,7 +150,7 @@ describe('Backup Workflow Integration Tests', () => {
 
       await db.products.add({
         id: productId,
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         name: 'Coke',
         barcode: '123456',
         categoryId,
@@ -165,7 +165,7 @@ describe('Backup Workflow Integration Tests', () => {
 
       await db.customers.add({
         id: customerId,
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         name: 'Juan Dela Cruz',
         phone: '09171234567',
         address: 'Manila',
@@ -177,11 +177,11 @@ describe('Backup Workflow Integration Tests', () => {
       })
 
       // STEP 2: Verify pending changes
-      const hasPending = await hasUnsyncedChanges(TEST_PHONE)
+      const hasPending = await hasUnsyncedChanges(TEST_USER_ID)
       expect(hasPending).toBe(true)
 
       // STEP 3: Backup to cloud
-      const pushStats = await pushToCloud(TEST_PHONE)
+      const pushStats = await pushToCloud(TEST_USER_ID)
       expect(pushStats.pushedCount).toBe(3) // 1 category + 1 product + 1 customer
 
       // STEP 4: Clear local data (simulate new device)
@@ -190,7 +190,7 @@ describe('Backup Workflow Integration Tests', () => {
       await db.customers.clear()
 
       // STEP 5: Restore from cloud
-      const pullStats = await pullFromCloud(TEST_PHONE)
+      const pullStats = await pullFromCloud(TEST_USER_ID)
       expect(pullStats.pulledCount).toBe(3)
 
       // STEP 6: Verify data integrity
@@ -213,13 +213,13 @@ describe('Backup Workflow Integration Tests', () => {
     })
 
     it('should only sync data for the specified store phone', async () => {
-      const phone1 = '09171234567'
-      const phone2 = '09999999999'
+      const userId1 = crypto.randomUUID()
+      const userId2 = crypto.randomUUID()
 
       // Create data for two different phones
       await db.categories.add({
         id: crypto.randomUUID(),
-        storePhone: phone1,
+        userId: userId1,
         name: 'Phone1 Category',
         color: '#FF0000',
         sortOrder: 1,
@@ -231,7 +231,7 @@ describe('Backup Workflow Integration Tests', () => {
 
       await db.categories.add({
         id: crypto.randomUUID(),
-        storePhone: phone2,
+        userId: userId2,
         name: 'Phone2 Category',
         color: '#00FF00',
         sortOrder: 2,
@@ -241,11 +241,11 @@ describe('Backup Workflow Integration Tests', () => {
         isDeleted: false,
       })
 
-      // Backup only phone1 data
-      const pushStats = await pushToCloud(phone1)
+      // Backup only userId1 data
+      const pushStats = await pushToCloud(userId1)
       expect(pushStats.pushedCount).toBe(1)
 
-      // Verify only phone1 data is in cloud
+      // Verify only userId1 data is in cloud
       expect(mockSupabaseStorage.categories).toHaveLength(1)
       expect(mockSupabaseStorage.categories[0].name).toBe('Phone1 Category')
     })
@@ -257,7 +257,7 @@ describe('Backup Workflow Integration Tests', () => {
       // Active category
       await db.categories.add({
         id: id1,
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         name: 'Active Category',
         color: '#FF0000',
         sortOrder: 1,
@@ -270,7 +270,7 @@ describe('Backup Workflow Integration Tests', () => {
       // Deleted category
       await db.categories.add({
         id: id2,
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         name: 'Deleted Category',
         color: '#00FF00',
         sortOrder: 2,
@@ -281,7 +281,7 @@ describe('Backup Workflow Integration Tests', () => {
       })
 
       // Backup
-      const pushStats = await pushToCloud(TEST_PHONE)
+      const pushStats = await pushToCloud(TEST_USER_ID)
       expect(pushStats.pushedCount).toBe(1) // Only active item
 
       // Verify only active item is in cloud
@@ -299,7 +299,7 @@ describe('Backup Workflow Integration Tests', () => {
       // Create dependencies
       await db.categories.add({
         id: categoryId,
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         name: 'Beverages',
         color: '#FF0000',
         sortOrder: 1,
@@ -311,7 +311,7 @@ describe('Backup Workflow Integration Tests', () => {
 
       await db.products.add({
         id: productId,
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         name: 'Coke',
         barcode: '123456',
         categoryId,
@@ -327,7 +327,7 @@ describe('Backup Workflow Integration Tests', () => {
       // Create sale with items
       await db.sales.add({
         id: saleId,
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         items: [
           {
             productId,
@@ -351,7 +351,7 @@ describe('Backup Workflow Integration Tests', () => {
       })
 
       // Backup all data
-      const pushStats = await pushToCloud(TEST_PHONE)
+      const pushStats = await pushToCloud(TEST_USER_ID)
       expect(pushStats.pushedCount).toBe(3)
 
       // Clear and restore
@@ -359,7 +359,7 @@ describe('Backup Workflow Integration Tests', () => {
       await db.products.clear()
       await db.sales.clear()
 
-      const pullStats = await pullFromCloud(TEST_PHONE)
+      const pullStats = await pullFromCloud(TEST_USER_ID)
       expect(pullStats.pulledCount).toBe(3)
 
       // Verify sale items are intact
@@ -375,7 +375,7 @@ describe('Backup Workflow Integration Tests', () => {
 
       await db.customers.add({
         id: customerId,
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         name: 'Juan Dela Cruz',
         phone: '09171234567',
         address: 'Manila',
@@ -388,7 +388,7 @@ describe('Backup Workflow Integration Tests', () => {
 
       await db.utangTransactions.add({
         id: txnId,
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         customerId,
         saleId: null,
         type: 'charge',
@@ -401,13 +401,13 @@ describe('Backup Workflow Integration Tests', () => {
         isDeleted: false,
       })
 
-      const pushStats = await pushToCloud(TEST_PHONE)
+      const pushStats = await pushToCloud(TEST_USER_ID)
       expect(pushStats.pushedCount).toBe(2)
 
       await db.customers.clear()
       await db.utangTransactions.clear()
 
-      const pullStats = await pullFromCloud(TEST_PHONE)
+      const pullStats = await pullFromCloud(TEST_USER_ID)
       expect(pullStats.pulledCount).toBe(2)
 
       const txn = await db.utangTransactions.get(txnId)
@@ -422,7 +422,7 @@ describe('Backup Workflow Integration Tests', () => {
 
       await db.categories.add({
         id: categoryId,
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         name: 'Beverages',
         color: '#FF0000',
         sortOrder: 1,
@@ -434,7 +434,7 @@ describe('Backup Workflow Integration Tests', () => {
 
       await db.products.add({
         id: productId,
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         name: 'Coke',
         barcode: '123456',
         categoryId,
@@ -449,7 +449,7 @@ describe('Backup Workflow Integration Tests', () => {
 
       await db.inventoryMovements.add({
         id: movementId,
-        storePhone: TEST_PHONE,
+        userId: TEST_USER_ID,
         productId,
         type: 'in',
         qty: 50,
@@ -460,14 +460,14 @@ describe('Backup Workflow Integration Tests', () => {
         isDeleted: false,
       })
 
-      const pushStats = await pushToCloud(TEST_PHONE)
+      const pushStats = await pushToCloud(TEST_USER_ID)
       expect(pushStats.pushedCount).toBe(3)
 
       await db.categories.clear()
       await db.products.clear()
       await db.inventoryMovements.clear()
 
-      const pullStats = await pullFromCloud(TEST_PHONE)
+      const pullStats = await pullFromCloud(TEST_USER_ID)
       expect(pullStats.pulledCount).toBe(3)
 
       const movement = await db.inventoryMovements.get(movementId)
