@@ -25,30 +25,38 @@ export default function StoreSetupPage() {
   // Check if user is authenticated
   useEffect(() => {
     async function checkAuth() {
-      const supabase = createClient()
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      try {
+        const supabase = createClient()
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
 
-      if (!user) {
-        // Not authenticated - redirect to login
-        router.push('/login')
-        return
-      }
+        if (!user) {
+          // Not authenticated - redirect to login
+          router.push('/login')
+          return
+        }
 
-      setUserEmail(user.email || null)
-      setIsCheckingAuth(false)
+        setUserEmail(user.email || null)
 
-      // Check if user already has a profile (shouldn't be here)
-      const { data: profile } = await supabase
-        .from('stores')
-        .select('*')
-        .eq('id', user.id)
-        .single()
+        // Check if user already has a profile (shouldn't be here)
+        const { data: profile, error } = await supabase
+          .from('stores')
+          .select('*')
+          .eq('id', user.id)
+          .maybeSingle() // Use maybeSingle instead of single to avoid 406 error
 
-      if (profile) {
-        // Already has profile - redirect to POS
-        router.push('/pos')
+        // Only stop loading after all checks are done
+        setIsCheckingAuth(false)
+
+        if (profile && !error) {
+          // Already has profile - redirect to POS
+          router.push('/pos')
+        }
+      } catch (err) {
+        console.error('[StoreSetup] Check auth error:', err)
+        // Stop loading even if there's an error
+        setIsCheckingAuth(false)
       }
     }
 

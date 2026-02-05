@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
         .from('stores')
         .select('*')
         .eq('id', user.id)
-        .single()
+        .maybeSingle() // Use maybeSingle to avoid 406 error when no match
 
       if (profileError || !profile) {
         // First-time user - redirect to store setup
