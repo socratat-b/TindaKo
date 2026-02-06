@@ -5,38 +5,73 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { LogOut, Smartphone } from 'lucide-react'
+import { LogOut, Mail, User } from 'lucide-react'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { LogoutDialog } from '@/components/layout/logout-dialog'
 
 export function AppSettingsSection() {
-  const { userId } = useAuth()
+  const { email, avatarUrl } = useAuth()
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false)
+
+  // Get initials from email for avatar
+  const getInitials = (email: string | null) => {
+    if (!email) return 'U'
+    return email.charAt(0).toUpperCase()
+  }
 
   return (
     <>
       <Card className="p-4 lg:p-6">
         <h2 className="text-base lg:text-lg font-semibold mb-3 lg:mb-4">Account</h2>
         <div className="space-y-3 lg:space-y-4">
+          {/* Profile Section */}
+          <div className="flex items-center gap-4 pb-3 border-b">
+            {/* Avatar */}
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt="Profile"
+                className="h-16 w-16 lg:h-20 lg:w-20 rounded-full object-cover"
+              />
+            ) : (
+              <div className="h-16 w-16 lg:h-20 lg:w-20 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-lg lg:text-xl font-semibold text-primary">
+                  {getInitials(email)}
+                </span>
+              </div>
+            )}
+            {/* Profile Info */}
+            <div className="flex-1 min-w-0">
+              <p className="text-xs lg:text-sm text-muted-foreground">
+                Signed in with OAuth
+              </p>
+              <p className="text-sm lg:text-base font-medium truncate">
+                {email || 'Loading...'}
+              </p>
+            </div>
+          </div>
+
+          {/* Email Field */}
           <div className="space-y-1.5">
-            <Label htmlFor="user-userId" className="text-xs lg:text-sm">
-              Phone Number
+            <Label htmlFor="user-email" className="text-xs lg:text-sm">
+              Email Address
             </Label>
             <div className="relative">
-              <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                id="user-userId"
-                value={userId || ''}
+                id="user-email"
+                value={email || 'Not available'}
                 readOnly
                 disabled
                 className="h-9 text-xs lg:h-10 lg:text-sm pl-10 bg-muted/50 cursor-not-allowed"
               />
             </div>
             <p className="text-[10px] lg:text-xs text-muted-foreground">
-              Your account userId number (read-only)
+              Your OAuth account email (read-only)
             </p>
           </div>
 
+          {/* Logout Section */}
           <div className="pt-2 border-t">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">

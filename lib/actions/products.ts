@@ -36,29 +36,43 @@ export async function createProduct(data: CreateProductInput): Promise<string> {
   const productId = crypto.randomUUID()
 
   try {
+    // Validate product name
+    const trimmedName = data.name.trim()
+    if (!trimmedName) {
+      throw new Error('Product name cannot be empty')
+    }
+
+    // Validate selling price
+    if (data.sellingPrice <= 0) {
+      throw new Error('Selling price must be greater than zero')
+    }
+
     // Validate category exists
     const category = await db.categories.get(data.categoryId)
     if (!category || category.isDeleted) {
-      throw new Error('Invalid category')
+      throw new Error('Invalid category. The selected category does not exist.')
     }
 
     // Check if barcode already exists (within same user)
     if (data.barcode) {
-      const existing = await db.products
-        .where('barcode')
-        .equals(data.barcode)
-        .and((p) => !p.isDeleted && p.userId === data.userId)
-        .first()
+      const trimmedBarcode = data.barcode.trim()
+      if (trimmedBarcode) {
+        const existing = await db.products
+          .where('barcode')
+          .equals(trimmedBarcode)
+          .and((p) => !p.isDeleted && p.userId === data.userId)
+          .first()
 
-      if (existing) {
-        throw new Error('A product with this barcode already exists')
+        if (existing) {
+          throw new Error('A product with this barcode already exists')
+        }
       }
     }
 
     const product: Product = {
       id: productId,
       userId: data.userId,
-      name: data.name.trim(),
+      name: trimmedName,
       barcode: data.barcode?.trim() || null,
       categoryId: data.categoryId,
       sellingPrice: data.sellingPrice,
@@ -97,16 +111,32 @@ export async function updateProduct(
       throw new Error('Product not found')
     }
 
-    // If barcode is being updated, check for duplicates (within same user)
-    if (data.barcode && data.barcode !== product.barcode) {
-      const existing = await db.products
-        .where('barcode')
-        .equals(data.barcode)
-        .and((p) => !p.isDeleted && p.id !== id && p.userId === product.userId)
-        .first()
+    // Validate product name if provided
+    if (data.name !== undefined) {
+      const trimmedName = data.name.trim()
+      if (!trimmedName) {
+        throw new Error('Product name cannot be empty')
+      }
+    }
 
-      if (existing) {
-        throw new Error('A product with this barcode already exists')
+    // Validate selling price if provided
+    if (data.sellingPrice !== undefined && data.sellingPrice <= 0) {
+      throw new Error('Selling price must be greater than zero')
+    }
+
+    // If barcode is being updated, check for duplicates (within same user)
+    if (data.barcode !== undefined && data.barcode !== product.barcode) {
+      const trimmedBarcode = data.barcode ? data.barcode.trim() : ''
+      if (trimmedBarcode) {
+        const existing = await db.products
+          .where('barcode')
+          .equals(trimmedBarcode)
+          .and((p) => !p.isDeleted && p.id !== id && p.userId === product.userId)
+          .first()
+
+        if (existing) {
+          throw new Error('A product with this barcode already exists')
+        }
       }
     }
 
@@ -114,17 +144,37 @@ export async function updateProduct(
     if (data.categoryId && data.categoryId !== product.categoryId) {
       const category = await db.categories.get(data.categoryId)
       if (!category || category.isDeleted) {
-        throw new Error('Invalid category')
+        throw new Error('Invalid category. The selected category does not exist.')
       }
     }
 
-    await db.products.update(id, {
-      ...data,
-      name: data.name?.trim(),
-      barcode: data.barcode?.trim() || null,
+    // Build update object conditionally to avoid overwriting fields with undefined/null
+    const updateData: Partial<Product> = {
       updatedAt: now,
       syncedAt: null,
-    })
+    }
+
+    // Only include fields that are actually provided
+    if (data.name !== undefined) {
+      updateData.name = data.name.trim()
+    }
+    if (data.barcode !== undefined) {
+      updateData.barcode = data.barcode ? data.barcode.trim() || null : null
+    }
+    if (data.categoryId !== undefined) {
+      updateData.categoryId = data.categoryId
+    }
+    if (data.sellingPrice !== undefined) {
+      updateData.sellingPrice = data.sellingPrice
+    }
+    if (data.stockQty !== undefined) {
+      updateData.stockQty = data.stockQty
+    }
+    if (data.lowStockThreshold !== undefined) {
+      updateData.lowStockThreshold = data.lowStockThreshold
+    }
+
+    await db.products.update(id, updateData)
 
     // Refresh products store
     refreshStore(product.userId)
@@ -168,13 +218,18 @@ export async function createCategory(data: CreateCategoryInput): Promise<string>
   const categoryId = crypto.randomUUID()
 
   try {
+    // Validate category name
+    const trimmedName = data.name.trim()
+    if (!trimmedName) {
+      throw new Error('Category name cannot be empty')
+    }
+
     // Check if category name already exists (within same user)
-    const trimmedName = data.name.trim().toLowerCase()
     const existing = await db.categories
       .filter((c) =>
         c.userId === data.userId &&
         !c.isDeleted &&
-        c.name.toLowerCase() === trimmedName
+        c.name.toLowerCase() === trimmedName.toLowerCase()
       )
       .first()
 
@@ -182,12 +237,27 @@ export async function createCategory(data: CreateCategoryInput): Promise<string>
       throw new Error('A category with this name already exists')
     }
 
+    // Auto-assign sortOrder if not provided (get max + 1)
+    let sortOrder = data.sortOrder
+    if (sortOrder === undefined || sortOrder === null) {
+      const categories = await db.categories
+        .where('userId')
+        .equals(data.userId)
+        .and((c) => !c.isDeleted)
+        .toArray()
+
+      const maxOrder = categories.reduce((max, cat) =>
+        Math.max(max, cat.sortOrder || 0), 0
+      )
+      sortOrder = maxOrder + 1
+    }
+
     const category: Category = {
       id: categoryId,
       userId: data.userId,
-      name: data.name.trim(),
+      name: trimmedName,
       color: data.color,
-      sortOrder: data.sortOrder,
+      sortOrder: sortOrder,
       createdAt: now,
       updatedAt: now,
       syncedAt: null,
@@ -238,12 +308,24 @@ export async function updateCategory(
       }
     }
 
-    await db.categories.update(id, {
-      ...data,
-      name: data.name?.trim(),
+    // Build update object conditionally to avoid overwriting fields with undefined
+    const updateData: Partial<Category> = {
       updatedAt: now,
       syncedAt: null,
-    })
+    }
+
+    // Only include fields that are actually provided
+    if (data.name !== undefined) {
+      updateData.name = data.name.trim()
+    }
+    if (data.color !== undefined) {
+      updateData.color = data.color
+    }
+    if (data.sortOrder !== undefined) {
+      updateData.sortOrder = data.sortOrder
+    }
+
+    await db.categories.update(id, updateData)
 
     // Refresh products store
     refreshStore(category.userId)
@@ -255,7 +337,7 @@ export async function updateCategory(
 
 /**
  * Delete a category (soft delete)
- * Note: This will NOT cascade delete products. Consider checking for products first.
+ * Validates that no active products are using this category before deletion
  */
 export async function deleteCategory(id: string): Promise<void> {
   const now = new Date().toISOString()
@@ -266,7 +348,7 @@ export async function deleteCategory(id: string): Promise<void> {
       throw new Error('Category not found')
     }
 
-    // Check if any products are using this category
+    // Check if any active (non-deleted) products are using this category
     const productsInCategory = await db.products
       .where('categoryId')
       .equals(id)
@@ -275,7 +357,7 @@ export async function deleteCategory(id: string): Promise<void> {
 
     if (productsInCategory > 0) {
       throw new Error(
-        `Cannot delete category. ${productsInCategory} product(s) are using this category.`
+        `Cannot delete category. ${productsInCategory} active product(s) are still using this category. Please reassign or delete those products first.`
       )
     }
 

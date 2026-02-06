@@ -316,12 +316,12 @@ describe('Multi-User Isolation - Products & Categories', () => {
         .filter((c) => c.userId === seller2UserId && !c.isDeleted)
         .count()
 
-      expect(seller1Categories).toBe(30) // 30 seeded
-      expect(seller2Categories).toBe(30) // 30 seeded
+      expect(seller1Categories).toBe(16) // 16 seeded
+      expect(seller2Categories).toBe(16) // 16 seeded
 
-      // Total categories in DB should be 60
+      // Total categories in DB should be 32 (16 + 16)
       const totalCategories = await db.categories.filter((c) => !c.isDeleted).count()
-      expect(totalCategories).toBe(60)
+      expect(totalCategories).toBe(32)
     })
   })
 })

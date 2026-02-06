@@ -60,7 +60,7 @@ describe('Sync Tracking Test', () => {
 
     const unsyncedCategories = categories.filter(c => c.syncedAt === null && !c.isDeleted)
     console.log('Unsynced categories:', unsyncedCategories.length)
-    expect(unsyncedCategories.length).toBe(30) // Should have 30 default categories
+    expect(unsyncedCategories.length).toBe(16) // Should have 16 default categories
 
     // Step 2: Create a product
     console.log('Creating product...')
@@ -140,14 +140,14 @@ describe('Sync Tracking Test', () => {
     // Step 4: Count total pending changes
     const totalPending = unsyncedCategories.length + unsyncedProducts.length + unsyncedSales.length
     console.log('Total pending changes:', totalPending)
-    expect(totalPending).toBe(32) // 30 categories + 1 product + 1 sale
+    expect(totalPending).toBe(18) // 16 categories + 1 product + 1 sale
 
     // Step 5: Push to cloud
     console.log('Pushing to cloud...')
     const stats = await pushToCloud(TEST_USER_ID)
     console.log('Push stats:', stats)
 
-    expect(stats.pushedCount).toBe(32)
+    expect(stats.pushedCount).toBe(18) // 16 categories + 1 product + 1 sale
 
     // Step 6: Verify syncedAt is set after push
     const categoriesAfterPush = await db.categories

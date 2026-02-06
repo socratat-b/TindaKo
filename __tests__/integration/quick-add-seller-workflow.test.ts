@@ -30,18 +30,18 @@ describe('Quick Add Seller Workflow', () => {
       .filter((c) => c.userId === sellerId && !c.isDeleted)
       .toArray()
 
-    expect(categories).toHaveLength(30)
+    expect(categories).toHaveLength(16)
 
     // Verify some expected categories
     const categoryNames = categories.map((c) => c.name)
-    expect(categoryNames).toContain('Softdrinks & Juices')
+    expect(categoryNames).toContain('Beverages')
     expect(categoryNames).toContain('Instant Noodles')
-    expect(categoryNames).toContain('Meryenda (Snacks)')
-    expect(categoryNames).toContain('Bath Soap & Shampoo')
-    expect(categoryNames).toContain('Over-the-Counter Medicines')
+    expect(categoryNames).toContain('Snacks')
+    expect(categoryNames).toContain('Personal Care')
+    expect(categoryNames).toContain('Household')
 
     // STEP 2: Seller opens Quick Add and adds first product (Coca Cola)
-    const softdrinksCategory = categories.find((c) => c.name === 'Softdrinks & Juices')
+    const softdrinksCategory = categories.find((c) => c.name === 'Beverages')
     expect(softdrinksCategory).toBeDefined()
 
     const cokeId = await createProduct({
@@ -100,7 +100,7 @@ describe('Quick Add Seller Workflow', () => {
     const categoriesAfterCustom = await db.categories
       .filter((c) => c.userId === sellerId && !c.isDeleted)
       .count()
-    expect(categoriesAfterCustom).toBe(31) // 30 default + 1 custom
+    expect(categoriesAfterCustom).toBe(17) // 16 default + 1 custom
 
     // STEP 6: Seller adds product to custom category
     const iceCreamId = await createProduct({
@@ -165,7 +165,7 @@ describe('Quick Add Seller Workflow', () => {
       .filter((c) => c.userId === sellerId && !c.isDeleted)
       .toArray()
 
-    const snacksCategory = categories.find((c) => c.name === 'Meryenda (Snacks)')!
+    const snacksCategory = categories.find((c) => c.name === 'Snacks')!
 
     // Simulate seller rapidly adding 10 products (Save & Add Another spam)
     const productPromises = Array.from({ length: 10 }, (_, i) =>
@@ -202,12 +202,12 @@ describe('Quick Add Seller Workflow', () => {
       .filter((c) => c.userId === sellerId && !c.isDeleted)
       .toArray()
 
-    const softdrinksCategory = categories.find((c) => c.name === 'Softdrinks & Juices')!
+    const softdrinksCategory = categories.find((c) => c.name === 'Beverages')!
 
     // SCENARIO 1: Seller tries to create duplicate category
     await expect(
       createCategory({
-        name: 'Softdrinks & Juices', // Already exists
+        name: 'Beverages', // Already exists
         color: '#000000',
         sortOrder: 31,
         userId: sellerId,
@@ -231,7 +231,8 @@ describe('Quick Add Seller Workflow', () => {
         name: 'Sprite 1L',
         barcode: 'COKE001', // Duplicate barcode
         categoryId: softdrinksCategory.id,
-        costPrice: 40,
+        // removed costPrice field - not in schema
+        // costPrice:40,
         sellingPrice: 40,
         stockQty: 15,
         lowStockThreshold: 10,
@@ -322,7 +323,7 @@ describe('Quick Add Seller Workflow', () => {
     // 2. Add popular beverages
     const softdrinksCategory = (
       await db.categories
-        .filter((c) => c.userId === sellerId && c.name === 'Softdrinks & Juices')
+        .filter((c) => c.userId === sellerId && c.name === 'Beverages')
         .first()
     )!
 
@@ -331,7 +332,8 @@ describe('Quick Add Seller Workflow', () => {
         name: 'Coke Mismo',
         barcode: null,
         categoryId: softdrinksCategory.id,
-        costPrice: 12,
+        // removed costPrice field - not in schema
+        // costPrice:12,
         sellingPrice: 12,
         stockQty: 100,
         lowStockThreshold: 20,
@@ -341,7 +343,8 @@ describe('Quick Add Seller Workflow', () => {
         name: 'Coke 1.5L',
         barcode: null,
         categoryId: softdrinksCategory.id,
-        costPrice: 50,
+        // removed costPrice field - not in schema
+        // costPrice:50,
         sellingPrice: 50,
         stockQty: 24,
         lowStockThreshold: 10,
@@ -351,7 +354,8 @@ describe('Quick Add Seller Workflow', () => {
         name: 'Sprite 1.5L',
         barcode: null,
         categoryId: softdrinksCategory.id,
-        costPrice: 50,
+        // removed costPrice field - not in schema
+        // costPrice:50,
         sellingPrice: 50,
         stockQty: 12,
         lowStockThreshold: 5,
@@ -371,7 +375,8 @@ describe('Quick Add Seller Workflow', () => {
         name: 'Lucky Me Pancit Canton Original',
         barcode: null,
         categoryId: noodlesCategory.id,
-        costPrice: 12,
+        // removed costPrice field - not in schema
+        // costPrice:12,
         sellingPrice: 12,
         stockQty: 50,
         lowStockThreshold: 20,
@@ -391,7 +396,7 @@ describe('Quick Add Seller Workflow', () => {
     // 4. Add snacks
     const snacksCategory = (
       await db.categories
-        .filter((c) => c.userId === sellerId && c.name === 'Meryenda (Snacks)')
+        .filter((c) => c.userId === sellerId && c.name === 'Snacks')
         .first()
     )!
 

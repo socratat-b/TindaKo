@@ -15,7 +15,7 @@ vi.mock('@/components/ui/camera-barcode-scanner', () => ({
 
 describe('BarcodeScanner - Catalog Integration', () => {
   const mockAddItem = vi.fn()
-  const mockStorePhone = '09171234567'
+  const mockUserId = 'test-user-uuid-123'
 
   beforeEach(async () => {
     // Clear database
@@ -25,8 +25,10 @@ describe('BarcodeScanner - Catalog Integration', () => {
 
     // Setup mocks
     vi.mocked(useAuth).mockReturnValue({
-      phone: mockStorePhone,
+      userId: mockUserId,
+      email: 'test@example.com',
       storeName: 'Test Store',
+      avatarUrl: null,
       isAuthenticated: true,
       isLoading: false,
     })
@@ -54,7 +56,7 @@ describe('BarcodeScanner - Catalog Integration', () => {
     // Seed category
     await db.categories.add({
       id: 'cat-1',
-      storePhone: mockStorePhone,
+      userId: mockUserId,
       name: 'Snacks',
       color: '#f97316',
       sortOrder: 1,
@@ -71,7 +73,7 @@ describe('BarcodeScanner - Catalog Integration', () => {
     // Add product to inventory first
     await db.products.add({
       id: 'prod-1',
-      storePhone: mockStorePhone,
+      userId: mockUserId,
       name: 'Fita Crackers',
       barcode: '750515017429',
       categoryId: 'cat-1',
@@ -276,18 +278,18 @@ describe('BarcodeScanner - Catalog Integration', () => {
     const saveButton = screen.getByRole('button', { name: /save & add to cart/i })
     await user.click(saveButton)
 
-    // Verify category was created (query using storePhone then filter by name)
+    // Verify category was created (query using userId then filter by name)
     await waitFor(async () => {
       const categories = await db.categories
-        .where('storePhone')
-        .equals(mockStorePhone)
+        .where('userId')
+        .equals(mockUserId)
         .toArray()
 
       const noodlesCategory = categories.find((c) => c.name === 'Noodles')
 
       expect(noodlesCategory).toBeDefined()
       expect(noodlesCategory?.name).toBe('Noodles')
-      expect(noodlesCategory?.storePhone).toBe(mockStorePhone)
+      expect(noodlesCategory?.userId).toBe(mockUserId)
     })
   })
 
@@ -297,7 +299,7 @@ describe('BarcodeScanner - Catalog Integration', () => {
     // Add product first
     await db.products.add({
       id: 'prod-1',
-      storePhone: mockStorePhone,
+      userId: mockUserId,
       name: 'Fita Crackers',
       barcode: '750515017429',
       categoryId: 'cat-1',
