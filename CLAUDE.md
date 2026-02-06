@@ -59,22 +59,21 @@ Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Ser
 ### ✅ Phase 1-3 Completed
 
 **Database & Sync:**
-- 6 tables: categories, customers, products, sales, utangTransactions, inventoryMovements
+- 7 tables: stores (user profiles), categories, customers, products, sales, utangTransactions, inventoryMovements
 - Dexie (local) + Supabase (cloud) with RLS policies
 - Manual backup sync with last-write-wins conflict resolution
 - Sync stats tracking (↑uploaded ↓downloaded)
-- Migration: `07_add_synced_at_column.sql`
+- Migration: `14_oauth_migration.sql` (latest - OAuth with userId UUID)
 
 **Authentication:**
-- **Local-first auth**: Phone number + 4-6 digit PIN (no email required)
-- **No Supabase Auth**: Removed email/password authentication
-- **Phone as identifier**: Unique phone number for multi-device restore
-- **PIN security**: Hashed PIN stored locally in IndexedDB
-- **Session persistence**: PIN saved locally, only asked on new devices
-- **Multi-device support**: Login with phone + PIN to restore data from Supabase
-- **Backup/Restore**: Phone number used as foreign key for all user data
-- Middleware (`proxy.ts`) checks local session for route protection
-- Simple UX: Signup in seconds (phone + store name + PIN)
+- **OAuth-based**: Google/Facebook login via Supabase Auth
+- **User profiles**: Stored in `stores` table with UUID primary key
+- **Session management**: Supabase Auth with httpOnly cookies
+- **Multi-device support**: Login with OAuth to sync data from Supabase
+- **Backup/Restore**: User ID (UUID) used as foreign key for all user data
+- **Offline-first sync**: Profile synced from Supabase to IndexedDB on login
+- Middleware (`proxy.ts`) checks Supabase session for route protection
+- Simple UX: Login with OAuth → set store name → start using POS
 
 **Testing:**
 - Vitest + React Testing Library
@@ -112,74 +111,66 @@ Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Ser
 - [x] **Reports Page**: Sales analytics with date filtering, stats, payment breakdown
 - [x] **Settings Page**: App configuration
 
-### ✅ Phase 4: Auth System Refactor (COMPLETED)
+### ✅ Phase 4: OAuth Authentication (COMPLETED)
 
-**Goal**: Replace Supabase Auth with simple phone + PIN authentication
+**Goal**: Implement OAuth authentication with Google/Facebook login
 
 **Implemented Changes:**
 
-1. **Removed Supabase Auth**
-   - ✅ Deleted email/password authentication
-   - ✅ Removed `lib/dal.ts` (verifySession, getUser)
-   - ✅ Removed `lib/auth/session-cache.ts`
-   - ✅ Removed `components/layout/auth-initializer.tsx`
-   - ✅ Cleaned up Supabase auth references
+1. **OAuth Integration with Supabase Auth**
+   - ✅ Google and Facebook OAuth providers
+   - ✅ Supabase Auth manages sessions with httpOnly cookies
+   - ✅ Server-side session validation in middleware
+   - ✅ Client-side auth state management with Zustand
 
-2. **New Phone-Based Auth System**
-   - ✅ Phone number (09XXXXXXXXX) as unique identifier
-   - ✅ 4-6 digit PIN with bcrypt hashing (`lib/auth/pin.ts`)
-   - ✅ Store name for UX (display only, not unique)
-   - ✅ Session storage: localStorage + cookies (`lib/auth/session.ts`)
-   - ✅ Cookies for middleware access (phone stored in cookie)
+2. **User Profile System**
+   - ✅ Created `stores` table: `{ id (uuid), email, store_name, avatar_url, provider, created_at, updated_at }`
+   - ✅ User ID is UUID from Supabase auth.users table
+   - ✅ Profile synced from Supabase to IndexedDB for offline access
+   - ✅ Store name editable by user in settings
 
-3. **Database Schema Migration**
-   - ✅ Created `stores` table: `{ id, phone, storeName, pinHash, createdAt, updatedAt }`
-   - ✅ Replaced `userId` with `storePhone` in all 6 tables
-   - ✅ Migration: `11_phone_auth_migration.sql` (applied)
-   - ✅ Disabled RLS policies: `12_simplify_rls_policies.sql` (applied)
-   - ✅ Updated all IndexedDB schema (Dexie v2 migration)
+3. **Database Schema**
+   - ✅ All tables use `user_id` (uuid) foreign key referencing stores(id)
+   - ✅ Migration: `14_oauth_migration.sql` (applied)
+   - ✅ RLS policies: Automatic user isolation via auth.uid()
+   - ✅ Dexie version 4: storePhone → userId migration
 
-4. **Auth Actions & Flows**
-   - ✅ `signupAction()`: Phone + Store Name + PIN → create account
-   - ✅ `loginAction()`: Phone + PIN → verify & restore session
-   - ✅ `logoutAction()`: Clear session + optional backup
-   - ✅ Auto-restore data from Supabase on login (new device)
-   - ✅ No SMS verification (phone is just an identifier)
+4. **Auth Flows**
+   - ✅ `setupStoreAction()`: Set store name after first OAuth login
+   - ✅ `updateStoreNameAction()`: Update store name in settings
+   - ✅ `logoutAction()`: Sign out from Supabase
+   - ✅ Auto-restore data from Supabase on login (profile sync)
+   - ✅ First-time users redirected to store-setup page
 
 5. **Static Pages Architecture**
-   - ✅ Removed `getUser()` from all page.tsx files
-   - ✅ All 13 pages now static (○) - instant offline capability
+   - ✅ All 15 pages static (○) - instant offline capability
    - ✅ Client-side auth via `useAuth()` hook
-   - ✅ Middleware (`proxy.ts`) checks auth cookie for route protection
-   - ✅ Pages: login, signup, pos, products, inventory, utang, reports, settings
+   - ✅ Middleware (`proxy.ts`) checks Supabase session for route protection
+   - ✅ AuthProvider syncs user profile from Supabase to IndexedDB
 
-6. **Code Updates (89 files changed)**
-   - ✅ Updated all components: userId → storePhone prop
-   - ✅ Updated all interfaces: userId → storePhone parameter
-   - ✅ Updated all actions: userId → storePhone input
-   - ✅ Updated all hooks: userId → storePhone parameter
-   - ✅ Updated all stores: userId → storePhone queries
-   - ✅ Updated all utils: userId → storePhone logic
-   - ✅ Updated all types: userId → storePhone in interfaces
-   - ✅ Updated sync system: manual filtering by storePhone
-   - ✅ Fixed database queries: `.where('userId')` → `.where('storePhone')`
+6. **Code Updates**
+   - ✅ All components use userId (UUID) for data queries
+   - ✅ All actions use userId parameter
+   - ✅ All hooks use userId parameter
+   - ✅ All types use userId in interfaces
+   - ✅ Database queries: `.where('userId').equals(userId)`
+   - ✅ Sync system filters by userId
 
 7. **UI Updates**
-   - ✅ Login page: Phone + PIN inputs with validation
-   - ✅ Signup page: Phone + Store Name + PIN + Confirm PIN
-   - ✅ Settings page: Display phone number (read-only)
-   - ✅ Auth provider: Simplified localStorage initialization
-   - ✅ Logout dialog: Backup before logout flow
+   - ✅ Login page: Google/Facebook OAuth buttons
+   - ✅ Store setup page: Set store name after first login
+   - ✅ Settings page: Display email, store name (editable)
+   - ✅ Auth provider: Syncs profile from Supabase to IndexedDB
+   - ✅ Logout: Clears Supabase session
 
 **Results:**
 - ✅ Build successful - no TypeScript errors
 - ✅ All pages static (○) - fully offline-capable
-- ✅ Simpler UX (no email required)
-- ✅ Instant signup (no verification)
-- ✅ Multi-device support via phone + PIN
-- ✅ Familiar for Filipino users (like GCash/PayMaya)
-- ✅ Session persists across page refreshes
-- ✅ Middleware protects routes with cookie-based auth
+- ✅ Secure OAuth with Google/Facebook
+- ✅ Automatic RLS via Supabase Auth
+- ✅ Multi-device support via OAuth login
+- ✅ Session persists with httpOnly cookies
+- ✅ Middleware protects routes with Supabase session
 
 ### 🔮 Phase 5: Future Enhancements
 
@@ -196,14 +187,14 @@ Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Ser
 - **Client-side IDs**: Use `crypto.randomUUID()` or `nanoid()`
 - **Update timestamps**: Always update `updatedAt` and reset `syncedAt: null` on changes
 - **Filter deleted**: Query with `.filter(item => !item.isDeleted)`
-- **User isolation**: ALWAYS filter by phone: `.where('storePhone').equals(phone)`
-- **Phone as foreign key**: All tables use `storePhone` (local) ↔ `store_phone` (cloud)
+- **User isolation**: ALWAYS filter by userId: `.where('userId').equals(userId)`
+- **userId as foreign key**: All tables use `userId` (local) ↔ `user_id` (cloud)
 - **Sync order**: categories, customers, products, sales, utangTransactions, inventoryMovements
 - **Case conversion**: Use `toSnakeCase()` and `toCamelCase()` helpers in `lib/db/sync.ts`
-- **Auth table**: `stores` table with phone (unique), storeName, pinHash
+- **Auth table**: `stores` table with id (uuid), email, store_name, avatar_url, provider
 - **Catalog isolation**: `productCatalog` is local-only, NEVER synced to cloud
 - **Change tracking**: Dynamic `hasUnsyncedChanges()` checks `syncedAt === null` across all tables
-- **Schema consistency**: No `user_id` columns - only `store_phone` in Supabase
+- **Schema consistency**: All data tables use `user_id` (uuid) foreign key in Supabase
 
 ### Next.js 16 & React 19
 - Use `proxy.ts` instead of `middleware.ts` (Next.js 16 naming)
@@ -212,16 +203,16 @@ Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Ser
 - Service worker only generates in production (`NODE_ENV === "production"`)
 
 ### Authentication & Security
-- **Local-first auth**: No Supabase Auth, custom phone + PIN implementation
-- **Phone number**: Unique identifier (like username), stored in IndexedDB + Supabase
-- **PIN hash**: bcrypt-hashed, stored locally in IndexedDB
-- **Session**: Phone + PIN hash stored in localStorage for same-device login
-- **Multi-device**: Phone + PIN required on new devices, triggers data restore from Supabase
-- **Route protection**: Middleware (`proxy.ts`) checks local session, redirects if missing
-- **Supabase RLS**: Filter by `store_phone` instead of `auth.uid()`
-  - Example: `CREATE POLICY ON products USING (store_phone = current_setting('app.current_phone'))`
+- **OAuth authentication**: Google/Facebook login via Supabase Auth
+- **User ID**: UUID from Supabase auth.users table
+- **Session**: httpOnly cookies managed by Supabase Auth
+- **Profile sync**: User profile synced from Supabase to IndexedDB for offline access
+- **Multi-device**: OAuth login syncs data from Supabase to new device
+- **Route protection**: Middleware (`proxy.ts`) checks Supabase session, redirects if missing
+- **Supabase RLS**: Automatic user isolation via `auth.uid()`
+  - Example: `CREATE POLICY ON products USING (auth.uid() = user_id)`
 - **No server-side auth checks**: Pages are static, auth handled client-side + middleware
-- **Security model**: Device lock + PIN protects data (appropriate for single-user POS)
+- **Security model**: OAuth + RLS ensures secure multi-user access
 
 ### State Management & Code Organization
 
