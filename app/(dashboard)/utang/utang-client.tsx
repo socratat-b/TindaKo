@@ -8,16 +8,26 @@ const UtangInterface = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="p-3 md:p-6 space-y-4">
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <Skeleton className="h-8 w-32" />
+      <div className="space-y-4 p-3 md:p-6">
+        {/* Header Skeleton */}
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <Skeleton className="h-8 w-40" />
           <Skeleton className="h-9 w-full md:w-64" />
         </div>
-        <div className="grid gap-3 md:grid-cols-2">
+
+        {/* Stats Cards Skeleton */}
+        <div className="grid gap-3 sm:grid-cols-2">
           <Skeleton className="h-24" />
           <Skeleton className="h-24" />
         </div>
-        <Skeleton className="h-96" />
+
+        {/* Table Skeleton */}
+        <div className="space-y-3">
+          <Skeleton className="h-10 w-full" />
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 w-full" />
+          ))}
+        </div>
       </div>
     ),
   }

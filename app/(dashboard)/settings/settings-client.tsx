@@ -1,14 +1,29 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { Loader2 } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
 
 // Dynamically import Settings interface (Dexie requires client-side)
 const SettingsInterface = dynamic(() => import('@/components/settings/settings-interface'), {
   ssr: false,
   loading: () => (
-    <div className="flex items-center justify-center h-[calc(100vh-12rem)]">
-      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+    <div className="space-y-6 p-3 md:p-6">
+      {/* Header Skeleton */}
+      <Skeleton className="h-8 w-32" />
+
+      {/* Settings Sections Skeleton */}
+      <div className="space-y-6">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="space-y-4 rounded-lg border p-4 md:p-6">
+            <Skeleton className="h-6 w-40" />
+            <div className="space-y-3">
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   ),
 })
