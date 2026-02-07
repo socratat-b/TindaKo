@@ -161,6 +161,9 @@ export const useCartStore = create<CartState>()(
 
         if (items.length === 0) return
 
+        let hasStockAdjustments = false
+        const adjustedProducts: string[] = []
+
         // Update cart items with fresh product data
         const updatedItems = items.map(cartItem => {
           const latestProduct = products.find(p => p.id === cartItem.productId)
@@ -170,21 +173,38 @@ export const useCartStore = create<CartState>()(
             return cartItem
           }
 
+          // Adjust quantity if it exceeds available stock
+          let adjustedQuantity = cartItem.quantity
+          if (cartItem.quantity > latestProduct.stockQty) {
+            adjustedQuantity = latestProduct.stockQty
+            hasStockAdjustments = true
+            adjustedProducts.push(latestProduct.name)
+          }
+
           // Update with latest product data
           return {
             ...cartItem,
+            quantity: adjustedQuantity,
             productName: latestProduct.name,
             unitPrice: latestProduct.sellingPrice,
             stockQty: latestProduct.stockQty,
             barcode: latestProduct.barcode,
-            total: cartItem.quantity * latestProduct.sellingPrice
+            total: adjustedQuantity * latestProduct.sellingPrice
           }
         })
 
-        const subtotal = updatedItems.reduce((sum, item) => sum + item.total, 0)
+        // Filter out items with 0 quantity (out of stock)
+        const filteredItems = updatedItems.filter(item => item.quantity > 0)
+
+        const subtotal = filteredItems.reduce((sum, item) => sum + item.total, 0)
         const total = subtotal
 
-        set({ items: updatedItems, subtotal, total })
+        set({ items: filteredItems, subtotal, total })
+
+        // Log stock adjustments for debugging
+        if (hasStockAdjustments) {
+          console.warn(`Cart quantities adjusted for: ${adjustedProducts.join(', ')}`)
+        }
       }
     }),
     {

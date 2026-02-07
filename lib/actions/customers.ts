@@ -110,6 +110,14 @@ export async function deleteCustomer(customerId: string): Promise<CustomerAction
       return { success: false, error: 'Customer not found' }
     }
 
+    // Prevent deletion if customer has outstanding utang
+    if (customer.totalUtang > 0) {
+      return {
+        success: false,
+        error: `Cannot delete customer with outstanding balance of ₱${customer.totalUtang.toFixed(2)}. Please settle or record payment first.`,
+      }
+    }
+
     // Soft delete
     const now = new Date().toISOString()
     await db.customers.update(customerId, {

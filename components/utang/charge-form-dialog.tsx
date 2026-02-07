@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/select'
 import { Plus, Phone } from 'lucide-react'
 import type { Customer } from '@/lib/db/schema'
-import { recordManualCharge } from '@/lib/utils/utang-utils'
+import { recordManualChargeClient as recordManualCharge } from '@/lib/actions/utang'
 import { useSyncStore } from '@/lib/stores/sync-store'
 import { useFormatCurrency } from '@/lib/utils/currency'
 
@@ -69,7 +69,7 @@ export function ChargeFormDialog({
         userId,
         customerId,
         amount: parseFloat(formattedAmount.rawValue),
-        notes: notes || undefined,
+        notes: notes || '',
       })
 
       if (result.success) {

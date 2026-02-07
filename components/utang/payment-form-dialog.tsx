@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/select'
 import { DollarSign, Phone } from 'lucide-react'
 import type { Customer } from '@/lib/db/schema'
-import { recordPayment } from '@/lib/utils/utang-utils'
+import { recordPaymentClient as recordPayment } from '@/lib/actions/utang'
 import { useSyncStore } from '@/lib/stores/sync-store'
 import { useFormatCurrency } from '@/lib/utils/currency'
 

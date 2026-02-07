@@ -98,8 +98,8 @@ export async function processSale(data: CheckoutData): Promise<string> {
           await db.inventoryMovements.add(movement)
         }
 
-        // 3. Create utang transaction if customer is selected and payment is partial/deferred
-        if (data.customerId && data.amountPaid < data.total) {
+        // 3. Create utang transaction only for 'utang' payment method with unpaid balance
+        if (data.paymentMethod === 'utang' && data.customerId && data.amountPaid < data.total) {
           const utangAmount = data.total - data.amountPaid
           const customer = await db.customers.get(data.customerId)
 
