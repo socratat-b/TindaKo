@@ -161,7 +161,7 @@ export default function TermsOfServicePage() {
                     User Accounts
                   </h2>
                   <p className="text-gray-700 leading-relaxed mb-4">
-                    To use TindaKo, you must create an account by signing in with Google or Facebook.
+                    To use TindaKo, you must create an account by signing in with Google or email.
                     You agree to:
                   </p>
                   <div className="space-y-2">

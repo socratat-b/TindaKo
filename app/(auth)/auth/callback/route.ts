@@ -4,7 +4,7 @@ import type { NextRequest } from 'next/server'
 
 /**
  * OAuth Callback Route
- * Handles the redirect from Google/Facebook OAuth
+ * Handles the redirect from Google OAuth and email verification
  * Following Next.js authentication patterns
  */
 export async function GET(request: NextRequest) {

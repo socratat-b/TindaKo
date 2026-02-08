@@ -97,7 +97,7 @@ export default function DataDeletionPage() {
                     </li>
                     <li>
                       <strong>Email address:</strong> The email you used to sign in (Google or
-                      Facebook email)
+                      email account)
                     </li>
                     <li>
                       <strong>Store name:</strong> Your store's name (if you remember it)
@@ -166,7 +166,7 @@ export default function DataDeletionPage() {
               3. Revoke OAuth Access (Optional)
             </h2>
             <p className="mb-4">
-              If you signed in with Google or Facebook, you can also revoke TindaKo's access:
+              If you signed in with Google, you can also revoke TindaKo's access:
             </p>
 
             <div className="space-y-4">
@@ -179,13 +179,11 @@ export default function DataDeletionPage() {
                 </ol>
               </div>
 
-              <div className="border rounded-lg p-4">
-                <h3 className="font-semibold text-gray-900 mb-2">Facebook:</h3>
-                <ol className="space-y-2 text-gray-700">
-                  <li>1. Go to <a href="https://www.facebook.com/settings?tab=applications" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Facebook Apps and Websites</a></li>
-                  <li>2. Find "TindaKo" in the list</li>
-                  <li>3. Click "Remove"</li>
-                </ol>
+              <div className="border rounded-lg p-4 bg-gray-50">
+                <h3 className="font-semibold text-gray-900 mb-2">Email/Password accounts:</h3>
+                <p className="text-gray-700">
+                  If you signed up with email and password, simply request account deletion via email (step 2 above). No additional OAuth revocation is needed.
+                </p>
               </div>
             </div>
 

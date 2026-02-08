@@ -6,7 +6,7 @@ export interface UserProfile {
   email: string // From OAuth provider
   storeName: string // Editable by user
   avatarUrl: string | null // From OAuth provider
-  provider: 'google' | 'facebook' // Which OAuth provider
+  provider: 'google' | 'email' // Which auth provider
   createdAt: string
   updatedAt: string
 }

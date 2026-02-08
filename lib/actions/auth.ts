@@ -43,7 +43,7 @@ export async function setupStoreAction(storeName: string): Promise<AuthResult> {
 
   try {
     // Get OAuth provider from user metadata
-    const provider = user.app_metadata.provider as 'google' | 'facebook'
+    const provider = (user.app_metadata.provider === 'google' ? 'google' : 'email') as 'google' | 'email'
     const avatarUrl = user.user_metadata.avatar_url || null
 
     // Save to Supabase only (server-side)

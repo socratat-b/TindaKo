@@ -66,7 +66,7 @@ Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Ser
 - Migration: `14_oauth_migration.sql` (latest - OAuth with userId UUID)
 
 **Authentication:**
-- **OAuth-based**: Google/Facebook login via Supabase Auth
+- **Auth-based**: Google OAuth + Email/Password login via Supabase Auth
 - **User profiles**: Stored in `stores` table with UUID primary key
 - **Session management**: Supabase Auth with httpOnly cookies
 - **Multi-device support**: Login with OAuth to sync data from Supabase
@@ -113,12 +113,12 @@ Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Ser
 
 ### ✅ Phase 4: OAuth Authentication (COMPLETED)
 
-**Goal**: Implement OAuth authentication with Google/Facebook login
+**Goal**: Implement authentication with Google OAuth + Email/Password login
 
 **Implemented Changes:**
 
 1. **OAuth Integration with Supabase Auth**
-   - ✅ Google and Facebook OAuth providers
+   - ✅ Google OAuth + Email/Password providers
    - ✅ Supabase Auth manages sessions with httpOnly cookies
    - ✅ Server-side session validation in middleware
    - ✅ Client-side auth state management with Zustand
@@ -157,7 +157,7 @@ Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Ser
    - ✅ Sync system filters by userId
 
 7. **UI Updates**
-   - ✅ Login page: Google/Facebook OAuth buttons
+   - ✅ Login page: Google OAuth button + Email/Password form
    - ✅ Store setup page: Set store name after first login
    - ✅ Settings page: Display email, store name (editable)
    - ✅ Auth provider: Syncs profile from Supabase to IndexedDB
@@ -166,7 +166,7 @@ Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Ser
 **Results:**
 - ✅ Build successful - no TypeScript errors
 - ✅ All pages static (○) - fully offline-capable
-- ✅ Secure OAuth with Google/Facebook
+- ✅ Secure auth with Google OAuth + Email/Password
 - ✅ Automatic RLS via Supabase Auth
 - ✅ Multi-device support via OAuth login
 - ✅ Session persists with httpOnly cookies
@@ -203,7 +203,7 @@ Next.js 16.1.3 + React 19 + Tailwind v4 + Supabase + Dexie.js + Zustand v5 + Ser
 - Service worker only generates in production (`NODE_ENV === "production"`)
 
 ### Authentication & Security
-- **OAuth authentication**: Google/Facebook login via Supabase Auth
+- **Authentication**: Google OAuth + Email/Password login via Supabase Auth
 - **User ID**: UUID from Supabase auth.users table
 - **Session**: httpOnly cookies managed by Supabase Auth
 - **Profile sync**: User profile synced from Supabase to IndexedDB for offline access

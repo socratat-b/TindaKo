@@ -68,7 +68,7 @@ const features = [
   {
     icon: Lock,
     title: 'Simple Login',
-    description: 'Google or Facebook login. Quick, easy, at secure.',
+    description: 'Google or Email login. Quick, easy, at secure.',
     accent: 'from-rose-500 to-pink-500',
   },
   {
@@ -369,7 +369,7 @@ export default function Home() {
               {
                 step: '1',
                 title: 'Install & Sign Up',
-                description: 'I-install ang app at mag-login gamit ang Google or Facebook',
+                description: 'I-install ang app at mag-login gamit ang Google or Email',
                 icon: Smartphone,
                 color: 'from-orange-500 to-amber-500'
               },

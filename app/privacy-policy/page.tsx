@@ -138,7 +138,7 @@ export default function PrivacyPolicyPage() {
                     <div>
                       <h3 className="text-xl font-bold text-gray-800 mb-2">1. Authentication Information</h3>
                       <p className="text-gray-700 leading-relaxed mb-3">
-                        When you sign in to TindaKo using Google or Facebook, we collect:
+                        When you sign in to TindaKo using Google or email, we collect:
                       </p>
                       <div className="bg-gray-50 rounded-xl p-4 space-y-2">
                         <div className="flex items-start gap-2">
@@ -147,11 +147,11 @@ export default function PrivacyPolicyPage() {
                         </div>
                         <div className="flex items-start gap-2">
                           <span className="text-blue-600 font-bold">•</span>
-                          <span className="text-gray-700"><strong>Display name:</strong> From your Google or Facebook profile</span>
+                          <span className="text-gray-700"><strong>Display name:</strong> From your Google profile (if using Google sign-in)</span>
                         </div>
                         <div className="flex items-start gap-2">
                           <span className="text-blue-600 font-bold">•</span>
-                          <span className="text-gray-700"><strong>Profile picture:</strong> Optional, from your OAuth provider</span>
+                          <span className="text-gray-700"><strong>Profile picture:</strong> Optional, from your Google account</span>
                         </div>
                         <div className="flex items-start gap-2">
                           <span className="text-blue-600 font-bold">•</span>
@@ -252,7 +252,7 @@ export default function PrivacyPolicyPage() {
                     <div className="space-y-2">
                       <div className="flex items-start gap-2">
                         <span className="text-red-600">•</span>
-                        <span className="text-red-700"><strong>Google/Facebook:</strong> For OAuth authentication only</span>
+                        <span className="text-red-700"><strong>Google:</strong> For OAuth authentication only (if using Google sign-in)</span>
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="text-red-600">•</span>
@@ -336,15 +336,15 @@ export default function PrivacyPolicyPage() {
                   </a>
                 </div>
                 <div className="bg-white border border-blue-200 rounded-xl p-5">
-                  <h3 className="font-bold text-gray-900 mb-2">Facebook OAuth</h3>
-                  <p className="text-sm text-gray-600 mb-3">For Facebook sign-in authentication.</p>
+                  <h3 className="font-bold text-gray-900 mb-2">Supabase Auth (Email/Password)</h3>
+                  <p className="text-sm text-gray-600 mb-3">For email and password authentication.</p>
                   <a
-                    href="https://www.facebook.com/privacy/policy/"
+                    href="https://supabase.com/privacy"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:text-blue-700 font-semibold text-sm underline"
                   >
-                    View Facebook Privacy Policy →
+                    View Supabase Privacy Policy →
                   </a>
                 </div>
                 <div className="bg-white border border-blue-200 rounded-xl p-5">
