@@ -3,9 +3,10 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 /**
- * OAuth Callback Route
- * Handles the redirect from Google OAuth and email verification
- * Following Next.js authentication patterns
+ * Auth Callback Route
+ * Handles OAuth redirect and email verification
+ * Creates Supabase profile for first-time users using their Google name or email
+ * All users go straight to /pos — no store-setup step needed
  */
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
@@ -13,42 +14,61 @@ export async function GET(request: NextRequest) {
   const origin = requestUrl.origin
 
   if (code) {
-    const supabase = await createClient()
+    try {
+      const supabase = await createClient()
 
-    // Exchange code for session
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+      // Exchange code for session
+      const { error } = await supabase.auth.exchangeCodeForSession(code)
 
-    if (error) {
-      console.error('[OAuth Callback] Error exchanging code:', error)
-      // Redirect to login with error
-      return NextResponse.redirect(`${origin}/login?error=auth_failed`)
-    }
-
-    // Get the authenticated user
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (user) {
-      // Check if user profile exists in Supabase
-      const { data: profile, error: profileError } = await supabase
-        .from('stores')
-        .select('*')
-        .eq('id', user.id)
-        .maybeSingle() // Use maybeSingle to avoid 406 error when no match
-
-      if (profileError || !profile) {
-        // First-time user - redirect to store setup
-        console.log('[OAuth Callback] First-time user, redirecting to setup')
-        return NextResponse.redirect(`${origin}/store-setup`)
+      if (error) {
+        console.error('[Auth Callback] Error exchanging code:', error.message)
+        return NextResponse.redirect(`${origin}/login?error=auth_failed`)
       }
 
-      // Existing user - redirect to POS
-      console.log('[OAuth Callback] Returning user, redirecting to POS')
-      return NextResponse.redirect(`${origin}/pos`)
+      // Get the authenticated user
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (user) {
+        // Check if profile already exists
+        const { data: profile } = await supabase
+          .from('stores')
+          .select('id')
+          .eq('id', user.id)
+          .maybeSingle()
+
+        if (!profile) {
+          // First-time user — create profile with Google name or email prefix as store name
+          const provider = user.app_metadata.provider === 'google' ? 'google' : 'email'
+          const avatarUrl = user.user_metadata?.avatar_url || null
+          const displayName = user.user_metadata?.full_name
+            || user.user_metadata?.name
+            || user.email?.split('@')[0]
+            || 'My Store'
+          const storeName = `${displayName}'s Store`
+
+          const { error: insertError } = await supabase.from('stores').upsert({
+            id: user.id,
+            email: user.email,
+            store_name: storeName,
+            avatar_url: avatarUrl,
+            provider,
+          }, { onConflict: 'id' })
+
+          if (insertError) {
+            console.warn('[Auth Callback] Profile create error:', insertError.message)
+          } else {
+            console.log('[Auth Callback] New user profile created:', storeName)
+          }
+        }
+
+        // All users go straight to POS
+        return NextResponse.redirect(`${origin}/pos`)
+      }
+    } catch (err) {
+      console.error('[Auth Callback] Unexpected error:', err)
+      return NextResponse.redirect(`${origin}/login?error=auth_failed`)
     }
   }
 
-  // No code or no user - redirect to login
   return NextResponse.redirect(`${origin}/login`)
 }

@@ -1,5 +1,5 @@
 -- Migration: OAuth Authentication with Supabase Auth
--- Replaces phone-based auth with Google/Facebook OAuth
+-- Replaces phone-based auth with Google OAuth + Email/Password
 -- Changes: store_phone (text) → user_id (uuid)
 
 -- ============================================================================
@@ -23,7 +23,7 @@ CREATE TABLE public.stores (
   email text NOT NULL,
   store_name text NOT NULL,
   avatar_url text,
-  provider text NOT NULL CHECK (provider IN ('google', 'facebook')),
+  provider text NOT NULL CHECK (provider IN ('google', 'email')),
   created_at timestamptz DEFAULT now() NOT NULL,
   updated_at timestamptz DEFAULT now() NOT NULL
 );

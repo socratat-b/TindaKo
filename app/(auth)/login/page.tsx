@@ -42,7 +42,7 @@ export default function LoginPage() {
       })
 
       if (error) {
-        console.error('[Login] OAuth error:', error)
+        console.warn('[Login] OAuth error:', error.message)
         setError('Failed to sign in with Google. Please try again.')
       }
     } catch (err) {
@@ -64,14 +64,19 @@ export default function LoginPage() {
       })
 
       if (error) {
-        console.error('[Login] Email sign-in error:', error)
+        console.warn('[Login] Email sign-in error:', error.message)
         if (error.message.includes('Invalid login credentials')) {
           setError('Invalid email or password. Please try again.')
         } else if (error.message.includes('Email not confirmed')) {
           setError('Please check your email and confirm your account first.')
+        } else if (error.message.includes('rate limit')) {
+          setError('Too many attempts. Please wait a moment and try again.')
         } else {
           setError(error.message)
         }
+      } else {
+        // Sign-in successful — redirect to POS
+        router.push('/pos')
       }
     } catch (err) {
       console.error('[Login] Error:', err)
@@ -90,7 +95,7 @@ export default function LoginPage() {
           className="text-center"
         >
           <Loader2 className="h-12 w-12 animate-spin text-orange-600 mx-auto mb-4" />
-          <p className="text-sm font-semibold text-gray-700">Loading...</p>
+          <p className="text-sm font-semibold text-gray-800">Loading...</p>
         </motion.div>
       </div>
     )
@@ -98,7 +103,7 @@ export default function LoginPage() {
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 px-4 py-12 sm:px-6 lg:px-8 overflow-hidden">
-      {/* Noise Texture */}
+      {/* Noise Texture Overlay — identical to landing page */}
       <div
         className="fixed inset-0 opacity-[0.015] pointer-events-none"
         style={{
@@ -106,34 +111,20 @@ export default function LoginPage() {
         }}
       />
 
-      {/* Decorative Elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          animate={{
-            rotate: [0, 360],
-            scale: [1, 1.1, 1]
-          }}
-          transition={{
-            duration: 25,
-            repeat: Infinity,
-            ease: "linear"
-          }}
-          className="absolute -top-48 -right-48 w-96 h-96 bg-gradient-to-br from-orange-400/20 to-amber-500/20 rounded-full blur-3xl"
-        />
-        <motion.div
-          animate={{
-            rotate: [360, 0],
-            x: [0, 30, 0]
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-          className="absolute bottom-0 -left-32 w-80 h-80 bg-gradient-to-tr from-emerald-500/15 to-green-600/15"
-          style={{ clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)' }}
-        />
-      </div>
+      {/* Decorative Grid Pattern — identical to landing page */}
+      <div
+        className="fixed inset-0 opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage: `linear-gradient(to right, rgb(217, 119, 6) 1px, transparent 1px),
+                           linear-gradient(to bottom, rgb(217, 119, 6) 1px, transparent 1px)`,
+          backgroundSize: '60px 60px'
+        }}
+      />
+
+      {/* Blurred accent blobs — identical to landing page hero */}
+      <div className="fixed -top-48 -right-48 w-96 h-96 bg-gradient-to-br from-orange-400/20 to-amber-500/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="fixed -bottom-32 -left-32 w-80 h-80 bg-gradient-to-tr from-emerald-500/15 to-green-600/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="fixed bottom-20 right-1/4 w-64 h-64 bg-gradient-to-bl from-rose-400/20 to-pink-500/20 rounded-3xl blur-2xl pointer-events-none" />
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -150,7 +141,7 @@ export default function LoginPage() {
         >
           <Link
             href="/"
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-gray-700 bg-white/80 backdrop-blur-sm border-2 border-gray-300 rounded-xl hover:bg-white hover:border-orange-400 transition-all duration-300 shadow-sm hover:shadow-md"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-gray-900 bg-white border-2 border-gray-200 rounded-xl hover:border-orange-400 transition-all duration-300 shadow-sm hover:shadow-md"
           >
             <ArrowLeft className="w-4 h-4" />
             Bumalik
@@ -185,7 +176,7 @@ export default function LoginPage() {
               TindaKo
             </span>
           </h1>
-          <p className="text-base font-semibold text-gray-700">
+          <p className="text-base font-semibold text-gray-600">
             Offline-first POS for Sari-Sari Stores
           </p>
         </motion.div>
@@ -195,15 +186,12 @@ export default function LoginPage() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="relative bg-white/90 backdrop-blur-sm rounded-3xl px-8 py-10 shadow-2xl border-2 border-orange-200 overflow-hidden"
+          className="relative bg-white/80 backdrop-blur-sm rounded-3xl px-8 py-10 shadow-2xl border-2 border-orange-200/50 overflow-hidden"
         >
-          {/* Decorative Corner */}
-          <div className="absolute -top-8 -right-8 w-24 h-24 bg-gradient-to-br from-orange-100 to-amber-100 rounded-full opacity-50" />
-
           <div className="relative">
             {/* Header */}
             <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 border-2 border-orange-300 rounded-full mb-4">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-100 to-amber-100 border-2 border-orange-300/50 rounded-full mb-4">
                 <Shield className="w-4 h-4 text-orange-600" />
                 <span className="text-sm font-bold text-orange-800 tracking-wide">SECURE LOGIN</span>
               </div>
@@ -249,7 +237,7 @@ export default function LoginPage() {
                 <div className="w-full border-t-2 border-gray-200" />
               </div>
               <div className="relative flex justify-center">
-                <span className="bg-white px-4 text-sm font-bold text-gray-500">
+                <span className="bg-white/80 px-4 text-sm font-bold text-gray-500">
                   O mag-login gamit email
                 </span>
               </div>
@@ -268,7 +256,7 @@ export default function LoginPage() {
               )}
 
               <div>
-                <label htmlFor="email" className="block text-sm font-bold text-gray-700 mb-1.5">
+                <label htmlFor="email" className="block text-sm font-bold text-gray-900 mb-1.5">
                   Email
                 </label>
                 <div className="relative">
@@ -280,13 +268,13 @@ export default function LoginPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="pl-10 h-12 text-base border-2 border-gray-300 rounded-xl focus:border-orange-500 focus:ring-orange-500"
+                    className="pl-10 h-12 text-base border-2 border-input rounded-xl !bg-white text-gray-900 focus:border-orange-500 focus:ring-orange-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-bold text-gray-700 mb-1.5">
+                <label htmlFor="password" className="block text-sm font-bold text-gray-900 mb-1.5">
                   Password
                 </label>
                 <div className="relative">
@@ -297,12 +285,12 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="pr-10 h-12 text-base border-2 border-gray-300 rounded-xl focus:border-orange-500 focus:ring-orange-500"
+                    className="pr-10 h-12 text-base border-2 border-input rounded-xl !bg-white text-gray-900 focus:border-orange-500 focus:ring-orange-500"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -313,7 +301,7 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full h-14 text-base font-bold bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="w-full h-14 text-base font-bold bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white rounded-xl shadow-lg shadow-orange-500/30 hover:shadow-xl transition-all duration-300"
                 >
                   {isSubmitting ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -324,30 +312,8 @@ export default function LoginPage() {
               </motion.div>
             </form>
 
-            {/* Benefits */}
-            <div className="space-y-3 mt-8 mb-8">
-              {[
-                { icon: Sparkles, text: 'Email or Google login' },
-                { icon: Shield, text: 'Secure authentication' },
-                { icon: Store, text: 'Start selling in 2 minutes' }
-              ].map((benefit, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.7 + index * 0.1 }}
-                  className="flex items-center gap-3 text-sm"
-                >
-                  <div className="flex-shrink-0 w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                    <benefit.icon className="w-4 h-4 text-orange-600" />
-                  </div>
-                  <span className="font-semibold text-gray-700">{benefit.text}</span>
-                </motion.div>
-              ))}
-            </div>
-
             {/* Privacy Links */}
-            <div className="text-center text-xs text-gray-600">
+            <div className="text-center text-xs text-gray-500 mt-6">
               <p className="font-medium">By signing in, you agree to our</p>
               <div className="mt-2 flex justify-center gap-3">
                 <Link
@@ -356,7 +322,7 @@ export default function LoginPage() {
                 >
                   Terms of Service
                 </Link>
-                <span className="text-gray-400">·</span>
+                <span className="text-gray-300">&middot;</span>
                 <Link
                   href="/privacy-policy"
                   className="text-orange-600 hover:text-orange-700 font-semibold hover:underline transition-colors"
@@ -375,12 +341,16 @@ export default function LoginPage() {
           transition={{ delay: 1 }}
           className="mt-6 text-center"
         >
-          <p className="text-sm text-gray-600">
-            Walang account?{' '}
-            <Link href="/signup" className="font-bold text-orange-600 hover:text-orange-700 hover:underline transition-colors">
-              Mag-sign up dito
-            </Link>
+          <p className="text-sm text-gray-600 mb-3">
+            Walang account?
           </p>
+          <Link
+            href="/signup"
+            className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold text-orange-700 bg-white border-2 border-orange-300 rounded-xl hover:bg-orange-50 hover:border-orange-400 transition-all duration-300 shadow-sm"
+          >
+            <Sparkles className="w-4 h-4" />
+            Mag-sign up dito — Libre!
+          </Link>
         </motion.div>
       </motion.div>
     </div>

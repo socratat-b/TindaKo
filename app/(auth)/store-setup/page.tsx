@@ -3,8 +3,11 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { setupStoreAction } from '@/lib/actions/auth'
 import { createClient } from '@/lib/supabase/client'
+import { useAuthStore } from '@/lib/stores/auth-store'
+import { useSettingsStore } from '@/lib/stores/settings-store'
+import { db } from '@/lib/db'
+import type { UserProfile } from '@/lib/db/schema'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,50 +15,48 @@ import { Loader2, Store } from 'lucide-react'
 
 /**
  * Store Setup Page
- * For first-time OAuth users to set their store name
+ * For first-time users to set their store name
+ * Offline-first: saves to IndexedDB only — Supabase sync happens via manual backup
  */
 export default function StoreSetupPage() {
   const router = useRouter()
+  const setAuth = useAuthStore((state) => state.setAuth)
+  const updateSettings = useSettingsStore((state) => state.updateSettings)
   const [storeName, setStoreName] = useState('')
   const [error, setError] = useState('')
   const [isPending, setIsPending] = useState(false)
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
+  const [userId, setUserId] = useState<string | null>(null)
   const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null)
+  const [userProvider, setUserProvider] = useState<'google' | 'email'>('email')
 
-  // Check if user is authenticated
+  // Get authenticated user info from Supabase Auth session (not database)
   useEffect(() => {
     async function checkAuth() {
       try {
         const supabase = createClient()
-        const {
-          data: { user },
-        } = await supabase.auth.getUser()
+        const { data: { user } } = await supabase.auth.getUser()
 
         if (!user) {
-          // Not authenticated - redirect to login
           router.push('/login')
           return
         }
 
+        setUserId(user.id)
         setUserEmail(user.email || null)
+        setUserAvatarUrl(user.user_metadata?.avatar_url || null)
+        setUserProvider(user.app_metadata.provider === 'google' ? 'google' : 'email')
 
-        // Check if user already has a profile (shouldn't be here)
-        const { data: profile, error } = await supabase
-          .from('stores')
-          .select('*')
-          .eq('id', user.id)
-          .maybeSingle() // Use maybeSingle instead of single to avoid 406 error
-
-        // Only stop loading after all checks are done
-        setIsCheckingAuth(false)
-
-        if (profile && !error) {
-          // Already has profile - redirect to POS
+        // Check if profile already exists in IndexedDB
+        const existingProfile = await db.userProfile.get(user.id)
+        if (existingProfile) {
           router.push('/pos')
+          return
         }
-      } catch (err) {
-        console.error('[StoreSetup] Check auth error:', err)
-        // Stop loading even if there's an error
+
+        setIsCheckingAuth(false)
+      } catch {
         setIsCheckingAuth(false)
       }
     }
@@ -67,7 +68,6 @@ export default function StoreSetupPage() {
     e.preventDefault()
     setError('')
 
-    // Validate store name
     const trimmedName = storeName.trim()
     if (!trimmedName) {
       setError('Please enter your store name')
@@ -82,19 +82,38 @@ export default function StoreSetupPage() {
     setIsPending(true)
 
     try {
-      const result = await setupStoreAction(trimmedName)
+      const now = new Date().toISOString()
 
-      if (!result.success) {
-        setError(result.error || 'Failed to setup store')
-        setIsPending(false)
-        return
+      // 1. Save profile to IndexedDB (offline-first)
+      const userProfile: UserProfile = {
+        id: userId!,
+        email: userEmail!,
+        storeName: trimmedName,
+        avatarUrl: userAvatarUrl,
+        provider: userProvider,
+        createdAt: now,
+        updatedAt: now,
       }
+      await db.userProfile.clear()
+      await db.userProfile.add(userProfile)
 
-      // Success - redirect to POS
-      console.log('[StoreSetup] Setup complete, redirecting to POS')
+      // 2. Update Zustand stores
+      setAuth(userId!, userEmail!, trimmedName, userAvatarUrl)
+      updateSettings({ storeName: trimmedName })
+
+      // 3. Update Supabase with the real store name (fire-and-forget, don't block)
+      const supabase = createClient()
+      supabase.from('stores')
+        .update({ store_name: trimmedName, updated_at: now })
+        .eq('id', userId!)
+        .then(({ error: updateErr }) => {
+          if (updateErr) console.warn('[StoreSetup] Supabase update failed (will sync later):', updateErr.message)
+        })
+
+      // Done — go to POS
       router.push('/pos')
     } catch (err) {
-      console.error('[StoreSetup] Error:', err)
+      console.error('[StoreSetup] Error saving to IndexedDB:', err)
       setError('An error occurred. Please try again.')
       setIsPending(false)
     }
@@ -109,7 +128,7 @@ export default function StoreSetupPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 px-4 py-12 sm:px-6 lg:px-8">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 px-4 py-12 sm:px-6 lg:px-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -118,22 +137,22 @@ export default function StoreSetupPage() {
       >
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-            <Store className="h-8 w-8 text-blue-600" />
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-orange-100 to-amber-100 rounded-full mb-4">
+            <Store className="h-8 w-8 text-orange-600" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900">Welcome to TindaKo!</h1>
-          <p className="mt-2 text-sm text-gray-600">Let's set up your store</p>
+          <p className="mt-2 text-sm text-gray-600">Let&apos;s set up your store</p>
           {userEmail && (
             <p className="mt-2 text-xs text-gray-500">Signed in as: {userEmail}</p>
           )}
         </div>
 
         {/* Setup Form */}
-        <div className="rounded-lg bg-white px-8 py-10 shadow-lg">
+        <div className="rounded-2xl bg-white/80 backdrop-blur-sm px-8 py-10 shadow-2xl border-2 border-orange-200/50">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <Label htmlFor="storeName" className="text-base font-medium">
-                What's your store name?
+              <Label htmlFor="storeName" className="text-base font-medium text-gray-900">
+                What&apos;s your store name?
               </Label>
               <p className="text-sm text-gray-500 mt-1 mb-3">
                 This will be displayed in your POS system
@@ -144,7 +163,7 @@ export default function StoreSetupPage() {
                 value={storeName}
                 onChange={(e) => setStoreName(e.target.value)}
                 placeholder="e.g., Aling Maria's Sari-Sari Store"
-                className="h-12 text-base"
+                className="h-12 text-base !bg-white text-gray-900"
                 disabled={isPending}
                 autoFocus
                 maxLength={100}
@@ -152,14 +171,14 @@ export default function StoreSetupPage() {
             </div>
 
             {error && (
-              <div className="rounded-lg bg-red-50 border border-red-200 p-4">
-                <p className="text-sm text-red-800">{error}</p>
+              <div className="rounded-xl bg-red-50 border-2 border-red-200 p-4">
+                <p className="text-sm text-red-700 font-medium">{error}</p>
               </div>
             )}
 
             <Button
               type="submit"
-              className="w-full h-12 text-base"
+              className="w-full h-12 text-base font-bold bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white rounded-xl shadow-lg shadow-orange-500/30"
               disabled={isPending || !storeName.trim()}
             >
               {isPending ? (
@@ -174,7 +193,7 @@ export default function StoreSetupPage() {
           </form>
 
           {/* Info */}
-          <div className="mt-6 pt-6 border-t text-center text-xs text-gray-500">
+          <div className="mt-6 pt-6 border-t border-gray-200 text-center text-xs text-gray-500">
             <p>You can change your store name later in Settings</p>
           </div>
         </div>

@@ -151,6 +151,7 @@ export const useCartStore = create<CartState>()(
         set({
           items: [],
           paymentMethod: useSettingsStore.getState().defaultPaymentMethod,
+          userId: null,
           subtotal: 0,
           total: 0
         })

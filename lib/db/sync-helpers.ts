@@ -12,7 +12,7 @@ import type { SyncStats } from './sync'
 
 export async function pushStores(userId: string): Promise<SyncStats> {
   // OAuth: User profiles are managed by Supabase Auth, no need to sync
-  // The stores table is updated via setupStoreAction/updateStoreNameAction
+  // The stores table is updated via auth callback (profile creation) and updateStoreNameAction
   return { pushedCount: 0, pulledCount: 0, skippedCount: 0 }
 }
 
