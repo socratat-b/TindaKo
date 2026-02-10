@@ -88,10 +88,16 @@ export function CameraBarcodeScanner({
   }
 
   const stopScanning = async () => {
-    if (scannerRef.current && scannerRef.current.isScanning) {
+    // Store reference before async operations to prevent null reference errors
+    const scanner = scannerRef.current
+
+    if (scanner && scanner.isScanning) {
       try {
-        await scannerRef.current.stop()
-        await scannerRef.current.clear()
+        await scanner.stop()
+        // Check again after async stop() - scanner might have cleaned up
+        if (scannerRef.current) {
+          await scannerRef.current.clear()
+        }
       } catch (err) {
         console.error('[CameraBarcodeScanner] Failed to stop:', err)
       }
@@ -108,7 +114,8 @@ export function CameraBarcodeScanner({
 
     // Cleanup on unmount or close
     return () => {
-      if (scannerRef.current) {
+      // Only cleanup if scanner is actually running
+      if (scannerRef.current?.isScanning) {
         stopScanning()
       }
     }
@@ -126,7 +133,7 @@ export function CameraBarcodeScanner({
         className="fixed inset-0 z-50 bg-black"
       >
         {/* Header */}
-        <div className="absolute left-0 right-0 top-0 z-10 bg-gradient-to-b from-black/80 to-transparent p-4">
+        <div className="absolute left-0 right-0 top-0 z-10 bg-linear-to-b from-black/80 to-transparent p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Camera className="h-5 w-5 text-white" />
@@ -188,7 +195,7 @@ export function CameraBarcodeScanner({
         </div>
 
         {/* Instructions */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 pb-8">
+        <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/80 to-transparent p-6 pb-8">
           <p className="text-center text-sm text-white/80">
             Position the barcode within the scanning box
           </p>

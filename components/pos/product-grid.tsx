@@ -12,8 +12,9 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, Plus, Package, Loader2 } from "lucide-react";
+import { Search, Plus, Package, Loader2, Camera } from "lucide-react";
 import { CategoryFilter } from "@/components/shared/category-filter";
+import { CameraBarcodeScanner } from "@/components/ui/camera-barcode-scanner";
 
 interface ProductGridProps {
   userId: string;
@@ -23,6 +24,7 @@ export function ProductGrid({ userId }: ProductGridProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
   const { addItem, items: cartItems } = useCart();
   const formatCurrency = useFormatCurrency();
   const { status: syncStatus } = useSyncStore();
@@ -51,7 +53,7 @@ export function ProductGrid({ userId }: ProductGridProps) {
       const matchesSearch =
         searchQuery === "" ||
         product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (product.barcode && product.barcode.includes(searchQuery));
+        product.barcode?.toLowerCase().includes(searchQuery.toLowerCase())
 
       const matchesCategory =
         selectedCategory === "all" || product.categoryId === selectedCategory;
@@ -87,20 +89,27 @@ export function ProductGrid({ userId }: ProductGridProps) {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Search and Filter - Fixed at top */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
-        className="flex-none flex flex-col lg:flex-row gap-2 mb-2"
-      >
-        <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
-          <Input
-            placeholder="Search products..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8 h-9 text-sm"
-          />
+      <div className="flex-none flex flex-col lg:flex-row gap-2 mb-2">
+        <div className="flex flex-1 gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+            <Input
+              placeholder="Search by name or barcode..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8 h-9 text-sm"
+            />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => setIsCameraOpen(true)}
+            className="h-9 w-9 shrink-0 lg:hidden"
+            title="Scan with camera"
+          >
+            <Camera className="h-4 w-4" />
+          </Button>
         </div>
         <CategoryFilter
           categories={categories}
@@ -108,7 +117,7 @@ export function ProductGrid({ userId }: ProductGridProps) {
           onValueChange={setSelectedCategory}
           className="w-full lg:w-[180px] h-9 text-sm"
         />
-      </motion.div>
+      </div>
 
       {/* Product List - Scrollable */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden">
@@ -142,7 +151,7 @@ export function ProductGrid({ userId }: ProductGridProps) {
           </div>
         ) : (
           <div className="space-y-2 pb-2">
-            {filteredProducts.map((product, index) => {
+            {filteredProducts.map((product) => {
               const category = categories.find(
                 (c) => c.id === product.categoryId,
               );
@@ -161,18 +170,13 @@ export function ProductGrid({ userId }: ProductGridProps) {
               return (
                 <motion.div
                   key={product.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{
-                    duration: 0.3,
-                    delay: index * 0.03,
-                    ease: "easeOut",
-                  }}
+                  whileTap={!isOutOfStock ? { scale: 0.97 } : undefined}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
                   className="w-full"
                 >
                   <Card
-                    className={`p-2.5 cursor-pointer transition-all active:scale-[0.99] w-full ${
-                      isOutOfStock ? "opacity-50" : ""
+                    className={`p-2.5 cursor-pointer w-full ${
+                      isOutOfStock ? "opacity-50 cursor-not-allowed" : ""
                     }`}
                     onClick={() => !isOutOfStock && handleAddToCart(product)}
                   >
@@ -219,16 +223,18 @@ export function ProductGrid({ userId }: ProductGridProps) {
 
                       {/* Add Button */}
                       {!isOutOfStock && (
-                        <Button
-                          size="icon"
-                          className="h-10 w-10 shrink-0 rounded-full"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAddToCart(product);
-                          }}
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
+                        <motion.div whileTap={{ scale: 0.85 }} transition={{ type: "spring", stiffness: 400, damping: 15 }}>
+                          <Button
+                            size="icon"
+                            className="h-10 w-10 shrink-0 rounded-full"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddToCart(product);
+                            }}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </motion.div>
                       )}
                     </div>
                   </Card>
@@ -238,6 +244,16 @@ export function ProductGrid({ userId }: ProductGridProps) {
           </div>
         )}
       </div>
+
+      {/* Camera Barcode Scanner - mobile only */}
+      <CameraBarcodeScanner
+        isOpen={isCameraOpen}
+        onScan={(barcode) => {
+          setIsCameraOpen(false);
+          setSearchQuery(barcode);
+        }}
+        onClose={() => setIsCameraOpen(false)}
+      />
     </div>
   );
 }

@@ -18,7 +18,11 @@ export const useProductsStore = create<ProductsState>((set) => ({
   isLoading: true,
   
   loadProducts: async (userId: string) => {
-    set({ isLoading: true })
+    // Only show loading spinner on first load (no cached data)
+    const { products: cached } = useProductsStore.getState()
+    if (cached.length === 0) {
+      set({ isLoading: true })
+    }
 
     try {
       const [allProducts, allCategories] = await Promise.all([

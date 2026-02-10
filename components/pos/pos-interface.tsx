@@ -3,15 +3,12 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useCart } from '@/lib/hooks/use-cart'
-import { useSettings } from '@/lib/hooks/use-settings'
 import { useSyncStore } from '@/lib/stores/sync-store'
 import { useProductCartSync } from '@/lib/hooks/use-product-cart-sync'
 import { processSale } from '@/lib/actions/pos'
 import { ProductGrid } from './product-grid'
 import { CartDisplay } from './cart-display'
 import { CheckoutDialog } from './checkout-dialog'
-import { BarcodeScanner } from './barcode-scanner'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ShoppingCart, Package } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import type { POSInterfaceProps } from '@/lib/types'
@@ -19,7 +16,6 @@ import type { POSInterfaceProps } from '@/lib/types'
 export default function POSInterface({ userId }: POSInterfaceProps) {
   const [checkoutOpen, setCheckoutOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('products')
-  const { enableBarcodeScanner } = useSettings()
   const cart = useCart()
   const { setHasPendingChanges } = useSyncStore()
 
@@ -51,9 +47,6 @@ export default function POSInterface({ userId }: POSInterfaceProps) {
     <>
       {/* Desktop Layout - Hidden on Mobile */}
       <div className="hidden lg:flex h-[calc(100vh-10rem)] flex-col gap-4">
-        {/* Barcode Scanner */}
-        {enableBarcodeScanner && <BarcodeScanner />}
-
         {/* Main POS Layout */}
         <div className="flex-1 grid grid-cols-3 gap-4 min-h-0">
           {/* Product Grid - Takes 2 columns on large screens */}
@@ -78,51 +71,74 @@ export default function POSInterface({ userId }: POSInterfaceProps) {
         </div>
       </div>
 
-      {/* Mobile Layout - Tabs */}
+      {/* Mobile Layout - Custom Tabs with framer-motion */}
       <div className="lg:hidden flex flex-col h-[calc(100vh-7.5rem)] overflow-hidden">
-        {/* Barcode Scanner */}
-        {enableBarcodeScanner && (
-          <div className="flex-none mb-3">
-            <BarcodeScanner />
-          </div>
-        )}
-
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.1, ease: 'easeOut' }}
-          >
-            <TabsList className="grid w-full grid-cols-2 flex-none mb-2.5">
-              <TabsTrigger value="products" className="text-sm">
-                <Package className="h-4 w-4 mr-1.5" />
-                Products
-              </TabsTrigger>
-              <TabsTrigger value="cart" className="text-sm">
-                <ShoppingCart className="h-4 w-4 mr-1.5" />
-                Cart
-                {cart.items.length > 0 && (
-                  <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-xs">
-                    {cart.items.length}
-                  </Badge>
+        {/* Tab Bar */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+          className="flex-none mb-2.5"
+        >
+          <div className="grid w-full grid-cols-2 bg-muted rounded-lg p-[3px] h-9">
+            {(['products', 'cart'] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`relative inline-flex h-full items-center justify-center gap-1.5 rounded-md px-2 py-1 text-sm font-medium transition-colors ${
+                  activeTab === tab
+                    ? 'text-foreground'
+                    : 'text-muted-foreground'
+                }`}
+              >
+                {activeTab === tab && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute inset-0 bg-background rounded-md shadow-sm"
+                    transition={{ type: 'spring', bounce: 0.15, duration: 0.4 }}
+                  />
                 )}
-              </TabsTrigger>
-            </TabsList>
-          </motion.div>
+                <span className="relative z-10 flex items-center gap-1.5">
+                  {tab === 'products' ? (
+                    <Package className="h-4 w-4" />
+                  ) : (
+                    <ShoppingCart className="h-4 w-4" />
+                  )}
+                  {tab === 'products' ? 'Products' : 'Cart'}
+                  {tab === 'cart' && cart.items.length > 0 && (
+                    <Badge variant="secondary" className="ml-0.5 h-5 px-1.5 text-xs">
+                      {cart.items.length}
+                    </Badge>
+                  )}
+                </span>
+              </button>
+            ))}
+          </div>
+        </motion.div>
 
-          <TabsContent value="products" className="flex-1 overflow-hidden m-0">
+        {/* Tab Content - both stay mounted, animate opacity */}
+        <div className="flex-1 overflow-hidden relative">
+          <motion.div
+            animate={{ opacity: activeTab === 'products' ? 1 : 0 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            className="absolute inset-0 overflow-hidden"
+            style={{ pointerEvents: activeTab === 'products' ? 'auto' : 'none' }}
+          >
             <ProductGrid userId={userId} />
-          </TabsContent>
-
-          <TabsContent value="cart" className="flex-1 overflow-hidden m-0">
+          </motion.div>
+          <motion.div
+            animate={{ opacity: activeTab === 'cart' ? 1 : 0 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            className="absolute inset-0 overflow-hidden"
+            style={{ pointerEvents: activeTab === 'cart' ? 'auto' : 'none' }}
+          >
             <CartDisplay
               onCheckout={() => {
                 setCheckoutOpen(true)
               }}
             />
-          </TabsContent>
-        </Tabs>
+          </motion.div>
+        </div>
       </div>
 
       {/* Checkout Dialog */}
