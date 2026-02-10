@@ -24,28 +24,32 @@ export async function proxy(request: NextRequest) {
 
   let response = NextResponse.next({ request })
 
-  // Create Supabase client for cookie-based session check (optimistic)
+  // Create Supabase client for cookie-based session check
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value
+        getAll() {
+          return request.cookies.getAll()
         },
-        set(name: string, value: string, options: any) {
-          response.cookies.set({ name, value, ...options })
-        },
-        remove(name: string, options: any) {
-          response.cookies.set({ name, value: '', ...options })
+        setAll(cookiesToSet) {
+          // Update request cookies so Supabase can read its own writes
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          // Recreate response with updated request cookies
+          response = NextResponse.next({ request })
+          // Set cookies on response so browser receives them
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          )
         },
       },
     }
   )
 
-  // Optimistic check: read session from cookie only (no DB query)
-  const { data: { session } } = await supabase.auth.getSession()
-  const hasSession = !!session
+  // Refresh session - validates with Supabase server and refreshes tokens
+  const { data: { user } } = await supabase.auth.getUser()
+  const hasSession = !!user
 
   // Allow auth callback routes
   if (isAuthCallback) {

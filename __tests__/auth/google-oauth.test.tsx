@@ -66,6 +66,10 @@ const mockBrowserFrom = vi.fn().mockReturnValue({
   }),
 })
 
+const mockOnAuthStateChange = vi.fn().mockReturnValue({
+  data: { subscription: { unsubscribe: vi.fn() } },
+})
+
 vi.mock('@/lib/supabase/client', () => ({
   createClient: () => ({
     auth: {
@@ -73,6 +77,7 @@ vi.mock('@/lib/supabase/client', () => ({
       signInWithPassword: vi.fn(),
       signInWithOAuth: mockSignInWithOAuth,
       getUser: mockBrowserGetUser,
+      onAuthStateChange: mockOnAuthStateChange,
     },
     from: mockBrowserFrom,
   }),

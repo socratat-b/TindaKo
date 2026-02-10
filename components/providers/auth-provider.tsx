@@ -59,6 +59,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Update auth store
             setAuth(userProfile.id, userProfile.email, userProfile.storeName, userProfile.avatarUrl)
             console.log('[AuthProvider] Synced profile from Supabase:', userProfile.id)
+          } else if (!storeProfile && user.email) {
+            // Profile not in stores table yet - use auth user data as fallback
+            setAuth(user.id, user.email, user.email.split('@')[0] + "'s Store", user.user_metadata?.avatar_url || null)
+            console.log('[AuthProvider] Used auth user data as fallback:', user.id)
           }
         }
 
