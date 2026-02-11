@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { CloudUpload, Loader2, CheckCircle2 } from 'lucide-react'
@@ -21,7 +21,6 @@ export function DataSettingsSection() {
   const [isBackupDialogOpen, setIsBackupDialogOpen] = useState(false)
 
   const isSyncing = status === 'syncing'
-  const prevSyncingRef = useRef(isSyncing)
 
   // Check for pending changes on mount and periodically
   useEffect(() => {
@@ -37,18 +36,12 @@ export function DataSettingsSection() {
     }
   }, [checkPendingChanges, userId])
 
-  // Control backup dialog: only open when backup is actively triggered
+  // Auto-close dialog when status returns to idle
   useEffect(() => {
-    // Open dialog when backup starts
-    if (isSyncing && !prevSyncingRef.current) {
-      setIsBackupDialogOpen(true)
-    }
-    // Keep dialog open on error or success, close only on idle
-    if (status === 'idle') {
+    if (status === 'idle' && isBackupDialogOpen) {
       setIsBackupDialogOpen(false)
     }
-    prevSyncingRef.current = isSyncing
-  }, [isSyncing, status])
+  }, [status, isBackupDialogOpen])
 
   const handleCloseDialog = () => {
     resetStatus()
@@ -57,6 +50,8 @@ export function DataSettingsSection() {
 
   const handleBackup = async () => {
     if (userId) {
+      // Only open dialog for user-initiated backup
+      setIsBackupDialogOpen(true)
       await backup(userId)
     }
   }

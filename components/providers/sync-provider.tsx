@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { usePathname } from 'next/navigation'
+import { useEffect, useRef } from 'react'
 import { useSyncStore } from '@/lib/stores/sync-store'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { db } from '@/lib/db'
@@ -9,62 +8,43 @@ import { db } from '@/lib/db'
 export function SyncProvider({ children }: { children: React.ReactNode }) {
   const { userId } = useAuth()
   const { restore } = useSyncStore()
-  const pathname = usePathname()
-  const lastSyncedUserIdRef = useRef<string | null>(null)
+  const hasRestoredRef = useRef<string | null>(null)
 
+  // Auto-restore from cloud ONCE per user login (not on every page navigation)
   useEffect(() => {
     if (!userId) {
-      // User logged out - reset everything
-      lastSyncedUserIdRef.current = null
+      hasRestoredRef.current = null
       return
     }
 
-    // Only sync on dashboard pages (not login/signup)
-    const isDashboardPage = pathname !== '/login' && pathname !== '/signup'
-    if (!isDashboardPage) {
+    // Already restored for this user - skip
+    if (hasRestoredRef.current === userId) {
       return
     }
 
-    // User logged in and on dashboard - check if we need to pull data
     const pullDataIfNeeded = async () => {
       try {
-        // ALWAYS check if local DB is empty first
-        // This handles multiple logout → login cycles for the same account
+        // Check if local DB has data
         const productsCount = await db.products.count()
 
-        // If DB is empty, we must pull data (even if ref is set)
+        // Mark as restored immediately to prevent re-triggering
+        hasRestoredRef.current = userId
+
         if (productsCount === 0) {
-          // Check if already pulling (ref set + store status is 'syncing')
-          const { status } = useSyncStore.getState()
-          if (lastSyncedUserIdRef.current === userId && status === 'syncing') {
-            return
-          }
-
-          // DB is empty but ref is set = logout happened, reset it
-          if (lastSyncedUserIdRef.current !== null) {
-            lastSyncedUserIdRef.current = null
-          }
-
           // DB is empty - pull data from cloud
-          lastSyncedUserIdRef.current = userId // Mark as pulling
-
           await restore(userId)
-
           window.dispatchEvent(new CustomEvent('data-restored'))
-
           localStorage.setItem('lastLoggedInUserId', userId)
-        } else {
-          // DB has data - mark as synced to prevent unnecessary pulls on navigation
-          lastSyncedUserIdRef.current = userId
         }
       } catch (error) {
         console.error('[SyncProvider] Failed to pull data:', error)
-        lastSyncedUserIdRef.current = null // Reset so it retries
+        // Reset so it can retry on next render
+        hasRestoredRef.current = null
       }
     }
 
     pullDataIfNeeded()
-  }, [userId, pathname, restore])
+  }, [userId, restore])
 
   return <>{children}</>
 }

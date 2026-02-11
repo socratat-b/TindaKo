@@ -19,16 +19,6 @@ export function SyncIndicator() {
   const isSyncing = status === 'syncing'
   const isSuccess = status === 'success'
 
-  // Debug logging
-  useEffect(() => {
-    console.log('[SyncIndicator] Status changed:', {
-      status,
-      isSyncing,
-      isSuccess,
-      error,
-    })
-  }, [status, isSyncing, isSuccess, error])
-
   // Count all pending changes across all tables
   const pendingChangesCount = useLiveQuery(async () => {
     if (!userId) return 0
@@ -73,26 +63,14 @@ export function SyncIndicator() {
         .count(),
     ])
 
-    const total =
+    return (
       salesCount +
       productsCount +
       categoriesCount +
       customersCount +
       utangCount +
       inventoryCount
-
-    console.log('[SyncIndicator] Pending changes:', {
-      salesCount,
-      productsCount,
-      categoriesCount,
-      customersCount,
-      utangCount,
-      inventoryCount,
-      total,
-      userId
-    })
-
-    return total
+    )
   }, [userId])
 
   // Animate text cycling when there are pending changes
@@ -109,11 +87,8 @@ export function SyncIndicator() {
   }, [pendingChangesCount, isSyncing, error])
 
   const handleManualBackup = () => {
-    console.log('[SyncIndicator] Manual backup clicked')
     if (!isSyncing && userId) {
       backup(userId)
-    } else {
-      console.log('[SyncIndicator] Backup already in progress or no userId, skipping')
     }
   }
 
