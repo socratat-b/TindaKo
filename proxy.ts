@@ -11,15 +11,22 @@ import { createServerClient } from '@supabase/ssr'
 
 // Specify protected and public routes
 const protectedRoutes = ['/pos', '/products', '/inventory', '/utang', '/reports', '/settings']
-const publicRoutes = ['/login', '/signup', '/', '/store-setup', '/privacy-policy', '/terms-of-service', '/data-deletion']
+// Auth routes: only for unauthenticated users — redirect to /pos if already logged in
+const authRoutes = ['/login', '/signup', '/']
+// Store setup: post-login step, redirect to /pos if already logged in
+const postAuthSetupRoutes = ['/store-setup']
+// Always public: accessible regardless of auth state
+const alwaysPublicRoutes = ['/privacy-policy', '/terms-of-service', '/data-deletion']
 const authCallbackRoutes = ['/auth/callback']
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
 
-  // Check if current route is protected or public
+  // Check route type
   const isProtectedRoute = protectedRoutes.some(route => path.startsWith(route))
-  const isPublicRoute = publicRoutes.includes(path)
+  const isAuthRoute = authRoutes.includes(path)
+  const isPostAuthSetupRoute = postAuthSetupRoutes.includes(path)
+  const isAlwaysPublic = alwaysPublicRoutes.some(route => path.startsWith(route))
   const isAuthCallback = authCallbackRoutes.some(route => path.startsWith(route))
 
   let response = NextResponse.next({ request })
@@ -51,23 +58,28 @@ export async function proxy(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const hasSession = !!user
 
-  // Allow auth callback routes
-  if (isAuthCallback) {
+  // Allow auth callback routes and static assets
+  if (isAuthCallback || path.startsWith('/_next') || path.startsWith('/api')) {
     return response
   }
 
-  // Allow public routes (static assets, API routes)
-  if (path.startsWith('/_next') || path.startsWith('/api')) {
+  // Always public routes — no auth check needed
+  if (isAlwaysPublic) {
     return response
   }
 
-  // Redirect authenticated users away from auth pages
-  if (hasSession && (path === '/login' || path === '/signup')) {
+  // Authenticated users shouldn't access login/signup/home or store-setup → send to /pos
+  if (hasSession && (isAuthRoute || isPostAuthSetupRoute)) {
     return NextResponse.redirect(new URL('/pos', request.url))
   }
 
-  // Redirect unauthenticated users from protected routes to login
-  if (isProtectedRoute && !hasSession) {
+  // Unauthenticated users can't access protected routes → send to /login
+  if (!hasSession && isProtectedRoute) {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+
+  // Unauthenticated users on store-setup → send to /login
+  if (!hasSession && isPostAuthSetupRoute) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
